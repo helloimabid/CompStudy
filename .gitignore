@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# local scripts
+scripts/setup-permissions.js
+scripts/setup-appwrite.js
+scripts/setup-sessions.js
+scripts/update-sessions-schema.js
