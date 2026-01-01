@@ -25,6 +25,7 @@ import {
   useCloudflareWebSocket,
 } from "@/context/CloudflareWebSocketContext";
 
+export const runtime = "edge";
 interface RoomParticipant {
   $id: string;
   roomId: string;
