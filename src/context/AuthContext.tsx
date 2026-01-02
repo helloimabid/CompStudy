@@ -102,12 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string
   ) => {
     const userId = ID.unique();
-    
+
     try {
       // Step 1: Create the account
       await account.create(userId, email, password, username);
       console.log("Account created successfully");
-      
+
       // Step 2: Create session
       await account.createEmailPasswordSession(email, password);
       console.log("Session created successfully");
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Registration error:", error);
-      
+
       // If account was created but profile/session failed, try to login instead
       if (error.code === 409 || error.message?.includes("already exists")) {
         try {
@@ -149,9 +149,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Auto-login failed:", loginError);
         }
       }
-      
+
       // Re-throw the error to be caught by the UI
-      throw new Error(error.message || "Registration failed. Please try logging in instead.");
+      throw new Error(
+        error.message || "Registration failed. Please try logging in instead."
+      );
     }
   };
 
