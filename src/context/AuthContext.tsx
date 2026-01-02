@@ -7,7 +7,14 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { account, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
+import {
+  account,
+  databases,
+  DB_ID,
+  COLLECTIONS,
+  storage,
+  BUCKET_ID,
+} from "@/lib/appwrite";
 import { ID, Models, Permission, Role, Query } from "appwrite";
 import { useRouter } from "next/navigation";
 
@@ -22,6 +29,12 @@ interface AuthContextType {
   ) => Promise<void>;
   loginWithGoogle: () => void;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  updateProfile: (data: { username?: string; bio?: string }) => Promise<void>;
+  checkUsernameAvailable: (username: string) => Promise<boolean>;
+  uploadProfilePicture: (file: File) => Promise<string>;
+  needsUsername: boolean;
+  setUsernameForOAuth: (username: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     null
   );
   const [loading, setLoading] = useState(true);
+  const [needsUsername, setNeedsUsername] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,6 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
 
         if (profiles.documents.length === 0) {
+          // For OAuth users without username, show username dialog
+          if (!session.name || session.name.includes("@")) {
+            setNeedsUsername(true);
+            setLoading(false);
+            return;
+          }
+
+          // Create profile with the existing name
           await databases.createDocument(
             DB_ID,
             COLLECTIONS.PROFILES,
@@ -102,6 +124,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string
   ) => {
     const userId = ID.unique();
+
+    // Check if username is already taken
+    const isAvailable = await checkUsernameAvailable(username);
+    if (!isAvailable) {
+      throw new Error("Username is already taken");
+    }
 
     try {
       // Step 1: Create the account
@@ -187,9 +215,182 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setUsernameForOAuth = async (username: string) => {
+    if (!user) throw new Error("No user logged in");
+
+    // Check if username is available
+    const isAvailable = await checkUsernameAvailable(username);
+    if (!isAvailable) {
+      throw new Error("Username is already taken");
+    }
+
+    // Create profile with the chosen username
+    try {
+      await databases.createDocument(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        ID.unique(),
+        {
+          userId: user.$id,
+          username: username,
+          totalHours: 0.0,
+          streak: 0,
+          xp: 0,
+        },
+        [
+          Permission.read(Role.any()),
+          Permission.update(Role.user(user.$id)),
+          Permission.delete(Role.user(user.$id)),
+        ]
+      );
+
+      // Update account name
+      await account.updateName(username);
+
+      setNeedsUsername(false);
+      await checkUser();
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.error("Failed to set username:", error);
+      throw new Error(error.message || "Failed to set username");
+    }
+  };
+
+  const checkUsernameAvailable = async (username: string): Promise<boolean> => {
+    try {
+      const profiles = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.equal("username", username)]
+      );
+      return profiles.documents.length === 0;
+    } catch (error) {
+      console.error("Error checking username:", error);
+      return false;
+    }
+  };
+
+  const updateProfile = async (data: { username?: string; bio?: string }) => {
+    if (!user) throw new Error("No user logged in");
+
+    try {
+      const profiles = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.equal("userId", user.$id)]
+      );
+
+      if (profiles.documents.length > 0) {
+        const currentProfile = profiles.documents[0] as any;
+
+        // Only check username availability if it's being changed
+        if (data.username && data.username !== currentProfile.username) {
+          const isAvailable = await checkUsernameAvailable(data.username);
+          if (!isAvailable) {
+            throw new Error("Username is already taken");
+          }
+        }
+
+        await databases.updateDocument(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          profiles.documents[0].$id,
+          data
+        );
+
+        // Update account name if username changed
+        if (data.username && data.username !== currentProfile.username) {
+          await account.updateName(data.username);
+        }
+
+        await checkUser();
+      }
+    } catch (error: any) {
+      console.error("Profile update error:", error);
+      throw new Error(error.message || "Failed to update profile");
+    }
+  };
+
+  const uploadProfilePicture = async (file: File): Promise<string> => {
+    if (!user) throw new Error("No user logged in");
+
+    try {
+      // Upload file to storage
+      const fileId = ID.unique();
+      const uploadedFile = await storage.createFile(BUCKET_ID, fileId, file);
+
+      // Get file URL
+      const fileUrl = storage.getFileView(BUCKET_ID, uploadedFile.$id);
+
+      // Update profile with picture URL
+      const profiles = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.equal("userId", user.$id)]
+      );
+
+      if (profiles.documents.length > 0) {
+        await databases.updateDocument(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          profiles.documents[0].$id,
+          { profilePicture: fileUrl.toString() }
+        );
+      }
+
+      return fileUrl.toString();
+    } catch (error: any) {
+      console.error("Profile picture upload error:", error);
+      throw new Error(error.message || "Failed to upload profile picture");
+    }
+  };
+
+  const deleteAccount = async () => {
+    if (!user) throw new Error("No user logged in");
+
+    try {
+      // Delete profile from database
+      const profiles = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.equal("userId", user.$id)]
+      );
+
+      if (profiles.documents.length > 0) {
+        await databases.deleteDocument(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          profiles.documents[0].$id
+        );
+      }
+
+      // Delete all sessions (logs out)
+      await account.deleteSessions();
+
+      setUser(null);
+      router.push("/login");
+    } catch (error: any) {
+      console.error("Account deletion error:", error);
+      throw new Error(error.message || "Failed to delete account");
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, loginWithGoogle }}
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        loginWithGoogle,
+        deleteAccount,
+        updateProfile,
+        checkUsernameAvailable,
+        uploadProfilePicture,
+        needsUsername,
+        setUsernameForOAuth,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -88,12 +88,20 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <>
               {user ? (
-                <Link
-                  href="/dashboard"
-                  className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href={`/profile/${user.$id}`}
+                    className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Profile
+                  </Link>
+                </>
               ) : (
                 <Link
                   href="/login"
@@ -112,7 +120,6 @@ export default function Navbar() {
                 </Link>
               )}
             </>
-          
           </div>
 
           {/* Mobile Menu Button */}
@@ -141,7 +148,9 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={clsx(
                   "block text-sm font-medium transition-colors py-2",
-                  pathname === "/features" ? "text-zinc-200" : "text-zinc-500 hover:text-zinc-200"
+                  pathname === "/features"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
                 )}
               >
                 Features
@@ -151,7 +160,9 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={clsx(
                   "block text-sm font-medium transition-colors py-2",
-                  pathname === "/leaderboards" ? "text-zinc-200" : "text-zinc-500 hover:text-zinc-200"
+                  pathname === "/leaderboards"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
                 )}
               >
                 Leaderboards
@@ -161,12 +172,14 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={clsx(
                   "block text-sm font-medium transition-colors py-2",
-                  pathname === "/community" ? "text-zinc-200" : "text-zinc-500 hover:text-zinc-200"
+                  pathname === "/community"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
                 )}
               >
                 Community
               </Link>
-              
+
               <div className="pt-4 border-t border-white/5 space-y-3">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
                   <span className="relative flex h-1.5 w-1.5">
