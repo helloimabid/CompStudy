@@ -45,7 +45,9 @@ export default function LoginPage() {
         await login(email, password);
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred");
+      console.error("Authentication error:", err);
+      const errorMessage = err.message || err.toString() || "An error occurred";
+      setError(errorMessage);
     }
   };
 
@@ -185,9 +187,16 @@ export default function LoginPage() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={loginWithGoogle}
+            onClick={() => {
+              try {
+                loginWithGoogle();
+              } catch (err: any) {
+                setError(err.message || "Failed to initiate Google login");
+              }
+            }}
             type="button"
-            className="w-full mt-5 bg-white text-zinc-900 text-sm font-medium px-4 py-3.5 rounded-xl hover:bg-zinc-100 transition-all shadow-lg shadow-white/10 flex items-center justify-center gap-3"
+            disabled={loading}
+            className="w-full mt-5 bg-white text-zinc-900 text-sm font-medium px-4 py-3.5 rounded-xl hover:bg-zinc-100 transition-all shadow-lg shadow-white/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path

@@ -102,11 +102,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string
   ) => {
     const userId = ID.unique();
-    await account.create(userId, email, password, username);
-    await account.createEmailPasswordSession(email, password);
-
-    // Create user profile in database
+    
     try {
+      // Step 1: Create the account
+      await account.create(userId, email, password, username);
+      console.log("Account created successfully");
+      
+      // Step 2: Create session
+      await account.createEmailPasswordSession(email, password);
+      console.log("Session created successfully");
+
+      // Step 3: Create user profile in database
       await databases.createDocument(
         DB_ID,
         COLLECTIONS.PROFILES,
@@ -124,13 +130,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           Permission.delete(Role.user(userId)), // Only the user can delete their profile
         ]
       );
-    } catch (error) {
-      console.error("Failed to create user profile:", error);
-      // Optional: Handle cleanup if profile creation fails
-    }
+      console.log("Profile created successfully");
 
-    await checkUser();
-    router.push("/dashboard");
+      // Step 4: Refresh user data
+      await checkUser();
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      // If account was created but profile/session failed, try to login instead
+      if (error.code === 409 || error.message?.includes("already exists")) {
+        try {
+          await account.createEmailPasswordSession(email, password);
+          await checkUser();
+          router.push("/dashboard");
+          return;
+        } catch (loginError) {
+          console.error("Auto-login failed:", loginError);
+        }
+      }
+      
+      // Re-throw the error to be caught by the UI
+      throw new Error(error.message || "Registration failed. Please try logging in instead.");
+    }
   };
 
   const logout = async () => {
@@ -140,11 +162,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const loginWithGoogle = () => {
-    account.createOAuth2Session(
-      "google" as any,
-      `${window.location.origin}/dashboard`,
-      `${window.location.origin}/login`
-    );
+    try {
+      // Get the current origin, ensuring it works in both dev and production
+      const successUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/dashboard`
+          : `${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/dashboard`;
+
+      const failureUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/login`
+          : `${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/login`;
+
+      account.createOAuth2Session("google" as any, successUrl, failureUrl);
+    } catch (error) {
+      console.error("Google OAuth error:", error);
+      throw error;
+    }
   };
 
   return (
