@@ -14,7 +14,6 @@ import {
   Loader2,
   Wifi,
   WifiOff,
-  X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
@@ -60,6 +59,10 @@ const DEFAULT_DURATIONS: Record<Room["mode"], number> = {
 
 function parseRoomConfig(room: Room): {
   durations?: Partial<Record<Room["mode"], number>>;
+  bans?: Record<
+    string,
+    { type: "temporary" | "permanent"; untilMs?: number }
+  >;
 } {
   try {
     const parsed = JSON.parse(room.participants);
@@ -69,6 +72,22 @@ function parseRoomConfig(room: Room): {
   } catch {
     return {};
   }
+}
+
+function getActiveBan(
+  room: Room | null,
+  userId: string
+): { type: "temporary" | "permanent"; untilMs?: number } | null {
+  if (!room || !userId) return null;
+  const config = parseRoomConfig(room);
+  const entry = config.bans?.[userId];
+  if (!entry) return null;
+  if (entry.type === "permanent") return entry;
+  if (entry.type === "temporary") {
+    if (typeof entry.untilMs === "number" && Date.now() < entry.untilMs)
+      return entry;
+  }
+  return null;
 }
 
 function getRoomDurations(room: Room | null): Record<Room["mode"], number> {
@@ -236,6 +255,18 @@ function RoomContent() {
           // Use the current timer state from the room, don't reset
           setLocalTimeRemaining(currentRoom.timeRemaining);
 
+          // If user is banned, don't allow them to join.
+          const activeBan = getActiveBan(currentRoom, user.$id);
+          if (activeBan) {
+            const untilLabel =
+              activeBan.type === "temporary" && typeof activeBan.untilMs === "number"
+                ? ` (until ${new Date(activeBan.untilMs).toLocaleString()})`
+                : "";
+            alert(`You are banned from this room${untilLabel}.`);
+            router.push("/start-studying");
+            return;
+          }
+
           // Check if user is already a participant
           const participantCheck = await databases.listDocuments(
             DB_ID,
@@ -293,6 +324,8 @@ function RoomContent() {
                 Permission.read(Role.any()),
                 Permission.update(Role.user(user.$id)),
                 Permission.delete(Role.user(user.$id)),
+                // Allow the room creator to remove participants
+                Permission.delete(Role.user(currentRoom.creatorId)),
               ]
             );
           }
@@ -440,6 +473,54 @@ function RoomContent() {
 
         if (typeof message.data.timeRemaining === "number") {
           setLocalTimeRemaining(message.data.timeRemaining);
+        }
+      }
+
+      if (message.type === "admin-action" && message.data && user) {
+        const action = message.data.action as string | undefined;
+        const targetUserId = message.data.targetUserId as string | undefined;
+
+        if (targetUserId && targetUserId === user.$id) {
+          if (action === "kicked" || action === "banned") {
+            (async () => {
+              try {
+                const participantDocs = await databases.listDocuments(
+                  DB_ID,
+                  COLLECTIONS.ROOM_PARTICIPANTS,
+                  [
+                    Query.equal("roomId", roomId),
+                    Query.equal("userId", user.$id),
+                  ]
+                );
+
+                for (const doc of participantDocs.documents) {
+                  try {
+                    await databases.deleteDocument(
+                      DB_ID,
+                      COLLECTIONS.ROOM_PARTICIPANTS,
+                      doc.$id
+                    );
+                  } catch {
+                    // ignore
+                  }
+                }
+              } catch {
+                // ignore
+              }
+
+              const untilMs = message.data.untilMs as number | undefined;
+              const untilLabel =
+                typeof untilMs === "number"
+                  ? ` (until ${new Date(untilMs).toLocaleString()})`
+                  : "";
+              alert(
+                action === "banned"
+                  ? `You have been banned from this room${untilLabel}.`
+                  : "You have been removed from this room."
+              );
+              router.push("/start-studying");
+            })();
+          }
         }
       }
     }
@@ -816,17 +897,88 @@ function RoomContent() {
     }
   };
 
-  const handleKickParticipant = async (participantId: string) => {
+  const updateRoomBan = async (
+    targetUserId: string,
+    ban:
+      | { type: "temporary"; untilMs: number }
+      | { type: "permanent" }
+      | null
+  ) => {
     if (!room || !user || room.creatorId !== user.$id) return;
+    try {
+      const config = parseRoomConfig(room);
+      const bans = { ...(config.bans ?? {}) };
+
+      if (ban) bans[targetUserId] = ban;
+      else delete bans[targetUserId];
+
+      const nextConfig = {
+        ...config,
+        bans,
+      };
+
+      const updated = await databases.updateDocument(
+        DB_ID,
+        COLLECTIONS.ROOMS,
+        room.$id,
+        {
+          participants: JSON.stringify(nextConfig),
+        }
+      );
+      setRoom(updated as unknown as Room);
+    } catch (error) {
+      console.error("Failed to update ban list:", error);
+    }
+  };
+
+  const handleModerateUser = async (
+    targetUserId: string,
+    mode: "kick-temp" | "ban-perm"
+  ) => {
+    if (!room || !user || room.creatorId !== user.$id) return;
+    if (!targetUserId) return;
+
+    const TEMP_MINUTES = 10;
+    const untilMs = Date.now() + TEMP_MINUTES * 60 * 1000;
 
     try {
-      await databases.deleteDocument(
+      if (mode === "kick-temp") {
+        await updateRoomBan(targetUserId, { type: "temporary", untilMs });
+        sendMessage("admin-action", {
+          action: "ban",
+          targetUserId,
+          permanent: false,
+          durationMs: TEMP_MINUTES * 60 * 1000,
+        });
+      } else {
+        await updateRoomBan(targetUserId, { type: "permanent" });
+        sendMessage("admin-action", {
+          action: "ban",
+          targetUserId,
+          permanent: true,
+        });
+      }
+
+      // Best-effort: delete participant docs (kicked client will also self-cleanup).
+      const participantDocs = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.ROOM_PARTICIPANTS,
-        participantId
+        [Query.equal("roomId", roomId), Query.equal("userId", targetUserId)]
       );
+
+      for (const doc of participantDocs.documents) {
+        try {
+          await databases.deleteDocument(
+            DB_ID,
+            COLLECTIONS.ROOM_PARTICIPANTS,
+            doc.$id
+          );
+        } catch {
+          // ignore
+        }
+      }
     } catch (error) {
-      console.error("Failed to kick participant:", error);
+      console.error("Failed to moderate user:", error);
     }
   };
 
@@ -1063,19 +1215,26 @@ function RoomContent() {
                       )}
                     </div>
                     {isCreator && participant.userId !== user.$id && (
-                      <button
-                        onClick={() => {
-                          const fallbackDoc = participants.find(
-                            (p) => p.userId === participant.userId
-                          );
-                          if (fallbackDoc)
-                            handleKickParticipant(fallbackDoc.$id);
-                        }}
-                        className="p-1 text-zinc-500 hover:text-red-400 transition-colors"
-                        title="Remove participant"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            handleModerateUser(participant.userId, "kick-temp")
+                          }
+                          className="px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-700 transition-colors"
+                          title="Kick temporarily (10 minutes)"
+                        >
+                          Kick
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleModerateUser(participant.userId, "ban-perm")
+                          }
+                          className="px-2 py-1 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded hover:bg-red-500/20 transition-colors"
+                          title="Ban permanently"
+                        >
+                          Ban
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}

@@ -98,6 +98,13 @@ export function CloudflareWebSocketProvider({
         setConnectionStatus("disconnected");
         wsRef.current = null;
 
+        // Stop reconnect loops when the server intentionally disconnects
+        // for moderation (kick/ban) or similar policy reasons.
+        if (event.code === 4001 || event.code === 4003) {
+          shouldReconnectRef.current = false;
+          return;
+        }
+
         // Only reconnect if still mounted and user is still available
         if (!shouldReconnectRef.current) return;
 
