@@ -59,10 +59,7 @@ const DEFAULT_DURATIONS: Record<Room["mode"], number> = {
 
 function parseRoomConfig(room: Room): {
   durations?: Partial<Record<Room["mode"], number>>;
-  bans?: Record<
-    string,
-    { type: "temporary" | "permanent"; untilMs?: number }
-  >;
+  bans?: Record<string, { type: "temporary" | "permanent"; untilMs?: number }>;
 } {
   try {
     const parsed = JSON.parse(room.participants);
@@ -259,7 +256,8 @@ function RoomContent() {
           const activeBan = getActiveBan(currentRoom, user.$id);
           if (activeBan) {
             const untilLabel =
-              activeBan.type === "temporary" && typeof activeBan.untilMs === "number"
+              activeBan.type === "temporary" &&
+              typeof activeBan.untilMs === "number"
                 ? ` (until ${new Date(activeBan.untilMs).toLocaleString()})`
                 : "";
             alert(`You are banned from this room${untilLabel}.`);
@@ -899,10 +897,7 @@ function RoomContent() {
 
   const updateRoomBan = async (
     targetUserId: string,
-    ban:
-      | { type: "temporary"; untilMs: number }
-      | { type: "permanent" }
-      | null
+    ban: { type: "temporary"; untilMs: number } | { type: "permanent" } | null
   ) => {
     if (!room || !user || room.creatorId !== user.$id) return;
     try {
