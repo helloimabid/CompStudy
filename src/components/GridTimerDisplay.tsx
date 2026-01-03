@@ -20,10 +20,12 @@ const GridDigit = ({
   char,
   size = "md",
   isBreak,
+  themeColor,
 }: {
   char: string;
   size?: "sm" | "md" | "lg";
   isBreak?: boolean;
+  themeColor?: string;
 }) => {
   const pattern = DIGIT_PATTERNS[char] || Array(15).fill(0);
 
@@ -35,7 +37,26 @@ const GridDigit = ({
   };
 
   const { gap, block } = sizes[size];
-  const color = isBreak ? "#22c55e" : "#6366f1"; // Green for break, Indigo for focus
+
+  // Determine color based on props
+  let activeColor = "#6366f1"; // Default Indigo
+
+  if (themeColor) {
+    // Map theme names to hex colors if passed as names, or use as is
+    const colorMap: Record<string, string> = {
+      indigo: "#6366f1",
+      cyan: "#06b6d4",
+      green: "#22c55e",
+      amber: "#f59e0b",
+      rose: "#f43f5e",
+      violet: "#8b5cf6",
+    };
+    activeColor = colorMap[themeColor] || themeColor;
+  }
+
+  // Break overrides theme unless specifically handled otherwise
+  if (isBreak) activeColor = "#22c55e";
+
   const inactiveColor = "rgba(255,255,255,0.1)";
 
   return (
@@ -53,9 +74,9 @@ const GridDigit = ({
           key={i}
           style={{
             height: `${block}px`,
-            backgroundColor: active ? color : inactiveColor,
+            backgroundColor: active ? activeColor : inactiveColor,
             borderRadius: `${Math.max(1, block / 4)}px`,
-            boxShadow: active ? `0 0 ${block}px ${color}80` : "none",
+            boxShadow: active ? `0 0 ${block}px ${activeColor}80` : "none",
             transition: "all 0.3s ease",
             transform: active ? "scale(1)" : "scale(0.8)",
           }}
@@ -69,10 +90,12 @@ export default function GridTimerDisplay({
   time,
   size = "md",
   isBreak = false,
+  themeColor = "indigo",
 }: {
   time: string;
   size?: "sm" | "md" | "lg";
   isBreak?: boolean;
+  themeColor?: string;
 }) {
   if (!time) return null;
 
@@ -82,7 +105,13 @@ export default function GridTimerDisplay({
       suppressHydrationWarning
     >
       {time.split("").map((char, i) => (
-        <GridDigit key={i} char={char} size={size} isBreak={isBreak} />
+        <GridDigit
+          key={i}
+          char={char}
+          size={size}
+          isBreak={isBreak}
+          themeColor={themeColor}
+        />
       ))}
     </div>
   );
