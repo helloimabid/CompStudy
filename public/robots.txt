@@ -1,0 +1,15 @@
+# CompStudy - Study Timer Robots.txt
+# Allow all search engines to crawl
+
+User-agent: *
+Allow: /
+
+# Disallow private user pages during active sessions
+Disallow: /api/
+Disallow: /room/*/private
+
+# Sitemap location
+Sitemap: https://compstudy.pages.dev/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

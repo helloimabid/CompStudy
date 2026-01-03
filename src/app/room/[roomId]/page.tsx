@@ -14,11 +14,26 @@ import {
   Loader2,
   Wifi,
   WifiOff,
+  Settings,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
+import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
 import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { ID, Permission, Query, Role } from "appwrite";
 import GridTimerDisplay from "@/components/GridTimerDisplay";
+import {
+  DigitalTimerDisplay,
+  CircularTimerDisplay,
+  MinimalTimerDisplay,
+} from "@/components/TimerDisplays";
+import TimerSettings, {
+  ThemeColor,
+  VisualMode,
+  TimerStyle,
+  TimerFont,
+} from "@/components/TimerSettings";
 import {
   CloudflareWebSocketProvider,
   useCloudflareWebSocket,
@@ -153,6 +168,17 @@ function RoomContent() {
   const serverOffsetMsRef = useRef(0);
   const roomDurations = getRoomDurations(room);
 
+  // Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [themeColor, setThemeColor] = useState<ThemeColor>("indigo");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [visualMode, setVisualMode] = useState<VisualMode>("grid");
+  const [timerStyle, setTimerStyle] = useState<TimerStyle>("grid");
+  const [timerFont, setTimerFont] = useState<TimerFont>("default");
+  const [autoStartFocus, setAutoStartFocus] = useState(false);
+  const [autoStartBreak, setAutoStartBreak] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   const [configDraft, setConfigDraft] = useState<{
     name: string;
     subject: string;
@@ -162,6 +188,17 @@ function RoomContent() {
     longBreakMin: number;
   } | null>(null);
   const [configSaving, setConfigSaving] = useState(false);
+
+  // // Timer Settings State
+  // const [showSettings, setShowSettings] = useState(false);
+  // const [themeColor, setThemeColor] = useState<ThemeColor>("indigo");
+  // const [soundEnabled, setSoundEnabled] = useState(true);
+  // const [visualMode, setVisualMode] = useState<VisualMode>("grid");
+  // const [timerStyle, setTimerStyle] = useState<TimerStyle>("grid");
+  // const [timerFont, setTimerFont] = useState<TimerFont>("default");
+  // const [autoStartFocus, setAutoStartFocus] = useState(false);
+  // const [autoStartBreak, setAutoStartBreak] = useState(false);
+  // const [isFullScreen, setIsFullScreen] = useState(false);
 
   const requestedRoomConfigRef = useRef<{
     name?: string;
@@ -199,6 +236,52 @@ function RoomContent() {
       },
     };
   }
+
+  // Load settings from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("roomTimerSettings");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.themeColor) setThemeColor(parsed.themeColor);
+        if (parsed.soundEnabled !== undefined)
+          setSoundEnabled(parsed.soundEnabled);
+        if (parsed.visualMode) setVisualMode(parsed.visualMode);
+        if (parsed.timerStyle) setTimerStyle(parsed.timerStyle);
+        if (parsed.timerFont) setTimerFont(parsed.timerFont);
+        if (parsed.autoStartFocus !== undefined)
+          setAutoStartFocus(parsed.autoStartFocus);
+        if (parsed.autoStartBreak !== undefined)
+          setAutoStartBreak(parsed.autoStartBreak);
+      } catch (e) {
+        console.error("Failed to parse settings", e);
+      }
+    }
+  }, []);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      "roomTimerSettings",
+      JSON.stringify({
+        themeColor,
+        soundEnabled,
+        visualMode,
+        timerStyle,
+        timerFont,
+        autoStartFocus,
+        autoStartBreak,
+      })
+    );
+  }, [
+    themeColor,
+    soundEnabled,
+    visualMode,
+    timerStyle,
+    timerFont,
+    autoStartFocus,
+    autoStartBreak,
+  ]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -698,23 +781,59 @@ function RoomContent() {
 
   const handleTimerComplete = async () => {
     if (!room) return;
-    try {
-      await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
-        timerState: "idle",
-        timeRemaining: roomDurations[room.mode],
-      });
 
-      setRoom((prev) =>
-        prev
-          ? {
-              ...prev,
-              timerState: "idle",
-              timeRemaining: roomDurations[prev.mode],
-              $updatedAt: new Date().toISOString(),
-            }
-          : prev
+    if (soundEnabled) {
+      const audio = new Audio(
+        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
       );
-      setLocalTimeRemaining(roomDurations[room.mode]);
+      audio.play().catch((e) => console.error("Audio play failed", e));
+    }
+
+    try {
+      const shouldAutoStart =
+        (room.mode === "pomodoro" && autoStartBreak) ||
+        (room.mode !== "pomodoro" && autoStartFocus);
+
+      if (shouldAutoStart) {
+        // Auto-start next mode
+        const nextMode: Room["mode"] =
+          room.mode === "pomodoro" ? "short-break" : "pomodoro";
+        await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+          mode: nextMode,
+          timerState: "running",
+          timeRemaining: roomDurations[nextMode],
+        });
+
+        setRoom((prev) =>
+          prev
+            ? {
+                ...prev,
+                mode: nextMode,
+                timerState: "running",
+                timeRemaining: roomDurations[nextMode],
+                $updatedAt: new Date().toISOString(),
+              }
+            : prev
+        );
+        setLocalTimeRemaining(roomDurations[nextMode]);
+      } else {
+        await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+          timerState: "idle",
+          timeRemaining: roomDurations[room.mode],
+        });
+
+        setRoom((prev) =>
+          prev
+            ? {
+                ...prev,
+                timerState: "idle",
+                timeRemaining: roomDurations[prev.mode],
+                $updatedAt: new Date().toISOString(),
+              }
+            : prev
+        );
+        setLocalTimeRemaining(roomDurations[room.mode]);
+      }
     } catch (error) {
       console.error("Failed to complete timer:", error);
     }
@@ -991,6 +1110,116 @@ function RoomContent() {
       .padStart(2, "0")}`;
   };
 
+  const themeClasses = {
+    indigo: {
+      bg: "bg-indigo-600",
+      text: "text-indigo-400",
+      border: "border-indigo-500/30",
+      ring: "ring-indigo-500/20",
+      glow: "bg-indigo-500/5",
+      hover: "hover:bg-indigo-500",
+      gradient: "from-indigo-500 to-purple-500",
+    },
+    cyan: {
+      bg: "bg-cyan-600",
+      text: "text-cyan-400",
+      border: "border-cyan-500/30",
+      ring: "ring-cyan-500/20",
+      glow: "bg-cyan-500/5",
+      hover: "hover:bg-cyan-500",
+      gradient: "from-cyan-500 to-blue-500",
+    },
+    green: {
+      bg: "bg-green-600",
+      text: "text-green-400",
+      border: "border-green-500/30",
+      ring: "ring-green-500/20",
+      glow: "bg-green-500/5",
+      hover: "hover:bg-green-500",
+      gradient: "from-green-500 to-emerald-500",
+    },
+    amber: {
+      bg: "bg-amber-600",
+      text: "text-amber-400",
+      border: "border-amber-500/30",
+      ring: "ring-amber-500/20",
+      glow: "bg-amber-500/5",
+      hover: "hover:bg-amber-500",
+      gradient: "from-amber-500 to-orange-500",
+    },
+    rose: {
+      bg: "bg-rose-600",
+      text: "text-rose-400",
+      border: "border-rose-500/30",
+      ring: "ring-rose-500/20",
+      glow: "bg-rose-500/5",
+      hover: "hover:bg-rose-500",
+      gradient: "from-rose-500 to-pink-500",
+    },
+    violet: {
+      bg: "bg-violet-600",
+      text: "text-violet-400",
+      border: "border-violet-500/30",
+      ring: "ring-violet-500/20",
+      glow: "bg-violet-500/5",
+      hover: "hover:bg-violet-500",
+      gradient: "from-violet-500 to-purple-500",
+    },
+  };
+
+  const currentTheme = themeClasses[themeColor];
+  const isBreak = room?.mode === "short-break" || room?.mode === "long-break";
+
+  const renderTimer = () => {
+    const time = formatTime(localTimeRemaining);
+    switch (timerStyle) {
+      case "digital":
+        return (
+          <DigitalTimerDisplay
+            time={time}
+            size="lg"
+            isBreak={isBreak}
+            themeColor={themeColor}
+            timerFont={timerFont}
+          />
+        );
+      case "circular":
+        return (
+          <CircularTimerDisplay
+            time={time}
+            progress={
+              ((roomDurations[room?.mode || "pomodoro"] - localTimeRemaining) /
+                roomDurations[room?.mode || "pomodoro"]) *
+              100
+            }
+            size="lg"
+            isBreak={isBreak}
+            themeColor={themeColor}
+            timerFont={timerFont}
+          />
+        );
+      case "minimal":
+        return (
+          <MinimalTimerDisplay
+            time={time}
+            size="lg"
+            isBreak={isBreak}
+            themeColor={themeColor}
+            timerFont={timerFont}
+          />
+        );
+      case "grid":
+      default:
+        return (
+          <GridTimerDisplay
+            time={time}
+            themeColor={themeColor}
+            isBreak={isBreak}
+          />
+        );
+    }
+  };
+
   if (loading || roomLoading) {
     return (
       <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 min-h-screen flex items-center justify-center">
@@ -1011,230 +1240,418 @@ function RoomContent() {
       : fallbackUsers;
 
   return (
-    <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-12">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-medium text-white mb-2">
-              Study Room
-            </h1>
-            <div className="flex items-center gap-2">
-              <code className="text-xs md:text-sm text-zinc-400 bg-zinc-900 px-2 md:px-3 py-1 rounded">
-                {roomId}
-              </code>
-              <button
-                onClick={handleCopyRoomCode}
-                className="text-zinc-400 hover:text-white transition-colors p-1"
-                title="Copy room code"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-400" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
-
-              {/* WebSocket Status Indicator */}
+    <main
+      className={clsx(
+        "relative min-h-screen transition-all",
+        isFullScreen
+          ? "fixed inset-0 z-[100] bg-[#050505] flex items-center justify-center p-0"
+          : "pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20"
+      )}
+    >
+      {isFullScreen ? (
+        <div className="w-full h-full flex flex-col items-center justify-center p-8 relative">
+          {/* Background Effects */}
+          {visualMode !== "minimal" && (
+            <>
               <div
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded"
-                title={`WebSocket: ${connectionStatus}`}
-              >
-                {isConnected ? (
-                  <>
-                    <Wifi className="w-3 h-3 text-green-400" />
-                    <span className="text-green-400">Live</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="w-3 h-3 text-zinc-500" />
-                    <span className="text-zinc-500">{connectionStatus}</span>
-                  </>
+                className={clsx(
+                  "absolute inset-0 animate-pulse pointer-events-none transition-colors duration-1000",
+                  currentTheme.glow
                 )}
-              </div>
+              ></div>
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)] pointer-events-none"></div>
+              {visualMode === "cyber" && (
+                <div
+                  className={clsx(
+                    "absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none"
+                  )}
+                ></div>
+              )}
+            </>
+          )}
+
+          {/* Exit Button */}
+          <button
+            onClick={() => setIsFullScreen(false)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 p-2 sm:p-3 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors z-10"
+          >
+            <Minimize2 size={20} className="sm:w-6 sm:h-6" />
+          </button>
+
+          {/* Session Info */}
+          <div className="text-center mb-6 md:mb-8 z-10 px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3">
+              {room?.name || "Study Room"}
+            </h1>
+            <p
+              className={clsx(
+                "text-sm sm:text-base md:text-lg font-medium",
+                isBreak ? "text-green-400" : currentTheme.text
+              )}
+            >
+              {room?.subject || "General"} •{" "}
+              {room?.mode === "pomodoro"
+                ? "Focus Time"
+                : room?.mode === "short-break"
+                ? "Short Break"
+                : "Long Break"}
+            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl h-1.5 md:h-2 bg-zinc-800/50 rounded-full mb-8 md:mb-12 overflow-hidden z-10 px-4">
+            <div
+              className={clsx(
+                "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_20px_currentColor]",
+                isBreak
+                  ? "bg-green-500 text-green-500"
+                  : clsx(currentTheme.bg, currentTheme.text)
+              )}
+              style={{
+                width: `${
+                  ((roomDurations[room?.mode || "pomodoro"] -
+                    localTimeRemaining) /
+                    roomDurations[room?.mode || "pomodoro"]) *
+                  100
+                }%`,
+              }}
+            ></div>
+          </div>
+
+          {/* Timer Display */}
+          <div className="z-10 mb-8 md:mb-12">
+            <div className="scale-90 sm:scale-110 md:scale-125">
+              {renderTimer()}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {isCreator && (
+          {/* Controls - Creator Only */}
+          {isCreator && (
+            <div className="flex items-center gap-8 z-10">
               <button
-                onClick={handleDeleteRoom}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors text-sm"
-                title="Delete Room"
+                onClick={handlePlayPause}
+                className={clsx(
+                  "w-20 h-20 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-xl text-white",
+                  room?.timerState === "running"
+                    ? "bg-yellow-500 hover:bg-yellow-400"
+                    : clsx(currentTheme.bg, currentTheme.hover)
+                )}
               >
-                <LogOut className="w-4 h-4" />
-                Delete Room
+                {room?.timerState === "running" ? (
+                  <Pause size={32} fill="currentColor" />
+                ) : (
+                  <Play size={32} fill="currentColor" />
+                )}
               </button>
-            )}
-            <button
-              onClick={handleLeaveRoom}
-              className="flex items-center gap-2 px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-colors text-sm"
-            >
-              <LogOut className="w-4 h-4" />
-              Leave Room
-            </button>
+              <button
+                onClick={handleReset}
+                className="w-20 h-20 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-all hover:scale-110 shadow-xl"
+              >
+                <RotateCcw size={32} />
+              </button>
+            </div>
+          )}
+
+          {/* Participants indicator */}
+          <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
+            <p className="text-zinc-500 text-xs sm:text-sm flex items-center gap-2">
+              <Users size={16} />
+              {displayUsers.length} {displayUsers.length === 1 ? "participant" : "participants"}
+            </p>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          {/* Timer Section */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Mode Selector */}
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => handleModeChange("pomodoro")}
-                disabled={!isCreator}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  room.mode === "pomodoro"
-                    ? "bg-indigo-500 text-white"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                } ${!isCreator ? "opacity-50 cursor-not-allowed" : ""}`}
+      ) : (
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-12">
+            <div>
+              <h1
+                className={clsx(
+                  "text-2xl md:text-3xl font-medium mb-2",
+                  currentTheme.text
+                )}
               >
-                Pomodoro
-              </button>
-              <button
-                onClick={() => handleModeChange("short-break")}
-                disabled={!isCreator}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  room.mode === "short-break"
-                    ? "bg-emerald-500 text-white"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                } ${!isCreator ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                Short Break
-              </button>
-              <button
-                onClick={() => handleModeChange("long-break")}
-                disabled={!isCreator}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  room.mode === "long-break"
-                    ? "bg-blue-500 text-white"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                } ${!isCreator ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                Long Break
-              </button>
-            </div>
-
-            {/* Timer Display */}
-            <div className="card-glass p-8 md:p-12">
-              <div className="flex flex-col items-center">
-                <div className="mb-8 md:mb-12">
-                  <GridTimerDisplay time={formatTime(localTimeRemaining)} />
-                </div>
-
-                {/* Timer Controls */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={handlePlayPause}
-                    disabled={!isCreator}
-                    className={`flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-lg font-medium text-sm md:text-base transition-all ${
-                      room.timerState === "running"
-                        ? "bg-yellow-500 hover:bg-yellow-400 text-black"
-                        : "bg-indigo-500 hover:bg-indigo-400 text-white"
-                    } ${!isCreator ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {room.timerState === "running" ? (
-                      <>
-                        <Pause className="w-4 h-4 md:w-5 md:h-5" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 md:w-5 md:h-5" />
-                        Start
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    disabled={!isCreator}
-                    className={`flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium text-sm md:text-base transition-all ${
-                      !isCreator ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
-                    Reset
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="card-glass p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Clock className="w-5 h-5 text-indigo-400" />
-                <span className="text-sm font-medium text-zinc-300">
-                  Session Progress
+                {room?.name || "Study Room"}
+              </h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-zinc-400">
+                  {room?.subject || "General"}
                 </span>
-              </div>
-              <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <span className="text-zinc-600">•</span>
+                <code className="text-xs md:text-sm text-zinc-400 bg-zinc-900 px-2 md:px-3 py-1 rounded">
+                  {roomId}
+                </code>
+                <button
+                  onClick={handleCopyRoomCode}
+                  className="text-zinc-400 hover:text-white transition-colors p-1"
+                  title="Copy room code"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+
+                {/* WebSocket Status Indicator */}
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-1000"
-                  style={{
-                    width: `${
-                      ((roomDurations[room.mode] - localTimeRemaining) /
-                        roomDurations[room.mode]) *
-                      100
-                    }%`,
-                  }}
-                />
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+                  title={`WebSocket: ${connectionStatus}`}
+                >
+                  {isConnected ? (
+                    <>
+                      <Wifi className="w-3 h-3 text-green-400" />
+                      <span className="text-green-400">Live</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-3 h-3 text-zinc-500" />
+                      <span className="text-zinc-500">{connectionStatus}</span>
+                    </>
+                  )}
+                </div>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                className={clsx(
+                  "p-2 rounded-lg transition-colors",
+                  "hover:bg-white/5 text-zinc-400 hover:text-white"
+                )}
+                title="Fullscreen"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className={clsx(
+                  "p-2 rounded-lg transition-colors",
+                  "hover:bg-white/5 text-zinc-400 hover:text-white"
+                )}
+                title="Settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              {isCreator && (
+                <button
+                  onClick={handleDeleteRoom}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors text-sm"
+                  title="Delete Room"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Delete
+                </button>
+              )}
+              <button
+                onClick={handleLeaveRoom}
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-colors text-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                Leave
+              </button>
             </div>
           </div>
 
-          {/* Participants Sidebar */}
-          <div className="space-y-6">
-            <div className="card-glass p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Users className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-lg font-medium text-white">
-                  Participants ({displayUsers.length})
-                </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Timer Section */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Mode Selector */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleModeChange("pomodoro")}
+                  disabled={!isCreator}
+                  className={clsx(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                    room.mode === "pomodoro"
+                      ? clsx(currentTheme.bg, "text-white shadow-lg")
+                      : "bg-zinc-900 text-zinc-400 hover:text-white",
+                    !isCreator && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  Pomodoro
+                </button>
+                <button
+                  onClick={() => handleModeChange("short-break")}
+                  disabled={!isCreator}
+                  className={clsx(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                    room.mode === "short-break"
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "bg-zinc-900 text-zinc-400 hover:text-white",
+                    !isCreator && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  Short Break
+                </button>
+                <button
+                  onClick={() => handleModeChange("long-break")}
+                  disabled={!isCreator}
+                  className={clsx(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                    room.mode === "long-break"
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "bg-zinc-900 text-zinc-400 hover:text-white",
+                    !isCreator && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  Long Break
+                </button>
               </div>
-              <div className="space-y-3">
-                {displayUsers.map((participant) => (
-                  <div
-                    key={participant.userId}
-                    className="flex items-center gap-3 p-3 bg-zinc-900/50 rounded-lg"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-medium">
-                      {participant.username[0].toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {participant.username}
-                      </p>
-                      {participant.userId === room.creatorId && (
-                        <p className="text-xs text-zinc-500">Room Creator</p>
+
+              {/* Timer Display */}
+              <div
+                className={clsx(
+                  "card-glass p-8 md:p-12 relative overflow-hidden transition-all",
+                  room.timerState === "running" && currentTheme.border
+                )}
+              >
+                {/* Background Effects */}
+                {room.timerState === "running" && visualMode !== "minimal" && (
+                  <>
+                    <div
+                      className={clsx(
+                        "absolute inset-0 animate-pulse pointer-events-none",
+                        currentTheme.glow
                       )}
-                    </div>
-                    {isCreator && participant.userId !== user.$id && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            handleModerateUser(participant.userId, "kick-temp")
-                          }
-                          className="px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-700 transition-colors"
-                          title="Kick temporarily (10 minutes)"
-                        >
-                          Kick
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleModerateUser(participant.userId, "ban-perm")
-                          }
-                          className="px-2 py-1 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded hover:bg-red-500/20 transition-colors"
-                          title="Ban permanently"
-                        >
-                          Ban
-                        </button>
-                      </div>
+                    ></div>
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)] pointer-events-none"></div>
+                    {visualMode === "cyber" && (
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none"></div>
                     )}
+                  </>
+                )}
+
+                <div className="flex flex-col items-center relative z-10">
+                  <div className="mb-8 md:mb-12">{renderTimer()}</div>
+
+                  {/* Timer Controls */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handlePlayPause}
+                      disabled={!isCreator}
+                      className={clsx(
+                        "flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-lg font-medium text-sm md:text-base transition-all",
+                        room.timerState === "running"
+                          ? "bg-yellow-500 hover:bg-yellow-400 text-black"
+                          : clsx(currentTheme.bg, currentTheme.hover, "text-white"),
+                        !isCreator && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      {room.timerState === "running" ? (
+                        <>
+                          <Pause className="w-4 h-4 md:w-5 md:h-5" />
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 md:w-5 md:h-5" />
+                          Start
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleReset}
+                      disabled={!isCreator}
+                      className={clsx(
+                        "flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium text-sm md:text-base transition-all",
+                        !isCreator && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                      Reset
+                    </button>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="card-glass p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <Clock className={clsx("w-5 h-5", currentTheme.text)} />
+                  <span className="text-sm font-medium text-zinc-300">
+                    Session Progress
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className={clsx(
+                      "h-full transition-all duration-1000 bg-gradient-to-r",
+                      isBreak
+                        ? "from-green-500 to-emerald-500"
+                        : currentTheme.gradient
+                    )}
+                    style={{
+                      width: `${
+                        ((roomDurations[room.mode] - localTimeRemaining) /
+                          roomDurations[room.mode]) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Participants Sidebar */}
+            <div className="space-y-6">
+              <div className="card-glass p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Users className={clsx("w-5 h-5", currentTheme.text)} />
+                  <h2 className="text-lg font-medium text-white">
+                    Participants ({displayUsers.length})
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  {displayUsers.map((participant) => (
+                    <div
+                      key={participant.userId}
+                      className="flex items-center gap-3 p-3 bg-zinc-900/50 rounded-lg"
+                    >
+                      <div
+                        className={clsx(
+                          "w-10 h-10 rounded-full flex items-center justify-center font-medium",
+                          currentTheme.glow,
+                          currentTheme.text
+                        )}
+                      >
+                        {participant.username[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                          {participant.username}
+                        </p>
+                        {participant.userId === room.creatorId && (
+                          <p className="text-xs text-zinc-500">Room Creator</p>
+                        )}
+                      </div>
+                      {isCreator && participant.userId !== user.$id && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              handleModerateUser(participant.userId, "kick-temp")
+                            }
+                            className="px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-700 transition-colors"
+                            title="Kick temporarily (10 minutes)"
+                          >
+                            Kick
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleModerateUser(participant.userId, "ban-perm")
+                            }
+                            className="px-2 py-1 text-xs bg-red-500/10 border border-red-500/20 text-red-400 rounded hover:bg-red-500/20 transition-colors"
+                            title="Ban permanently"
+                          >
+                            Ban
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
             {/* Room Config (Creator only) */}
             {isCreator && configDraft && (
@@ -1418,9 +1835,33 @@ function RoomContent() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Timer Settings Modal */}
+      <TimerSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        themeColor={themeColor}
+        setThemeColor={setThemeColor}
+        soundEnabled={soundEnabled}
+        setSoundEnabled={setSoundEnabled}
+        visualMode={visualMode}
+        setVisualMode={setVisualMode}
+        timerStyle={timerStyle}
+        setTimerStyle={setTimerStyle}
+        timerFont={timerFont}
+        setTimerFont={setTimerFont}
+        autoStartFocus={autoStartFocus}
+        setAutoStartFocus={setAutoStartFocus}
+        autoStartBreak={autoStartBreak}
+        setAutoStartBreak={setAutoStartBreak}
+        targetDuration={roomDurations[room?.mode || "pomodoro"]}
+        setTargetDuration={() => {}}
+        applyPreset={() => {}}
+      />
     </main>
   );
 }

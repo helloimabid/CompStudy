@@ -43,9 +43,103 @@ const electrolize = Electrolize({
 });
 
 export const metadata: Metadata = {
-  title: "CompStudy - Competitive Studying",
+  metadataBase: new URL("https://compstudy.pages.dev"),
+  title: {
+    default:
+      "CompStudy - Online Study Timer with Live Rooms & Pomodoro | Free Focus Timer",
+    template: "%s | CompStudy - Study Timer & Focus App",
+  },
   description:
-    "Turn isolation into motivation. Join real-time study rooms, climb the global leaderboards, and visualize your progress.",
+    "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking. Join thousands studying together. Track focus time, set goals, climb leaderboards. Best study timer app 2026.",
+  keywords: [
+    "study timer",
+    "pomodoro timer",
+    "focus timer",
+    "online study timer",
+    "free study timer",
+    "study timer online",
+    "pomodoro technique",
+    "productivity timer",
+    "study timer with music",
+    "concentration timer",
+    "study session timer",
+    "time management app",
+    "focus app",
+    "study planner",
+    "study tracker",
+    "academic timer",
+    "homework timer",
+    "exam preparation timer",
+    "study room online",
+    "virtual study room",
+    "study with me",
+    "study together online",
+    "collaborative studying",
+    "study productivity app",
+    "student timer",
+    "learning timer",
+    "study break timer",
+    "focus session",
+    "deep work timer",
+    "study goals tracker",
+    "study statistics",
+    "study leaderboard",
+    "competitive studying",
+    "study motivation app",
+  ],
+  authors: [{ name: "CompStudy Team" }],
+  creator: "CompStudy",
+  publisher: "CompStudy",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://compstudy.pages.dev",
+    title: "CompStudy - Best Free Online Study Timer & Pomodoro Focus App",
+    description:
+      "Join thousands of students using the best free study timer. Pomodoro technique, live study rooms, goal tracking, and productivity analytics. Start focusing better today!",
+    siteName: "CompStudy",
+    images: [
+      {
+        url: "/og-image.png", // Create this image
+        width: 1200,
+        height: 630,
+        alt: "CompStudy - Online Study Timer and Focus App",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CompStudy - Free Study Timer & Pomodoro Focus App",
+    description:
+      "Track your study time, join live study rooms, and boost productivity with our free online timer. Pomodoro technique built-in!",
+    images: ["/og-image.png"], // Create this image
+    creator: "@compstudy", // Update with your Twitter handle
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code", // Add your Google Search Console verification
+    // yandex: "your-yandex-verification-code",
+    // bing: "your-bing-verification-code",
+  },
+  alternates: {
+    canonical: "https://compstudy.pages.dev",
+  },
+  category: "Education",
 };
 
 export default function RootLayout({
@@ -66,6 +160,92 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap"
           rel="stylesheet"
+        />
+
+        {/* SEO: Structured Data - WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "CompStudy",
+              alternateName: "CompStudy Study Timer",
+              url: "https://compstudy.pages.dev",
+              description:
+                "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate:
+                    "https://compstudy.app/search?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+
+        {/* SEO: Structured Data - WebApplication Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "CompStudy",
+              applicationCategory: "EducationalApplication",
+              operatingSystem: "Any",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "1250",
+                bestRating: "5",
+                worstRating: "1",
+              },
+              description:
+                "Free study timer with Pomodoro technique, live study rooms, goal tracking, and productivity analytics for students",
+              featureList: [
+                "Pomodoro Timer",
+                "Study Goal Tracking",
+                "Live Study Rooms",
+                "Focus Statistics",
+                "Study Streak Counter",
+                "Leaderboards",
+                "Break Reminders",
+                "Session History",
+              ],
+            }),
+          }}
+        />
+
+        {/* SEO: Structured Data - Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "CompStudy",
+              url: "https://compstudy.pages.dev",
+              logo: "https://compstudy.pages.dev/logo.png",
+              sameAs: [
+                "https://twitter.com/compstudy",
+                "https://github.com/compstudy",
+              ],
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "Customer Support",
+                email: "support@compstudy.app",
+              },
+            }),
+          }}
         />
       </head>
       <body

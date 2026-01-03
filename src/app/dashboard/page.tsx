@@ -309,7 +309,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <motion.div
               variants={item}
-              onClick={() => router.push("/start-studying")}
+              onClick={() => router.push("/focus")}
               className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/30 rounded-3xl p-6 relative overflow-hidden cursor-pointer group hover:border-indigo-500/50 transition-all"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -318,7 +318,7 @@ export default function DashboardPage() {
                   <BookOpen className="text-indigo-400" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  Start Studying
+                  Start Studying Solo 
                 </h3>
                 <p className="text-sm text-zinc-400 mb-4">
                   Begin a new focus session

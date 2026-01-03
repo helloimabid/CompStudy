@@ -1,8 +1,71 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { ArrowRight, Flame, Globe, BarChart2, Trophy } from "lucide-react";
 import LiveBadge from "@/components/LiveBadge";
 import LeaderboardWidget from "@/components/LeaderboardWidget";
+import { Metadata } from "next";
+import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
+import { Query } from "appwrite";
+
+// Note: Metadata export removed as this is now a client component
+// SEO metadata is handled in layout.tsx
 
 export default function Home() {
+  const [stats, setStats] = useState({
+    activeRooms: 0,
+    totalHoursStudied: 0,
+    totalUsers: 0,
+    activeStudents: 0,
+  });
+
+  useEffect(() => {
+    loadStats();
+    // Refresh stats every 30 seconds
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      // Get active rooms from Rooms collection
+      const activeRooms = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.ROOMS,
+        [Query.limit(1000)]
+      );
+
+      // Get active sessions
+      const activeSessions = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.STUDY_SESSIONS,
+        [Query.equal("status", "active"), Query.limit(1000)]
+      );
+
+      // Get all profiles for total users and hours
+      const profiles = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.limit(5000)]
+      );
+
+      // Calculate total hours studied across all users
+      const totalHours = profiles.documents.reduce(
+        (sum: number, profile: any) => sum + (profile.totalHours || 0),
+        0
+      );
+
+      setStats({
+        activeRooms: activeRooms.total, // Use actual rooms collection count
+        totalHoursStudied: Math.floor(totalHours),
+        totalUsers: profiles.total,
+        activeStudents: activeSessions.total, // Use total count from query
+      });
+    } catch (error) {
+      console.error("Failed to load stats:", error);
+      // Keep previous stats on error
+    }
+  };
   return (
     <>
       {/* Hero Section */}
@@ -226,7 +289,8 @@ export default function Home() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
                     </span>
-                    892 Active Rooms
+                    {stats.activeRooms > 0 ? stats.activeRooms : "—"} Active
+                    Rooms
                   </div>
                 </div>
 
@@ -384,7 +448,11 @@ export default function Home() {
                 className="w-10 h-10 rounded-full border-2 border-[#080808] grayscale opacity-70"
               />
               <div className="w-10 h-10 rounded-full border-2 border-[#080808] bg-zinc-800 flex items-center justify-center text-[10px] text-white z-10 font-medium">
-                +10k
+                +
+                {stats.totalUsers > 0
+                  ? (stats.totalUsers / 1000).toFixed(1)
+                  : "0"}
+                k
               </div>
             </div>
             <div>
@@ -392,7 +460,9 @@ export default function Home() {
                 Join the movement
               </p>
               <p className="text-xs text-zinc-600">
-                Students from Harvard, MIT, and Oxford.
+                {stats.activeStudents > 0
+                  ? `${stats.activeStudents} studying right now`
+                  : "Students from around the world"}
               </p>
             </div>
           </div>
@@ -400,7 +470,9 @@ export default function Home() {
           <div className="flex items-center gap-6">
             <div className="text-right hidden md:block">
               <div className="text-2xl font-semibold text-white tracking-tight tabular-nums">
-                1,204,930
+                {stats.totalHoursStudied > 0
+                  ? stats.totalHoursStudied.toLocaleString()
+                  : "—"}
               </div>
               <div className="text-xs text-zinc-500 uppercase tracking-widest">
                 Hours Studied
@@ -409,13 +481,148 @@ export default function Home() {
             <div className="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
             <div className="text-right hidden md:block">
               <div className="text-2xl font-semibold text-white tracking-tight tabular-nums">
-                892
+                {stats.activeRooms > 0 ? stats.activeRooms : "—"}
               </div>
               <div className="text-xs text-zinc-500 uppercase tracking-widest">
                 Active Rooms
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SEO Content Section - Hidden but crawlable */}
+      <section className="sr-only" aria-hidden="true">
+        <div className="max-w-7xl mx-auto px-6">
+          <article className="max-w-4xl mx-auto space-y-8 text-zinc-400 text-sm leading-relaxed">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                The Best Free Online Study Timer for Students
+              </h2>
+              <p>
+                CompStudy is the ultimate{" "}
+                <strong>free online study timer</strong> designed for students,
+                professionals, and anyone looking to improve their focus and
+                productivity. Our <strong>Pomodoro timer</strong> helps you
+                break down study sessions into manageable intervals with
+                automatic break reminders, ensuring you maintain peak
+                concentration throughout your work.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Why Choose Our Study Timer?
+              </h3>
+              <p>
+                Unlike traditional timers, CompStudy combines the proven{" "}
+                <strong>Pomodoro technique</strong> with modern productivity
+                features. Track your <strong>study hours</strong>, set specific
+                goals for each session, and monitor your progress with detailed
+                analytics. Whether you're preparing for exams, working on
+                assignments, or building consistent study habits, our timer
+                adapts to your needs.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Live Study Rooms & Community
+              </h3>
+              <p>
+                Study doesn't have to be lonely. Join{" "}
+                <strong>live study rooms</strong> where thousands of students
+                study together in real-time. See what others are working on,
+                stay motivated by the community, and compete on global
+                leaderboards. Our <strong>virtual study rooms</strong> create
+                accountability and make studying more engaging.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Key Features
+              </h3>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>
+                  <strong>Pomodoro Timer:</strong> Customizable work and break
+                  intervals
+                </li>
+                <li>
+                  <strong>Goal Tracking:</strong> Set and complete specific
+                  objectives each session
+                </li>
+                <li>
+                  <strong>Study Analytics:</strong> Track total hours, streaks,
+                  and productivity trends
+                </li>
+                <li>
+                  <strong>Live Sessions:</strong> See real-time study sessions
+                  from students worldwide
+                </li>
+                <li>
+                  <strong>Leaderboards:</strong> Compete with peers and stay
+                  motivated
+                </li>
+                <li>
+                  <strong>Break Reminders:</strong> Automatic alerts to prevent
+                  burnout
+                </li>
+                <li>
+                  <strong>Session History:</strong> Review all past study
+                  sessions and progress
+                </li>
+                <li>
+                  <strong>Multiple Timer Modes:</strong> Strict mode for
+                  distraction-free studying
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Perfect for Every Study Need
+              </h3>
+              <p>
+                Whether you need a <strong>homework timer</strong>,{" "}
+                <strong>exam preparation tracker</strong>, or{" "}
+                <strong>deep work session manager</strong>, CompStudy provides
+                the tools you need. Students use our timer for:
+              </p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                <li>College exam preparation and finals week</li>
+                <li>High school homework and assignments</li>
+                <li>Professional certification studying</li>
+                <li>Language learning and practice</li>
+                <li>Research and thesis writing</li>
+                <li>Online course completion</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Boost Your Productivity Today
+              </h3>
+              <p>
+                Start using the most comprehensive{" "}
+                <strong>study timer app</strong> available online. Join over
+                10,000 students who have improved their focus, built consistent
+                study habits, and achieved their academic goals with CompStudy.
+                It's completely free, works on any device, and requires no
+                download or installation.
+              </p>
+            </div>
+
+            <div className="pt-4">
+              <p className="text-xs text-zinc-600">
+                <strong>Related searches:</strong> study timer online, pomodoro
+                timer free, focus timer, study timer with music, concentration
+                timer, online study room, study tracker app, productivity timer,
+                homework timer, exam timer, study session timer, study planner
+                online, focus app for students, time management for students
+              </p>
+            </div>
+          </article>
         </div>
       </section>
     </>
