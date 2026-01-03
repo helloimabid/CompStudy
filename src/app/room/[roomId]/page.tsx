@@ -1356,7 +1356,8 @@ function RoomContent() {
           <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
             <p className="text-zinc-500 text-xs sm:text-sm flex items-center gap-2">
               <Users size={16} />
-              {displayUsers.length} {displayUsers.length === 1 ? "participant" : "participants"}
+              {displayUsers.length}{" "}
+              {displayUsers.length === 1 ? "participant" : "participants"}
             </p>
           </div>
         </div>
@@ -1535,7 +1536,11 @@ function RoomContent() {
                         "flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-lg font-medium text-sm md:text-base transition-all",
                         room.timerState === "running"
                           ? "bg-yellow-500 hover:bg-yellow-400 text-black"
-                          : clsx(currentTheme.bg, currentTheme.hover, "text-white"),
+                          : clsx(
+                              currentTheme.bg,
+                              currentTheme.hover,
+                              "text-white"
+                            ),
                         !isCreator && "opacity-50 cursor-not-allowed"
                       )}
                     >
@@ -1630,7 +1635,10 @@ function RoomContent() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
-                              handleModerateUser(participant.userId, "kick-temp")
+                              handleModerateUser(
+                                participant.userId,
+                                "kick-temp"
+                              )
                             }
                             className="px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-700 transition-colors"
                             title="Kick temporarily (10 minutes)"
@@ -1653,188 +1661,191 @@ function RoomContent() {
                 </div>
               </div>
 
-            {/* Room Config (Creator only) */}
-            {isCreator && configDraft && (
+              {/* Room Config (Creator only) */}
+              {isCreator && configDraft && (
+                <div className="card-glass p-6">
+                  <h3 className="text-sm font-medium text-zinc-400 mb-4">
+                    Room Config
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-zinc-500 mb-1">
+                        Name
+                      </label>
+                      <input
+                        value={configDraft.name}
+                        onChange={(e) =>
+                          setConfigDraft((prev) =>
+                            prev ? { ...prev, name: e.target.value } : prev
+                          )
+                        }
+                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-zinc-500 mb-1">
+                        Subject
+                      </label>
+                      <input
+                        value={configDraft.subject}
+                        onChange={(e) =>
+                          setConfigDraft((prev) =>
+                            prev ? { ...prev, subject: e.target.value } : prev
+                          )
+                        }
+                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="strict-room"
+                        type="checkbox"
+                        checked={configDraft.isStrict}
+                        onChange={(e) =>
+                          setConfigDraft((prev) =>
+                            prev
+                              ? { ...prev, isStrict: e.target.checked }
+                              : prev
+                          )
+                        }
+                        className="h-4 w-4"
+                      />
+                      <label
+                        htmlFor="strict-room"
+                        className="text-sm text-zinc-300"
+                      >
+                        Strict mode
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-xs text-zinc-500 mb-1">
+                          Pomodoro
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={600}
+                          value={configDraft.pomodoroMin}
+                          onChange={(e) =>
+                            setConfigDraft((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    pomodoroMin: Number(e.target.value),
+                                  }
+                                : prev
+                            )
+                          }
+                          className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-zinc-500 mb-1">
+                          Short
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={600}
+                          value={configDraft.shortBreakMin}
+                          onChange={(e) =>
+                            setConfigDraft((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    shortBreakMin: Number(e.target.value),
+                                  }
+                                : prev
+                            )
+                          }
+                          className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-zinc-500 mb-1">
+                          Long
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={600}
+                          value={configDraft.longBreakMin}
+                          onChange={(e) =>
+                            setConfigDraft((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    longBreakMin: Number(e.target.value),
+                                  }
+                                : prev
+                            )
+                          }
+                          className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleSaveConfig}
+                      disabled={configSaving}
+                      className={`w-full bg-zinc-800 border border-zinc-700 text-zinc-200 px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-zinc-700 transition-colors ${
+                        configSaving ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      {configSaving ? "Saving..." : "Save Config"}
+                    </button>
+
+                    <p className="text-xs text-zinc-500">
+                      If the timer is running/paused, durations apply next
+                      reset.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Room Info */}
               <div className="card-glass p-6">
                 <h3 className="text-sm font-medium text-zinc-400 mb-4">
-                  Room Config
+                  Room Info
                 </h3>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-zinc-500 mb-1">
-                      Name
-                    </label>
-                    <input
-                      value={configDraft.name}
-                      onChange={(e) =>
-                        setConfigDraft((prev) =>
-                          prev ? { ...prev, name: e.target.value } : prev
-                        )
-                      }
-                      className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-zinc-500 mb-1">
-                      Subject
-                    </label>
-                    <input
-                      value={configDraft.subject}
-                      onChange={(e) =>
-                        setConfigDraft((prev) =>
-                          prev ? { ...prev, subject: e.target.value } : prev
-                        )
-                      }
-                      className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="strict-room"
-                      type="checkbox"
-                      checked={configDraft.isStrict}
-                      onChange={(e) =>
-                        setConfigDraft((prev) =>
-                          prev ? { ...prev, isStrict: e.target.checked } : prev
-                        )
-                      }
-                      className="h-4 w-4"
-                    />
-                    <label
-                      htmlFor="strict-room"
-                      className="text-sm text-zinc-300"
+                <div className="space-y-3 text-xs text-zinc-500">
+                  <div className="flex justify-between">
+                    <span>Status:</span>
+                    <span
+                      className={`font-medium ${
+                        room.timerState === "running"
+                          ? "text-green-400"
+                          : room.timerState === "paused"
+                          ? "text-yellow-400"
+                          : "text-zinc-400"
+                      }`}
                     >
-                      Strict mode
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-xs text-zinc-500 mb-1">
-                        Pomodoro
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={600}
-                        value={configDraft.pomodoroMin}
-                        onChange={(e) =>
-                          setConfigDraft((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  pomodoroMin: Number(e.target.value),
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-zinc-500 mb-1">
-                        Short
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={600}
-                        value={configDraft.shortBreakMin}
-                        onChange={(e) =>
-                          setConfigDraft((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  shortBreakMin: Number(e.target.value),
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-zinc-500 mb-1">
-                        Long
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={600}
-                        value={configDraft.longBreakMin}
-                        onChange={(e) =>
-                          setConfigDraft((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  longBreakMin: Number(e.target.value),
-                                }
-                              : prev
-                          )
-                        }
-                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleSaveConfig}
-                    disabled={configSaving}
-                    className={`w-full bg-zinc-800 border border-zinc-700 text-zinc-200 px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-zinc-700 transition-colors ${
-                      configSaving ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {configSaving ? "Saving..." : "Save Config"}
-                  </button>
-
-                  <p className="text-xs text-zinc-500">
-                    If the timer is running/paused, durations apply next reset.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Room Info */}
-            <div className="card-glass p-6">
-              <h3 className="text-sm font-medium text-zinc-400 mb-4">
-                Room Info
-              </h3>
-              <div className="space-y-3 text-xs text-zinc-500">
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span
-                    className={`font-medium ${
-                      room.timerState === "running"
-                        ? "text-green-400"
+                      {room.timerState === "running"
+                        ? "Active"
                         : room.timerState === "paused"
-                        ? "text-yellow-400"
-                        : "text-zinc-400"
-                    }`}
-                  >
-                    {room.timerState === "running"
-                      ? "Active"
-                      : room.timerState === "paused"
-                      ? "Paused"
-                      : "Idle"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Mode:</span>
-                  <span className="font-medium text-zinc-300 capitalize">
-                    {room.mode.replace("-", " ")}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Created:</span>
-                  <span className="font-medium text-zinc-300">
-                    {new Date(room.$createdAt).toLocaleDateString()}
-                  </span>
+                        ? "Paused"
+                        : "Idle"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Mode:</span>
+                    <span className="font-medium text-zinc-300 capitalize">
+                      {room.mode.replace("-", " ")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Created:</span>
+                    <span className="font-medium text-zinc-300">
+                      {new Date(room.$createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
