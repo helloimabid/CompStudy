@@ -24,6 +24,13 @@ export type ThemeColor =
   | "violet";
 export type VisualMode = "grid" | "minimal" | "cyber";
 export type TimerStyle = "grid" | "digital" | "circular" | "minimal";
+export type TimerFont =
+  | "default"
+  | "orbitron"
+  | "quantico"
+  | "audiowide"
+  | "electrolize"
+  | "zendots";
 
 interface TimerSettingsProps {
   isOpen: boolean;
@@ -36,11 +43,15 @@ interface TimerSettingsProps {
   setVisualMode: (mode: VisualMode) => void;
   timerStyle: TimerStyle;
   setTimerStyle: (style: TimerStyle) => void;
+  timerFont: TimerFont;
+  setTimerFont: (font: TimerFont) => void;
   autoStartFocus: boolean;
   setAutoStartFocus: (enabled: boolean) => void;
   autoStartBreak: boolean;
   setAutoStartBreak: (enabled: boolean) => void;
-  applyPreset: (focus: number, breakTime: number) => void;
+  targetDuration: number;
+  setTargetDuration: (duration: number) => void;
+  applyPreset: (focus: number) => void;
 }
 
 const THEMES: { id: ThemeColor; name: string; color: string }[] = [
@@ -58,6 +69,15 @@ const PRESETS = [
   { name: "Quick Sprint", focus: 15, break: 3 },
 ];
 
+const FONTS: { id: TimerFont; name: string; className: string }[] = [
+  { id: "default", name: "Default", className: "font-mono" },
+  { id: "orbitron", name: "Orbitron", className: "font-orbitron" },
+  { id: "quantico", name: "Quantico", className: "font-quantico" },
+  { id: "audiowide", name: "Audiowide", className: "font-audiowide" },
+  { id: "electrolize", name: "Electrolize", className: "font-electrolize" },
+  { id: "zendots", name: "Zen Dots", className: "font-zendots" },
+];
+
 export default function TimerSettings({
   isOpen,
   onClose,
@@ -69,12 +89,25 @@ export default function TimerSettings({
   setVisualMode,
   timerStyle,
   setTimerStyle,
+  timerFont,
+  setTimerFont,
   autoStartFocus,
   setAutoStartFocus,
   autoStartBreak,
   setAutoStartBreak,
+  targetDuration,
+  setTargetDuration,
   applyPreset,
 }: TimerSettingsProps) {
+  // Helper to parse duration into hours, minutes, seconds
+  const hours = Math.floor(targetDuration / 3600);
+  const minutes = Math.floor((targetDuration % 3600) / 60);
+  const seconds = targetDuration % 60;
+
+  const updateDuration = (h: number, m: number, s: number) => {
+    const total = Math.max(0, h * 3600 + m * 60 + s);
+    setTargetDuration(total > 0 ? total : 60); // Minimum 1 minute
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -191,6 +224,37 @@ export default function TimerSettings({
                   </div>
                 </section>
 
+                {/* Timer Font */}
+                <section>
+                  <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <Type size={14} /> Timer Font
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FONTS.map((font) => (
+                      <button
+                        key={font.id}
+                        onClick={() => setTimerFont(font.id)}
+                        className={clsx(
+                          "py-3 px-4 rounded-xl transition-all border flex flex-col items-center gap-1",
+                          timerFont === font.id
+                            ? "bg-white/10 text-white border-white/20"
+                            : "bg-zinc-900/30 text-zinc-500 border-white/5 hover:bg-zinc-900/50 hover:text-zinc-300"
+                        )}
+                      >
+                        <span
+                          className={clsx(
+                            "text-lg tabular-nums",
+                            font.className
+                          )}
+                        >
+                          12:34
+                        </span>
+                        <span className="text-xs">{font.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
                 {/* Automation */}
                 <section>
                   <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -273,6 +337,175 @@ export default function TimerSettings({
                   </div>
                 </section>
 
+                {/* Custom Duration */}
+                <section>
+                  <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <Clock size={14} /> Custom Timer Duration
+                  </h3>
+                  <div className="p-4 rounded-xl border border-white/5 bg-zinc-900/30">
+                    <div className="flex items-center justify-center gap-2">
+                      {/* Hours */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">
+                          Hours
+                        </label>
+                        <div className="flex flex-col items-center gap-1">
+                          <button
+                            onClick={() =>
+                              updateDuration(hours + 1, minutes, seconds)
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            +
+                          </button>
+                          <input
+                            type="number"
+                            value={hours}
+                            onChange={(e) =>
+                              updateDuration(
+                                Math.max(0, parseInt(e.target.value) || 0),
+                                minutes,
+                                seconds
+                              )
+                            }
+                            className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            min="0"
+                            max="23"
+                          />
+                          <button
+                            onClick={() =>
+                              updateDuration(
+                                Math.max(0, hours - 1),
+                                minutes,
+                                seconds
+                              )
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            -
+                          </button>
+                        </div>
+                      </div>
+
+                      <span className="text-2xl font-bold text-zinc-600 mt-6">
+                        :
+                      </span>
+
+                      {/* Minutes */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">
+                          Minutes
+                        </label>
+                        <div className="flex flex-col items-center gap-1">
+                          <button
+                            onClick={() =>
+                              updateDuration(
+                                hours,
+                                Math.min(59, minutes + 1),
+                                seconds
+                              )
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            +
+                          </button>
+                          <input
+                            type="number"
+                            value={minutes}
+                            onChange={(e) =>
+                              updateDuration(
+                                hours,
+                                Math.max(
+                                  0,
+                                  Math.min(59, parseInt(e.target.value) || 0)
+                                ),
+                                seconds
+                              )
+                            }
+                            className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            min="0"
+                            max="59"
+                          />
+                          <button
+                            onClick={() =>
+                              updateDuration(
+                                hours,
+                                Math.max(0, minutes - 1),
+                                seconds
+                              )
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            -
+                          </button>
+                        </div>
+                      </div>
+
+                      <span className="text-2xl font-bold text-zinc-600 mt-6">
+                        :
+                      </span>
+
+                      {/* Seconds */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">
+                          Seconds
+                        </label>
+                        <div className="flex flex-col items-center gap-1">
+                          <button
+                            onClick={() =>
+                              updateDuration(
+                                hours,
+                                minutes,
+                                Math.min(59, seconds + 1)
+                              )
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            +
+                          </button>
+                          <input
+                            type="number"
+                            value={seconds}
+                            onChange={(e) =>
+                              updateDuration(
+                                hours,
+                                minutes,
+                                Math.max(
+                                  0,
+                                  Math.min(59, parseInt(e.target.value) || 0)
+                                )
+                              )
+                            }
+                            className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            min="0"
+                            max="59"
+                          />
+                          <button
+                            onClick={() =>
+                              updateDuration(
+                                hours,
+                                minutes,
+                                Math.max(0, seconds - 1)
+                              )
+                            }
+                            className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
+                          >
+                            -
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-center text-xs text-zinc-500 mt-4">
+                      Total: {hours > 0 ? `${hours}h ` : ""}
+                      {minutes > 0 ? `${minutes}m ` : ""}
+                      {seconds > 0 ? `${seconds}s` : ""}
+                      {hours === 0 && minutes === 0 && seconds === 0
+                        ? "0s"
+                        : ""}
+                    </p>
+                  </div>
+                </section>
+
                 {/* Timer Presets */}
                 <section>
                   <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -283,7 +516,7 @@ export default function TimerSettings({
                       <button
                         key={preset.name}
                         onClick={() => {
-                          applyPreset(preset.focus, preset.break);
+                          applyPreset(preset.focus);
                           onClose();
                         }}
                         className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-white/10 transition-all group"
@@ -294,9 +527,6 @@ export default function TimerSettings({
                         <div className="flex items-center gap-2 text-xs text-zinc-500">
                           <span className="bg-white/5 px-2 py-1 rounded">
                             {preset.focus}m Focus
-                          </span>
-                          <span className="bg-white/5 px-2 py-1 rounded">
-                            {preset.break}m Break
                           </span>
                         </div>
                       </button>

@@ -10,10 +10,8 @@ import {
   Lock,
   Globe,
   Plus,
-  Calendar,
   Clock,
   Target,
-  MoreHorizontal,
   Trash2,
   CheckCircle2,
   RotateCcw,
@@ -36,6 +34,7 @@ import TimerSettings, {
   ThemeColor,
   VisualMode,
   TimerStyle,
+  TimerFont,
 } from "./TimerSettings";
 import SessionDesigner, { SessionBlock } from "./SessionDesigner";
 
@@ -45,7 +44,7 @@ interface ScheduledSession {
   $id: string;
   subject: string;
   goal: string;
-  plannedDuration: number; // seconds
+  duration: number; // seconds
   scheduledAt: string;
   status: "scheduled" | "completed" | "skipped";
   type: SessionType;
@@ -74,9 +73,12 @@ export default function StudyTimer({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [visualMode, setVisualMode] = useState<VisualMode>("grid");
   const [timerStyle, setTimerStyle] = useState<TimerStyle>("grid");
+  const [timerFont, setTimerFont] = useState<TimerFont>("default");
   const [autoStartFocus, setAutoStartFocus] = useState(false);
   const [autoStartBreak, setAutoStartBreak] = useState(false);
   const [strictMode, setStrictMode] = useState(false);
+  const [defaultFocusDuration, setDefaultFocusDuration] = useState(25 * 60); // 25 minutes
+  const [defaultBreakDuration, setDefaultBreakDuration] = useState(5 * 60); // 5 minutes
 
   // Session Details State
   const [subject, setSubject] = useState("");
@@ -85,12 +87,9 @@ export default function StudyTimer({
 
   // Planner State
   const [schedule, setSchedule] = useState<ScheduledSession[]>([]);
-  const [showPlanner, setShowPlanner] = useState(false);
   const [showDesigner, setShowDesigner] = useState(false);
-  const [newPlanTime, setNewPlanTime] = useState("");
   const [activePeers, setActivePeers] = useState(0);
   const [peers, setPeers] = useState<any[]>([]);
-  const [showModeDropdown, setShowModeDropdown] = useState(false);
   const [profileStats, setProfileStats] = useState<{
     streak: number;
     xp: number;
@@ -109,11 +108,16 @@ export default function StudyTimer({
           setSoundEnabled(parsed.soundEnabled);
         if (parsed.visualMode) setVisualMode(parsed.visualMode);
         if (parsed.timerStyle) setTimerStyle(parsed.timerStyle);
+        if (parsed.timerFont) setTimerFont(parsed.timerFont);
         if (parsed.autoStartFocus !== undefined)
           setAutoStartFocus(parsed.autoStartFocus);
         if (parsed.autoStartBreak !== undefined)
           setAutoStartBreak(parsed.autoStartBreak);
         if (parsed.strictMode !== undefined) setStrictMode(parsed.strictMode);
+        if (parsed.defaultFocusDuration !== undefined)
+          setDefaultFocusDuration(parsed.defaultFocusDuration);
+        if (parsed.defaultBreakDuration !== undefined)
+          setDefaultBreakDuration(parsed.defaultBreakDuration);
       } catch (e) {
         console.error("Failed to parse settings", e);
       }
@@ -129,9 +133,12 @@ export default function StudyTimer({
         soundEnabled,
         visualMode,
         timerStyle,
+        timerFont,
         autoStartFocus,
         autoStartBreak,
         strictMode,
+        defaultFocusDuration,
+        defaultBreakDuration,
       })
     );
   }, [
@@ -139,9 +146,12 @@ export default function StudyTimer({
     soundEnabled,
     visualMode,
     timerStyle,
+    timerFont,
     autoStartFocus,
     autoStartBreak,
     strictMode,
+    defaultFocusDuration,
+    defaultBreakDuration,
   ]);
 
   useEffect(() => {
@@ -190,6 +200,39 @@ export default function StudyTimer({
     return `${h.toString().padStart(2, "0")}:${m
       .toString()
       .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Get the next scheduled session (if any)
+  const getNextScheduledSession = () => {
+    if (schedule.length === 0) return null;
+
+    // If we're currently running a scheduled session, find the next one after it
+    if (sessionId && isActive) {
+      const currentIndex = schedule.findIndex((s) => s.$id === sessionId);
+      if (currentIndex !== -1 && currentIndex < schedule.length - 1) {
+        // Return the next session in the schedule
+        return schedule[currentIndex + 1];
+      }
+    }
+
+    // Otherwise, find the next session that hasn't started yet (based on time)
+    const now = new Date();
+    const nextSession = schedule.find((s) => {
+      const sessionTime = new Date(s.scheduledAt);
+      return sessionTime > now;
+    });
+    return nextSession || null;
+  };
+
+  const nextScheduledSession = getNextScheduledSession();
+
+  // Helper to format duration for display
+  const formatDurationDisplay = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins === 0) return `${secs} ${secs === 1 ? "second" : "seconds"}`;
+    if (secs === 0) return `${mins} ${mins === 1 ? "minute" : "minutes"}`;
+    return `${mins}m ${secs}s`;
   };
 
   const fetchProfileStats = async () => {
@@ -277,10 +320,10 @@ export default function StudyTimer({
       if (item) {
         setSubject(item.subject);
         setGoal(item.goal);
-        setTargetDuration(item.plannedDuration);
+        setTargetDuration(item.duration);
         setSessionType(item.type);
-        // If it has a planned duration, switch to timer mode automatically
-        if (item.plannedDuration > 0) {
+        // If it has a duration, switch to timer mode automatically
+        if (item.duration > 0) {
           setMode("timer");
         }
       }
@@ -435,87 +478,50 @@ export default function StudyTimer({
     fetchProfileStats();
   };
 
-  const addToSchedule = async () => {
-    if (!user || !subject || !newPlanTime) return;
-
-    try {
-      // Parse time string "HH:MM" to today's date
-      const [hours, minutes] = newPlanTime.split(":").map(Number);
-      const scheduledDate = new Date();
-      scheduledDate.setHours(hours, minutes, 0, 0);
-
-      await databases.createDocument(
-        DB_ID,
-        COLLECTIONS.STUDY_SESSIONS,
-        ID.unique(),
-        {
-          userId: user.$id,
-          subject,
-          goal,
-          plannedDuration: mode === "timer" ? targetDuration : 0,
-          scheduledAt: scheduledDate.toISOString(),
-          startTime: scheduledDate.toISOString(),
-          status: "scheduled",
-          type: sessionType,
-          isPublic: false, // Plans are private by default until started
-        },
-        [
-          Permission.read(Role.user(user.$id)),
-          Permission.update(Role.user(user.$id)),
-          Permission.delete(Role.user(user.$id)),
-        ]
-      );
-
-      setSubject("");
-      setGoal("");
-      setNewPlanTime("");
-      fetchSchedule();
-    } catch (error) {
-      console.error("Failed to schedule session:", error);
-    }
-  };
-
-  const deleteScheduledItem = async (id: string) => {
-    try {
-      await databases.deleteDocument(DB_ID, COLLECTIONS.STUDY_SESSIONS, id);
-      fetchSchedule();
-    } catch (error) {
-      console.error("Failed to delete item:", error);
-    }
-  };
-
   const handleSaveDesigner = async (
     blocks: SessionBlock[],
     startTimeStr: string
   ) => {
-    if (!user) return;
+    if (!user) {
+      console.error("No user logged in");
+      return;
+    }
+
+    if (blocks.length === 0) {
+      console.error("No blocks to save");
+      return;
+    }
 
     try {
       const [startHours, startMinutes] = startTimeStr.split(":").map(Number);
       let currentTime = new Date();
       currentTime.setHours(startHours, startMinutes, 0, 0);
 
-      // If start time is in the past, assume tomorrow? Or just today (past).
-      // Let's assume today.
+      // If start time is in the past today, it will still save for today
+      // User can see it in their schedule
 
       for (const block of blocks) {
+        const docData = {
+          userId: user.$id,
+          subject:
+            block.subject ||
+            (block.type === "break" ? "Break" : "Focus Session"),
+          goal: block.goal || "",
+          duration: block.duration * 60,
+          scheduledAt: currentTime.toISOString(),
+          startTime: currentTime.toISOString(),
+          status: "scheduled",
+          type: block.type,
+          isPublic: false,
+        };
+
+        console.log("Saving block:", docData);
+
         await databases.createDocument(
           DB_ID,
           COLLECTIONS.STUDY_SESSIONS,
           ID.unique(),
-          {
-            userId: user.$id,
-            subject:
-              block.subject ||
-              (block.type === "break" ? "Break" : "Focus Session"),
-            goal: block.goal || "",
-            plannedDuration: block.duration * 60,
-            scheduledAt: currentTime.toISOString(),
-            startTime: currentTime.toISOString(),
-            status: "scheduled",
-            type: block.type,
-            isPublic: false,
-          },
+          docData,
           [
             Permission.read(Role.user(user.$id)),
             Permission.update(Role.user(user.$id)),
@@ -523,15 +529,49 @@ export default function StudyTimer({
           ]
         );
 
-        // Advance time
+        // Advance time for the next block
         currentTime = new Date(currentTime.getTime() + block.duration * 60000);
       }
 
+      console.log("All blocks saved successfully");
       setShowDesigner(false);
-      fetchSchedule();
-    } catch (error) {
+      await fetchSchedule();
+    } catch (error: any) {
       console.error("Failed to save designed session:", error);
+      console.error("Error message:", error?.message);
+      console.error("Error response:", error?.response);
+      alert(`Failed to save schedule: ${error?.message || "Unknown error"}`);
     }
+  };
+
+  const handleStartNowDesigner = (blocks: SessionBlock[]) => {
+    if (!user || blocks.length === 0) return;
+
+    const firstBlock = blocks[0];
+
+    // Set up the session with first block's details
+    setSubject(
+      firstBlock.subject ||
+        (firstBlock.type === "break" ? "Break" : "Focus Session")
+    );
+    setGoal(firstBlock.goal || "");
+    setSessionType(firstBlock.type);
+    setTargetDuration(firstBlock.duration * 60);
+    setMode("timer");
+
+    // Close the designer
+    setShowDesigner(false);
+
+    // Start the session immediately
+    setTimeout(() => {
+      startSession(undefined, {
+        type: firstBlock.type,
+        duration: firstBlock.duration * 60,
+        subject:
+          firstBlock.subject ||
+          (firstBlock.type === "break" ? "Break" : "Focus Session"),
+      });
+    }, 100);
   };
 
   const handleTimerComplete = async () => {
@@ -545,12 +585,18 @@ export default function StudyTimer({
 
     await stopSession();
 
-    if (sessionType === "focus" && autoStartBreak) {
+    // Check if there's a next scheduled session
+    const nextSession = getNextScheduledSession();
+
+    if (nextSession) {
+      // Start the next scheduled session
+      setTimeout(() => startSession(nextSession.$id), 500);
+    } else if (sessionType === "focus" && autoStartBreak) {
       setTimeout(
         () =>
           startSession(undefined, {
             type: "break",
-            duration: 5 * 60,
+            duration: defaultBreakDuration,
             subject: "Break Time",
           }),
         500
@@ -560,7 +606,7 @@ export default function StudyTimer({
         () =>
           startSession(undefined, {
             type: "focus",
-            duration: 25 * 60,
+            duration: defaultFocusDuration,
             subject: "Focus Session",
           }),
         500
@@ -641,9 +687,9 @@ export default function StudyTimer({
           setSessionType(session.type || "focus");
 
           // If it had a planned duration, try to infer mode
-          if (session.plannedDuration > 0) {
+          if (session.duration > 0) {
             setMode("timer");
-            setTargetDuration(session.plannedDuration);
+            setTargetDuration(session.duration);
           }
 
           setElapsed(diffInSeconds);
@@ -803,7 +849,7 @@ export default function StudyTimer({
               {/* Timer Display */}
               <div className="z-10 mb-8 md:mb-12">
                 {timerStyle === "grid" && (
-                  <div className="scale-100 sm:scale-125 md:scale-150">
+                  <div className="scale-90 sm:scale-110 md:scale-125">
                     <GridTimerDisplay
                       time={
                         mode === "timer"
@@ -816,7 +862,7 @@ export default function StudyTimer({
                   </div>
                 )}
                 {timerStyle === "digital" && (
-                  <div className="scale-125 sm:scale-150 md:scale-[2]">
+                  <div className="scale-110 sm:scale-125 md:scale-150">
                     <DigitalTimerDisplay
                       time={
                         mode === "timer"
@@ -826,11 +872,12 @@ export default function StudyTimer({
                       size="lg"
                       isBreak={sessionType === "break"}
                       themeColor={themeColor}
+                      timerFont={timerFont}
                     />
                   </div>
                 )}
                 {timerStyle === "circular" && (
-                  <div className="scale-100 sm:scale-125 md:scale-150">
+                  <div className="scale-90 sm:scale-110 md:scale-125">
                     <CircularTimerDisplay
                       time={
                         mode === "timer"
@@ -841,11 +888,12 @@ export default function StudyTimer({
                       size="lg"
                       isBreak={sessionType === "break"}
                       themeColor={themeColor}
+                      timerFont={timerFont}
                     />
                   </div>
                 )}
                 {timerStyle === "minimal" && (
-                  <div className="scale-150 sm:scale-[2] md:scale-[2.5]">
+                  <div className="scale-125 sm:scale-150 md:scale-[2]">
                     <MinimalTimerDisplay
                       time={
                         mode === "timer"
@@ -855,6 +903,7 @@ export default function StudyTimer({
                       size="lg"
                       isBreak={sessionType === "break"}
                       themeColor={themeColor}
+                      timerFont={timerFont}
                     />
                   </div>
                 )}
@@ -897,32 +946,52 @@ export default function StudyTimer({
               </div>
 
               {/* Next Session Info */}
-              {isActive && autoStartBreak && sessionType === "focus" && (
+              {isActive && nextScheduledSession && (
                 <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
                   <p className="text-zinc-500 text-xs sm:text-sm">
-                    Next: Break (5 minutes)
+                    Next:{" "}
+                    {nextScheduledSession.subject ||
+                      (nextScheduledSession.type === "break"
+                        ? "Break"
+                        : "Focus")}{" "}
+                    ({formatDurationDisplay(nextScheduledSession.duration)})
                   </p>
                 </div>
               )}
-              {isActive && autoStartFocus && sessionType === "break" && (
-                <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
-                  <p className="text-zinc-500 text-xs sm:text-sm">
-                    Next: Focus Session (25 minutes)
-                  </p>
-                </div>
-              )}
+              {isActive &&
+                !nextScheduledSession &&
+                autoStartBreak &&
+                sessionType === "focus" && (
+                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-xs sm:text-sm">
+                      Next: Break ({formatDurationDisplay(defaultBreakDuration)}
+                      )
+                    </p>
+                  </div>
+                )}
+              {isActive &&
+                !nextScheduledSession &&
+                autoStartFocus &&
+                sessionType === "break" && (
+                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-xs sm:text-sm">
+                      Next: Focus Session (
+                      {formatDurationDisplay(defaultFocusDuration)})
+                    </p>
+                  </div>
+                )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Normal Mode */}
-      <div className="flex flex-col gap-4 md:gap-6 h-[calc(100vh-140px)] min-h-[500px] md:min-h-[600px]">
+      <div className="flex flex-col gap-3 h-[calc(100vh-100px)] max-h-[calc(100vh-100px)] overflow-hidden">
         {/* Main Timer Panel */}
-        <div className="flex flex-col gap-4 md:gap-6">
+        <div className="flex flex-col gap-3 flex-1 min-h-0">
           <div
             className={clsx(
-              "flex-1 bg-[#0a0a0a] border rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 flex flex-col relative overflow-hidden transition-all duration-500",
+              "flex-1 bg-[#0a0a0a] border rounded-2xl p-4 sm:p-5 flex flex-col relative overflow-hidden transition-all duration-500 min-h-0",
               isActive ? currentTheme.border : "border-white/5"
             )}
           >
@@ -951,7 +1020,7 @@ export default function StudyTimer({
             )}
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-6 sm:mb-8 md:mb-12 z-10 gap-4">
+            <div className="flex items-start justify-between mb-3 sm:mb-4 z-10 gap-4">
               <div>
                 {isActive ? (
                   <>
@@ -959,7 +1028,8 @@ export default function StudyTimer({
                       {subject || "Focus Session"}
                     </h1>
                     <p className="text-zinc-500 text-xs sm:text-sm flex items-center gap-2">
-                      Global Room #882 • High Intensity
+                      {sessionType === "focus" ? "🎯 Focus" : "☕ Break"} •{" "}
+                      {mode === "timer" ? "Timer" : "Stopwatch"}
                     </p>
                   </>
                 ) : (
@@ -971,97 +1041,159 @@ export default function StudyTimer({
                       placeholder="What are you working on?"
                       className="bg-transparent text-lg sm:text-xl md:text-2xl font-bold text-white placeholder:text-zinc-700 focus:outline-none w-full"
                     />
-                    <div className="flex items-center gap-2 relative">
-                      <button
-                        onClick={() => setShowModeDropdown(!showModeDropdown)}
-                        className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors flex items-center gap-1"
-                      >
-                        {mode === "timer" ? "Timer Mode" : "Stopwatch Mode"}
-                        <MoreHorizontal size={14} />
-                      </button>
-                      {showModeDropdown && (
-                        <div className="absolute top-8 left-0 bg-zinc-900 border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden">
-                          <button
-                            onClick={() => {
-                              setMode("timer");
-                              setShowModeDropdown(false);
-                            }}
-                            className={clsx(
-                              "px-4 py-2 text-sm text-left w-full hover:bg-white/5 transition-colors",
-                              mode === "timer"
-                                ? "text-white bg-white/5"
-                                : "text-zinc-400"
-                            )}
-                          >
-                            Timer Mode
-                          </button>
-                          <button
-                            onClick={() => {
-                              setMode("stopwatch");
-                              setShowModeDropdown(false);
-                            }}
-                            className={clsx(
-                              "px-4 py-2 text-sm text-left w-full hover:bg-white/5 transition-colors",
-                              mode === "stopwatch"
-                                ? "text-white bg-white/5"
-                                : "text-zinc-400"
-                            )}
-                          >
-                            Stopwatch Mode
-                          </button>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-                <div className="hidden sm:flex items-center gap-2 md:gap-3 bg-zinc-900/50 p-1.5 pr-3 md:pr-4 rounded-full border border-white/5">
-                  <button
-                    onClick={() => setStrictMode(!strictMode)}
-                    className={clsx(
-                      "w-10 h-6 rounded-full transition-colors relative",
-                      strictMode ? "bg-indigo-600" : "bg-zinc-700"
-                    )}
-                    disabled={isActive}
-                  >
-                    <div
-                      className={clsx(
-                        "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
-                        strictMode ? "left-5" : "left-1"
-                      )}
-                    ></div>
-                  </button>
-                  <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                    Strict Mode
-                  </span>
-                </div>
-
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => setIsFullScreen(!isFullScreen)}
                   className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors"
                   title={isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 >
                   {isFullScreen ? (
-                    <Minimize2 size={18} className="sm:w-5 sm:h-5" />
+                    <Minimize2 size={16} className="sm:w-5 sm:h-5" />
                   ) : (
-                    <Maximize2 size={18} className="sm:w-5 sm:h-5" />
+                    <Maximize2 size={16} className="sm:w-5 sm:h-5" />
                   )}
+                </button>
+
+                <button
+                  onClick={() => setShowDesigner(true)}
+                  className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors"
+                  title="Session Designer"
+                >
+                  <Layout size={16} className="sm:w-5 sm:h-5" />
                 </button>
 
                 <button
                   onClick={() => setShowSettings(true)}
                   className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors"
+                  title="Settings"
                 >
-                  <Settings size={18} className="sm:w-5 sm:h-5" />
+                  <Settings size={16} className="sm:w-5 sm:h-5" />
                 </button>
+              </div>
+            </div>
+
+            {/* Control Bar - Mode & Session Type Toggles */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 z-10">
+              {/* Timer/Stopwatch Toggle */}
+              <div className="flex items-center bg-zinc-900/80 rounded-lg p-0.5 border border-white/5">
+                <button
+                  onClick={() => setMode("timer")}
+                  disabled={isActive}
+                  className={clsx(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                    mode === "timer"
+                      ? clsx(currentTheme.bg, "text-white shadow-sm")
+                      : "text-zinc-400 hover:text-white"
+                  )}
+                >
+                  <Clock size={12} />
+                  Timer
+                </button>
+                <button
+                  onClick={() => setMode("stopwatch")}
+                  disabled={isActive}
+                  className={clsx(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                    mode === "stopwatch"
+                      ? clsx(currentTheme.bg, "text-white shadow-sm")
+                      : "text-zinc-400 hover:text-white"
+                  )}
+                >
+                  <RotateCcw size={12} />
+                  Stopwatch
+                </button>
+              </div>
+
+              {/* Focus/Break Toggle */}
+              <div className="flex items-center bg-zinc-900/80 rounded-lg p-0.5 border border-white/5">
+                <button
+                  onClick={() => {
+                    setSessionType("focus");
+                    if (mode === "timer")
+                      setTargetDuration(defaultFocusDuration);
+                  }}
+                  disabled={isActive}
+                  className={clsx(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                    sessionType === "focus"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-white"
+                  )}
+                >
+                  <Target size={12} />
+                  Focus
+                </button>
+                <button
+                  onClick={() => {
+                    setSessionType("break");
+                    if (mode === "timer")
+                      setTargetDuration(defaultBreakDuration);
+                  }}
+                  disabled={isActive}
+                  className={clsx(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
+                    sessionType === "break"
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-white"
+                  )}
+                >
+                  ☕ Break
+                </button>
+              </div>
+
+              {/* Timer Duration (only show in timer mode) */}
+              {mode === "timer" && !isActive && (
+                <div className="flex items-center gap-1.5 bg-zinc-900/80 rounded-lg px-2 py-1 border border-white/5">
+                  <button
+                    onClick={() =>
+                      setTargetDuration(Math.max(60, targetDuration - 5 * 60))
+                    }
+                    className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="text-xs font-medium text-white min-w-[3rem] text-center">
+                    {Math.floor(targetDuration / 60)}m
+                  </span>
+                  <button
+                    onClick={() => setTargetDuration(targetDuration + 5 * 60)}
+                    className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+
+              {/* Strict Mode Toggle */}
+              <div className="hidden sm:flex items-center gap-2 bg-zinc-900/80 rounded-lg px-3 py-1.5 border border-white/5">
+                <button
+                  onClick={() => setStrictMode(!strictMode)}
+                  className={clsx(
+                    "w-8 h-4 rounded-full transition-colors relative",
+                    strictMode ? "bg-indigo-600" : "bg-zinc-700"
+                  )}
+                  disabled={isActive}
+                >
+                  <div
+                    className={clsx(
+                      "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all",
+                      strictMode ? "left-4" : "left-0.5"
+                    )}
+                  ></div>
+                </button>
+                <span className="text-xs font-medium text-zinc-400">
+                  Strict
+                </span>
               </div>
             </div>
 
             {/* Progress Bar */}
             {mode === "timer" && (
-              <div className="w-full h-1 bg-zinc-800/50 rounded-full mb-6 sm:mb-8 md:mb-12 overflow-hidden relative z-10">
+              <div className="w-full h-1 bg-zinc-800/50 rounded-full mb-4 sm:mb-5 md:mb-6 overflow-hidden relative z-10">
                 <div
                   className={clsx(
                     "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_10px_currentColor]",
@@ -1075,20 +1207,22 @@ export default function StudyTimer({
             )}
 
             {/* Timer Display */}
-            <div className="flex-1 flex flex-col items-center justify-center z-10 relative">
+            <div className="flex-1 flex flex-col items-center justify-center z-10 relative min-h-0">
               {timerStyle === "grid" && (
-                <GridTimerDisplay
-                  time={
-                    mode === "timer"
-                      ? formatTime(remaining)
-                      : formatTime(elapsed)
-                  }
-                  themeColor={themeColor}
-                  isBreak={sessionType === "break"}
-                />
+                <div className="scale-[0.65] sm:scale-75">
+                  <GridTimerDisplay
+                    time={
+                      mode === "timer"
+                        ? formatTime(remaining)
+                        : formatTime(elapsed)
+                    }
+                    themeColor={themeColor}
+                    isBreak={sessionType === "break"}
+                  />
+                </div>
               )}
               {timerStyle === "digital" && (
-                <div className="scale-125 md:scale-150">
+                <div className="scale-75 sm:scale-90">
                   <DigitalTimerDisplay
                     time={
                       mode === "timer"
@@ -1098,24 +1232,28 @@ export default function StudyTimer({
                     size="lg"
                     isBreak={sessionType === "break"}
                     themeColor={themeColor}
+                    timerFont={timerFont}
                   />
                 </div>
               )}
               {timerStyle === "circular" && (
-                <CircularTimerDisplay
-                  time={
-                    mode === "timer"
-                      ? formatTime(remaining)
-                      : formatTime(elapsed)
-                  }
-                  progress={progress}
-                  size="lg"
-                  isBreak={sessionType === "break"}
-                  themeColor={themeColor}
-                />
+                <div className="scale-[0.65] sm:scale-75">
+                  <CircularTimerDisplay
+                    time={
+                      mode === "timer"
+                        ? formatTime(remaining)
+                        : formatTime(elapsed)
+                    }
+                    progress={progress}
+                    size="lg"
+                    isBreak={sessionType === "break"}
+                    themeColor={themeColor}
+                    timerFont={timerFont}
+                  />
+                </div>
               )}
               {timerStyle === "minimal" && (
-                <div className="scale-150">
+                <div className="scale-75 sm:scale-90">
                   <MinimalTimerDisplay
                     time={
                       mode === "timer"
@@ -1125,15 +1263,16 @@ export default function StudyTimer({
                     size="lg"
                     isBreak={sessionType === "break"}
                     themeColor={themeColor}
+                    timerFont={timerFont}
                   />
                 </div>
               )}
-              <p className="text-zinc-500 font-medium tracking-[0.2em] text-sm mt-8 uppercase">
+              <p className="text-zinc-500 font-medium tracking-[0.2em] text-xs sm:text-sm mt-4 sm:mt-6 uppercase">
                 {sessionType === "break" ? "Break Time" : "Session Time"}
               </p>
 
               {/* Controls */}
-              <div className="mt-6 sm:mt-8 md:mt-12 flex items-center gap-4 sm:gap-6">
+              <div className="mt-4 sm:mt-6 flex items-center gap-4 sm:gap-6">
                 {!isActive ? (
                   <button
                     onClick={() => startSession()}
@@ -1188,34 +1327,34 @@ export default function StudyTimer({
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 flex flex-col justify-center min-h-[100px] sm:min-h-[120px]">
-              <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1 sm:mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col justify-center">
+              <p className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">
                 Current Streak
               </p>
-              <p className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
+              <p className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 {profileStats.streak}{" "}
                 <span className="text-orange-500">🔥</span>
               </p>
             </div>
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 flex flex-col justify-center min-h-[100px] sm:min-h-[120px]">
-              <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1 sm:mb-2">
+            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col justify-center">
+              <p className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">
                 Total XP
               </p>
               <p
                 className={clsx(
-                  "text-2xl sm:text-3xl font-bold",
+                  "text-xl sm:text-2xl font-bold",
                   currentTheme.text
                 )}
               >
                 {profileStats.xp.toLocaleString()}
               </p>
             </div>
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 flex flex-col justify-center min-h-[100px] sm:min-h-[120px]">
-              <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1 sm:mb-2">
+            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col justify-center">
+              <p className="text-zinc-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">
                 Total Hours
               </p>
-              <p className="text-2xl sm:text-3xl font-bold text-white">
+              <p className="text-xl sm:text-2xl font-bold text-white">
                 {profileStats.totalHours.toFixed(1)}h
               </p>
             </div>
@@ -1234,11 +1373,18 @@ export default function StudyTimer({
           setVisualMode={setVisualMode}
           timerStyle={timerStyle}
           setTimerStyle={setTimerStyle}
+          timerFont={timerFont}
+          setTimerFont={setTimerFont}
           autoStartFocus={autoStartFocus}
           setAutoStartFocus={setAutoStartFocus}
           autoStartBreak={autoStartBreak}
           setAutoStartBreak={setAutoStartBreak}
-          applyPreset={(focus, breakTime) => {
+          targetDuration={targetDuration}
+          setTargetDuration={(duration) => {
+            setTargetDuration(duration);
+            setMode("timer");
+          }}
+          applyPreset={(focus) => {
             setMode("timer");
             setTargetDuration(focus * 60);
           }}
@@ -1248,131 +1394,25 @@ export default function StudyTimer({
           isOpen={showDesigner}
           onClose={() => setShowDesigner(false)}
           onSave={handleSaveDesigner}
+          onStartNow={handleStartNowDesigner}
+          existingSchedule={schedule}
+          onDeleteScheduledItem={async (id: string) => {
+            try {
+              await databases.deleteDocument(
+                DB_ID,
+                COLLECTIONS.STUDY_SESSIONS,
+                id
+              );
+              fetchSchedule();
+            } catch (error) {
+              console.error("Failed to delete scheduled item:", error);
+            }
+          }}
+          onStartScheduledSession={(id: string) => {
+            setShowDesigner(false);
+            startSession(id);
+          }}
         />
-
-        {/* Planner Modal (Reused existing logic but in modal) */}
-        <AnimatePresence>
-          {showPlanner && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowPlanner(false)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4"
-              >
-                <div className="bg-[#0a0a0a] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl pointer-events-auto flex flex-col max-h-[80vh]">
-                  <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-white">
-                      Today's Plan
-                    </h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setShowDesigner(true)}
-                        className="p-2 hover:bg-white/5 rounded-lg text-zinc-400 transition-colors"
-                        title="Design Session Sequence"
-                      >
-                        <Layout size={16} />
-                      </button>
-                      <button
-                        onClick={() => setShowPlanner(false)}
-                        className="text-zinc-400 hover:text-white"
-                      >
-                        <Minimize2 size={20} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-6 overflow-y-auto custom-scrollbar">
-                    {/* Add New Item Form */}
-                    <div className="space-y-3 mb-6">
-                      <input
-                        type="time"
-                        value={newPlanTime}
-                        onChange={(e) => setNewPlanTime(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
-                      />
-                      <input
-                        type="text"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        placeholder="Subject"
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
-                      />
-                      <button
-                        onClick={addToSchedule}
-                        className={clsx(
-                          "w-full text-white text-xs font-medium py-2 rounded-lg transition-colors",
-                          currentTheme.bg,
-                          currentTheme.hover
-                        )}
-                      >
-                        Add to Schedule
-                      </button>
-                    </div>
-
-                    {/* List */}
-                    <div className="space-y-3">
-                      {schedule.map((item) => (
-                        <div
-                          key={item.$id}
-                          className="group bg-zinc-900/30 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors relative"
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <div
-                              className={clsx(
-                                "flex items-center gap-2 text-xs font-medium px-2 py-1 rounded bg-white/5",
-                                currentTheme.text
-                              )}
-                            >
-                              <Clock size={12} />
-                              {new Date(item.scheduledAt).toLocaleTimeString(
-                                [],
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )}
-                            </div>
-                            <button
-                              onClick={() => deleteScheduledItem(item.$id)}
-                              className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                          <h4 className="text-white font-medium text-sm mb-1">
-                            {item.subject}
-                          </h4>
-                          {!isActive && (
-                            <button
-                              onClick={() => {
-                                startSession(item.$id);
-                                setShowPlanner(false);
-                              }}
-                              className={clsx(
-                                "mt-3 w-full flex items-center justify-center gap-2 bg-zinc-800 hover:text-white text-zinc-400 text-xs py-2 rounded-lg transition-all opacity-0 group-hover:opacity-100",
-                                currentTheme.hover
-                              )}
-                            >
-                              <Play size={12} fill="currentColor" />
-                              Start
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
     </>
   );

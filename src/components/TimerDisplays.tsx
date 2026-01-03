@@ -4,17 +4,36 @@ import React from "react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 
+type TimerFont =
+  | "default"
+  | "orbitron"
+  | "quantico"
+  | "audiowide"
+  | "electrolize"
+  | "zendots";
+
+const fontClassMap: Record<TimerFont, string> = {
+  default: "font-mono",
+  orbitron: "font-orbitron",
+  quantico: "font-quantico",
+  audiowide: "font-audiowide",
+  electrolize: "font-electrolize",
+  zendots: "font-zendots",
+};
+
 // --- Digital Display ---
 export const DigitalTimerDisplay = ({
   time,
   themeColor = "indigo",
   isBreak = false,
   size = "md",
+  timerFont = "default",
 }: {
   time: string;
   themeColor?: string;
   isBreak?: boolean;
   size?: "sm" | "md" | "lg";
+  timerFont?: TimerFont;
 }) => {
   const colorMap: Record<string, string> = {
     indigo: "text-indigo-400",
@@ -38,7 +57,8 @@ export const DigitalTimerDisplay = ({
   return (
     <div
       className={clsx(
-        "font-mono font-bold tracking-tighter tabular-nums select-none",
+        "font-bold tracking-tighter tabular-nums select-none",
+        fontClassMap[timerFont],
         textColor,
         sizeClasses[size]
       )}
@@ -55,12 +75,14 @@ export const CircularTimerDisplay = ({
   themeColor = "indigo",
   isBreak = false,
   size = "md",
+  timerFont = "default",
 }: {
   time: string;
   progress: number; // 0 to 100
   themeColor?: string;
   isBreak?: boolean;
   size?: "sm" | "md" | "lg";
+  timerFont?: TimerFont;
 }) => {
   const radius = 120;
   const stroke = 12;
@@ -128,6 +150,7 @@ export const CircularTimerDisplay = ({
           themeColor={themeColor}
           isBreak={isBreak}
           size={size === "lg" ? "md" : "sm"}
+          timerFont={timerFont}
         />
       </div>
     </div>
@@ -140,11 +163,13 @@ export const MinimalTimerDisplay = ({
   themeColor = "indigo",
   isBreak = false,
   size = "md",
+  timerFont = "default",
 }: {
   time: string;
   themeColor?: string;
   isBreak?: boolean;
   size?: "sm" | "md" | "lg";
+  timerFont?: TimerFont;
 }) => {
   const colorMap: Record<string, string> = {
     indigo: "text-indigo-500",
@@ -170,6 +195,7 @@ export const MinimalTimerDisplay = ({
       <div
         className={clsx(
           "font-light tracking-widest opacity-80",
+          fontClassMap[timerFont],
           textColor,
           sizeClasses[size]
         )}

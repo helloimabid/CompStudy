@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import {
+  Inter,
+  Orbitron,
+  Quantico,
+  Audiowide,
+  Electrolize,
+} from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
 import { AuthProvider } from "@/context/AuthContext";
@@ -7,6 +13,34 @@ import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Timer fonts
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  display: "swap",
+});
+
+const quantico = Quantico({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-quantico",
+  display: "swap",
+});
+
+const audiowide = Audiowide({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-audiowide",
+  display: "swap",
+});
+
+const electrolize = Electrolize({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-electrolize",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "CompStudy - Competitive Studying",
@@ -21,9 +55,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+      <head>
+        {/* Zen Dots font from Google Fonts CDN */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={clsx(
           inter.className,
+          orbitron.variable,
+          quantico.variable,
+          audiowide.variable,
+          electrolize.variable,
           "text-zinc-400 antialiased selection:bg-indigo-500/30 selection:text-indigo-200 relative min-h-screen"
         )}
         suppressHydrationWarning
