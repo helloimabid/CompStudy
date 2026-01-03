@@ -48,6 +48,15 @@ export default function Navbar() {
             Features
           </Link>
           <Link
+            href="/live"
+            className={clsx(
+              "transition-colors",
+              pathname === "/live" ? "text-zinc-200" : "hover:text-zinc-200"
+            )}
+          >
+            Live
+          </Link>
+          <Link
             href="/leaderboards"
             className={clsx(
               "transition-colors",
@@ -154,6 +163,18 @@ export default function Navbar() {
                 )}
               >
                 Features
+              </Link>
+              <Link
+                href="/live"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/live"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Live
               </Link>
               <Link
                 href="/leaderboards"

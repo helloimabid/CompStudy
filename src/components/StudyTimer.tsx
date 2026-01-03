@@ -21,6 +21,8 @@ import {
   Users,
   Settings,
   Layout,
+  CheckSquare,
+  ListTodo,
 } from "lucide-react";
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,7 +38,7 @@ import TimerSettings, {
   TimerStyle,
   TimerFont,
 } from "./TimerSettings";
-import SessionDesigner, { SessionBlock } from "./SessionDesigner";
+import SessionDesigner, { SessionBlock, GoalItem } from "./SessionDesigner";
 
 type SessionType = "focus" | "break";
 
@@ -84,6 +86,8 @@ export default function StudyTimer({
   const [subject, setSubject] = useState("");
   const [goal, setGoal] = useState("");
   const [sessionType, setSessionType] = useState<SessionType>("focus");
+  const [sessionGoals, setSessionGoals] = useState<GoalItem[]>([]);
+  const [showGoalsPanel, setShowGoalsPanel] = useState(true);
 
   // Planner State
   const [schedule, setSchedule] = useState<ScheduledSession[]>([]);
@@ -226,6 +230,13 @@ export default function StudyTimer({
 
   const nextScheduledSession = getNextScheduledSession();
 
+  // Toggle goal completion
+  const toggleGoalCompletion = (goalId: string) => {
+    setSessionGoals((prev) =>
+      prev.map((g) => (g.id === goalId ? { ...g, completed: !g.completed } : g))
+    );
+  };
+
   // Helper to format duration for display
   const formatDurationDisplay = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -322,11 +333,28 @@ export default function StudyTimer({
         setGoal(item.goal);
         setTargetDuration(item.duration);
         setSessionType(item.type);
+        // Parse goals from JSON if available
+        if (item.goal) {
+          try {
+            const parsedGoals = JSON.parse(item.goal);
+            if (Array.isArray(parsedGoals)) {
+              setSessionGoals(parsedGoals);
+            }
+          } catch {
+            // Not JSON, clear goals
+            setSessionGoals([]);
+          }
+        } else {
+          setSessionGoals([]);
+        }
         // If it has a duration, switch to timer mode automatically
         if (item.duration > 0) {
           setMode("timer");
         }
       }
+    } else {
+      // Clear goals for non-scheduled sessions
+      setSessionGoals([]);
     }
 
     try {
@@ -501,12 +529,18 @@ export default function StudyTimer({
       // User can see it in their schedule
 
       for (const block of blocks) {
+        // Serialize goals to JSON if they exist
+        const goalsJson =
+          block.goals && block.goals.length > 0
+            ? JSON.stringify(block.goals.filter((g) => g.text.trim() !== ""))
+            : "";
+
         const docData = {
           userId: user.$id,
           subject:
             block.subject ||
             (block.type === "break" ? "Break" : "Focus Session"),
-          goal: block.goal || "",
+          goal: goalsJson,
           duration: block.duration * 60,
           scheduledAt: currentTime.toISOString(),
           startTime: currentTime.toISOString(),
@@ -820,6 +854,58 @@ export default function StudyTimer({
               >
                 <Minimize2 size={20} className="sm:w-6 sm:h-6" />
               </button>
+
+              {/* Goals Panel - Fullscreen */}
+              {sessionGoals.length > 0 && isActive && (
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+                  <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-4 w-64">
+                    <div className="flex items-center gap-2 mb-3 text-zinc-400">
+                      <ListTodo size={16} />
+                      <span className="text-xs font-medium uppercase tracking-wider">
+                        Session Goals
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {sessionGoals.map((goal) => (
+                        <button
+                          key={goal.id}
+                          onClick={() => toggleGoalCompletion(goal.id)}
+                          className={clsx(
+                            "flex items-center gap-2 w-full text-left transition-all group",
+                            goal.completed ? "opacity-60" : "opacity-100"
+                          )}
+                        >
+                          {goal.completed ? (
+                            <CheckSquare
+                              size={16}
+                              className="text-green-500 shrink-0"
+                            />
+                          ) : (
+                            <Square
+                              size={16}
+                              className="text-indigo-400/60 group-hover:text-indigo-400 shrink-0"
+                            />
+                          )}
+                          <span
+                            className={clsx(
+                              "text-sm transition-all",
+                              goal.completed
+                                ? "text-zinc-500 line-through"
+                                : "text-zinc-300 group-hover:text-white"
+                            )}
+                          >
+                            {goal.text}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-white/5 text-xs text-zinc-500">
+                      {sessionGoals.filter((g) => g.completed).length}/
+                      {sessionGoals.length} completed
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Session Info */}
               <div className="text-center mb-6 md:mb-8 z-10 px-4">
@@ -1189,6 +1275,38 @@ export default function StudyTimer({
                   Strict
                 </span>
               </div>
+
+              {/* Public/Private Toggle */}
+              <div className="hidden sm:flex items-center gap-2 bg-zinc-900/80 rounded-lg px-3 py-1.5 border border-white/5">
+                <button
+                  onClick={() =>
+                    setPrivacy(privacy === "public" ? "private" : "public")
+                  }
+                  className={clsx(
+                    "w-8 h-4 rounded-full transition-colors relative",
+                    privacy === "public" ? "bg-green-600" : "bg-zinc-700"
+                  )}
+                  disabled={isActive}
+                >
+                  <div
+                    className={clsx(
+                      "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all",
+                      privacy === "public" ? "left-4" : "left-0.5"
+                    )}
+                  ></div>
+                </button>
+                <span className="text-xs font-medium text-zinc-400 flex items-center gap-1">
+                  {privacy === "public" ? (
+                    <>
+                      <Globe size={10} /> Live
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={10} /> Private
+                    </>
+                  )}
+                </span>
+              </div>
             </div>
 
             {/* Progress Bar */}
@@ -1323,6 +1441,60 @@ export default function StudyTimer({
                   </>
                 )}
               </div>
+
+              {/* Goals Checklist - Normal Mode */}
+              {sessionGoals.length > 0 && isActive && (
+                <div className="mt-4 sm:mt-6 w-full max-w-sm">
+                  <div className="bg-black/30 border border-white/5 rounded-xl p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-zinc-400">
+                        <ListTodo size={14} />
+                        <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">
+                          Goals
+                        </span>
+                      </div>
+                      <span className="text-[10px] sm:text-xs text-zinc-500">
+                        {sessionGoals.filter((g) => g.completed).length}/
+                        {sessionGoals.length}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {sessionGoals.map((goal) => (
+                        <button
+                          key={goal.id}
+                          onClick={() => toggleGoalCompletion(goal.id)}
+                          className={clsx(
+                            "flex items-center gap-2 w-full text-left transition-all group py-0.5",
+                            goal.completed ? "opacity-60" : "opacity-100"
+                          )}
+                        >
+                          {goal.completed ? (
+                            <CheckSquare
+                              size={14}
+                              className="text-green-500 shrink-0"
+                            />
+                          ) : (
+                            <Square
+                              size={14}
+                              className="text-indigo-400/60 group-hover:text-indigo-400 shrink-0"
+                            />
+                          )}
+                          <span
+                            className={clsx(
+                              "text-xs sm:text-sm transition-all",
+                              goal.completed
+                                ? "text-zinc-500 line-through"
+                                : "text-zinc-300 group-hover:text-white"
+                            )}
+                          >
+                            {goal.text}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

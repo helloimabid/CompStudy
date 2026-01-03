@@ -10,9 +10,18 @@ import {
   BookOpen,
   Coffee,
   Play,
+  CheckSquare,
+  Square,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
+
+export type GoalItem = {
+  id: string;
+  text: string;
+  completed: boolean;
+};
 
 export type SessionBlock = {
   id: string;
@@ -20,6 +29,7 @@ export type SessionBlock = {
   duration: number; // minutes
   subject?: string;
   goal?: string;
+  goals?: GoalItem[]; // checklist goals
 };
 
 interface SessionDesignerProps {
@@ -103,6 +113,54 @@ export default function SessionDesigner({
 
   const updateBlock = (id: string, updates: Partial<SessionBlock>) => {
     setBlocks(blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+  };
+
+  const addGoalToBlock = (blockId: string) => {
+    setBlocks(
+      blocks.map((b) =>
+        b.id === blockId
+          ? {
+              ...b,
+              goals: [
+                ...(b.goals || []),
+                {
+                  id: Math.random().toString(36).substr(2, 9),
+                  text: "",
+                  completed: false,
+                },
+              ],
+            }
+          : b
+      )
+    );
+  };
+
+  const updateGoal = (blockId: string, goalId: string, text: string) => {
+    setBlocks(
+      blocks.map((b) =>
+        b.id === blockId
+          ? {
+              ...b,
+              goals: b.goals?.map((g) =>
+                g.id === goalId ? { ...g, text } : g
+              ),
+            }
+          : b
+      )
+    );
+  };
+
+  const removeGoal = (blockId: string, goalId: string) => {
+    setBlocks(
+      blocks.map((b) =>
+        b.id === blockId
+          ? {
+              ...b,
+              goals: b.goals?.filter((g) => g.id !== goalId),
+            }
+          : b
+      )
+    );
   };
 
   const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
@@ -265,6 +323,41 @@ export default function SessionDesigner({
                                     ? "Break"
                                     : "Focus Session")}
                               </p>
+                              {/* Display goals if they exist */}
+                              {session.goal &&
+                                (() => {
+                                  try {
+                                    const goals: GoalItem[] = JSON.parse(
+                                      session.goal
+                                    );
+                                    if (goals.length > 0) {
+                                      return (
+                                        <div className="mt-2 space-y-1">
+                                          {goals.map((g) => (
+                                            <div
+                                              key={g.id}
+                                              className="flex items-center gap-1.5 text-xs text-zinc-400"
+                                            >
+                                              <Square
+                                                size={10}
+                                                className="text-indigo-400/50"
+                                              />
+                                              <span>{g.text}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  } catch {
+                                    // Not JSON, might be old format
+                                    return session.goal ? (
+                                      <p className="mt-1 text-xs text-zinc-500">
+                                        {session.goal}
+                                      </p>
+                                    ) : null;
+                                  }
+                                })()}
                             </div>
 
                             {onDeleteScheduledItem && (
@@ -411,6 +504,55 @@ export default function SessionDesigner({
                               <Trash2 size={16} />
                             </button>
                           </div>
+
+                          {/* Goals Checklist for Focus blocks */}
+                          {block.type === "focus" && (
+                            <div className="ml-12 mt-2 space-y-2">
+                              {block.goals && block.goals.length > 0 && (
+                                <div className="space-y-1.5">
+                                  {block.goals.map((goal) => (
+                                    <div
+                                      key={goal.id}
+                                      className="flex items-center gap-2 group/goal"
+                                    >
+                                      <Square
+                                        size={14}
+                                        className="text-indigo-400/50 shrink-0"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={goal.text}
+                                        onChange={(e) =>
+                                          updateGoal(
+                                            block.id,
+                                            goal.id,
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="What do you want to accomplish?"
+                                        className="flex-1 bg-transparent border-b border-white/5 px-1 py-0.5 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500/30 placeholder:text-zinc-600"
+                                      />
+                                      <button
+                                        onClick={() =>
+                                          removeGoal(block.id, goal.id)
+                                        }
+                                        className="p-1 text-zinc-700 hover:text-red-400 transition-colors opacity-0 group-hover/goal:opacity-100"
+                                      >
+                                        <X size={12} />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <button
+                                onClick={() => addGoalToBlock(block.id)}
+                                className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-400 transition-colors py-1"
+                              >
+                                <Plus size={12} />
+                                Add goal
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
