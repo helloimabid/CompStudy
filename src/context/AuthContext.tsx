@@ -68,8 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!session.emailVerification) {
         setLoading(false);
         // Redirect to verification notice page if on protected routes
-        const publicRoutes = ["/", "/login", "/verify-email", "/reset-password", "/features"];
-        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+        const publicRoutes = [
+          "/",
+          "/login",
+          "/verify-email",
+          "/reset-password",
+          "/features",
+        ];
+        const currentPath =
+          typeof window !== "undefined" ? window.location.pathname : "";
         if (!publicRoutes.includes(currentPath)) {
           router.push("/verify-email-notice");
         }
@@ -134,10 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     }
-    
+
     const session = await account.get();
     await checkUser();
-    
+
     // Check if email is verified
     if (!session.emailVerification) {
       router.push("/verify-email-notice");
@@ -210,7 +217,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Registration error:", error);
 
       // Clean up: Delete account if profile creation failed
-      if (error.message?.includes("profile") || error.message?.includes("database")) {
+      if (
+        error.message?.includes("profile") ||
+        error.message?.includes("database")
+      ) {
         try {
           await account.deleteSessions();
         } catch (cleanupError) {

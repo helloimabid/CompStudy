@@ -31,10 +31,10 @@ export default function VerifyEmailNoticePage() {
 
   const handleResendEmail = async () => {
     if (countdown > 0) return;
-    
+
     setSending(true);
     setError("");
-    
+
     try {
       await sendVerificationEmail();
       setSent(true);
@@ -83,11 +83,11 @@ export default function VerifyEmailNoticePage() {
             <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-yellow-400" />
             </div>
-            
+
             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
               Verify Your Email
             </h1>
-            
+
             <p className="text-zinc-400 text-sm mb-6">
               We sent a verification link to{" "}
               <span className="text-white font-medium">{user?.email}</span>
@@ -101,7 +101,8 @@ export default function VerifyEmailNoticePage() {
                     Check Your Inbox
                   </h3>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Click the verification link in the email we sent you. Don't forget to check your spam folder if you don't see it.
+                    Click the verification link in the email we sent you. Don't
+                    forget to check your spam folder if you don't see it.
                   </p>
                 </div>
               </div>

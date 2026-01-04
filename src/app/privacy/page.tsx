@@ -19,7 +19,8 @@ export default function PrivacyPolicyPage() {
                 Welcome to CompStudy ("we," "our," or "us"). We are committed to
                 protecting your personal information and your right to privacy.
                 This Privacy Policy explains how we collect, use, disclose, and
-                safeguard your information when you use our website and services.
+                safeguard your information when you use our website and
+                services.
               </p>
             </section>
 
@@ -27,7 +28,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 2. Information We Collect
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 2.1 Information You Provide
               </h3>
@@ -93,7 +94,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 4. Information Sharing and Disclosure
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 4.1 Public Information
               </h3>
@@ -124,8 +125,8 @@ export default function PrivacyPolicyPage() {
                 4.3 Legal Requirements
               </h3>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                We may disclose your information if required by law, court order,
-                or to protect our rights and safety.
+                We may disclose your information if required by law, court
+                order, or to protect our rights and safety.
               </p>
             </section>
 
@@ -211,10 +212,10 @@ export default function PrivacyPolicyPage() {
                 8. Children's Privacy
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                Our services are not intended for children under 13 years of age.
-                We do not knowingly collect information from children under 13. If
-                we learn we have collected such information, we will delete it
-                immediately.
+                Our services are not intended for children under 13 years of
+                age. We do not knowingly collect information from children under
+                13. If we learn we have collected such information, we will
+                delete it immediately.
               </p>
             </section>
 
@@ -241,9 +242,10 @@ export default function PrivacyPolicyPage() {
                 10. International Data Transfers
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                Your information may be transferred to and processed in countries
-                other than your own. We ensure appropriate safeguards are in place
-                to protect your information in accordance with this Privacy Policy.
+                Your information may be transferred to and processed in
+                countries other than your own. We ensure appropriate safeguards
+                are in place to protect your information in accordance with this
+                Privacy Policy.
               </p>
             </section>
 
@@ -258,7 +260,9 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc list-inside text-zinc-400 space-y-2 ml-4 mb-4">
                 <li>Posting the new policy on this page</li>
                 <li>Updating the "Last updated" date</li>
-                <li>Sending you an email notification (for material changes)</li>
+                <li>
+                  Sending you an email notification (for material changes)
+                </li>
               </ul>
             </section>
 

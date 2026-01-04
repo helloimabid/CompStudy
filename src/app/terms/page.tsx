@@ -16,14 +16,14 @@ export default function TermsOfServicePage() {
                 1. Agreement to Terms
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                By accessing or using CompStudy ("Service," "we," "us," or "our"),
-                you agree to be bound by these Terms of Service ("Terms"). If you
-                do not agree to these Terms, you may not access or use the
-                Service.
+                By accessing or using CompStudy ("Service," "we," "us," or
+                "our"), you agree to be bound by these Terms of Service
+                ("Terms"). If you do not agree to these Terms, you may not
+                access or use the Service.
               </p>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                These Terms apply to all visitors, users, and others who access or
-                use the Service.
+                These Terms apply to all visitors, users, and others who access
+                or use the Service.
               </p>
             </section>
 
@@ -32,8 +32,8 @@ export default function TermsOfServicePage() {
                 2. Description of Service
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                CompStudy is an online study timer and productivity platform that
-                provides:
+                CompStudy is an online study timer and productivity platform
+                that provides:
               </p>
               <ul className="list-disc list-inside text-zinc-400 space-y-2 ml-4 mb-4">
                 <li>Pomodoro timer and study session tracking</li>
@@ -49,7 +49,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 3. Account Registration
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 3.1 Eligibility
               </h3>
@@ -85,7 +85,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 4. Acceptable Use
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 4.1 Permitted Use
               </h3>
@@ -124,7 +124,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 5. User Content
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 5.1 Your Content
               </h3>
@@ -162,10 +162,10 @@ export default function TermsOfServicePage() {
                 6. Intellectual Property
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                The Service and its original content, features, and functionality
-                are owned by CompStudy and are protected by international
-                copyright, trademark, patent, trade secret, and other intellectual
-                property laws.
+                The Service and its original content, features, and
+                functionality are owned by CompStudy and are protected by
+                international copyright, trademark, patent, trade secret, and
+                other intellectual property laws.
               </p>
               <p className="text-zinc-400 leading-relaxed mb-4">
                 Our trademarks and trade dress may not be used without our prior
@@ -195,7 +195,7 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold text-white mb-4">
                 8. Termination
               </h2>
-              
+
               <h3 className="text-xl font-medium text-white mb-3 mt-6">
                 8.1 By You
               </h3>
@@ -231,8 +231,8 @@ export default function TermsOfServicePage() {
                 PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
               </p>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                We do not warrant that the Service will meet your requirements or
-                be error-free.
+                We do not warrant that the Service will meet your requirements
+                or be error-free.
               </p>
             </section>
 
@@ -271,9 +271,9 @@ export default function TermsOfServicePage() {
                 12. Third-Party Services
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                Our Service may contain links to third-party websites or services
-                (e.g., Google OAuth). We are not responsible for their content,
-                privacy policies, or practices.
+                Our Service may contain links to third-party websites or
+                services (e.g., Google OAuth). We are not responsible for their
+                content, privacy policies, or practices.
               </p>
             </section>
 
@@ -301,9 +301,9 @@ export default function TermsOfServicePage() {
                 14. Governing Law
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                These Terms shall be governed by and construed in accordance with
-                the laws of your jurisdiction, without regard to its conflict of
-                law provisions.
+                These Terms shall be governed by and construed in accordance
+                with the laws of your jurisdiction, without regard to its
+                conflict of law provisions.
               </p>
             </section>
 
@@ -312,9 +312,10 @@ export default function TermsOfServicePage() {
                 15. Dispute Resolution
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                Any disputes arising from these Terms or the Service should first
-                be resolved through good-faith negotiation. If unresolved, you
-                agree to submit to the jurisdiction of courts in your location.
+                Any disputes arising from these Terms or the Service should
+                first be resolved through good-faith negotiation. If unresolved,
+                you agree to submit to the jurisdiction of courts in your
+                location.
               </p>
             </section>
 
@@ -323,8 +324,8 @@ export default function TermsOfServicePage() {
                 16. Severability
               </h2>
               <p className="text-zinc-400 leading-relaxed mb-4">
-                If any provision of these Terms is found to be unenforceable, the
-                remaining provisions will remain in full force and effect.
+                If any provision of these Terms is found to be unenforceable,
+                the remaining provisions will remain in full force and effect.
               </p>
             </section>
 
