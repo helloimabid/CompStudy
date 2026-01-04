@@ -7,6 +7,7 @@ import LeaderboardWidget from "@/components/LeaderboardWidget";
 import { Metadata } from "next";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
+import Link from "next/link";
 
 // Note: Metadata export removed as this is now a client component
 // SEO metadata is handled in layout.tsx
@@ -90,15 +91,21 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-            <button className="group relative px-6 py-3 rounded-full bg-zinc-100 text-black text-sm font-medium hover:bg-zinc-200 transition-all w-full sm:w-auto overflow-hidden">
+            <Link
+              href="/start-studying"
+              className="group relative px-6 py-3 rounded-full bg-zinc-100 text-black text-sm font-medium hover:bg-zinc-200 transition-all w-full sm:w-auto overflow-hidden"
+            >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 Join the Competition
                 <ArrowRight strokeWidth={1.5} width={16} />
               </span>
-            </button>
-            <button className="px-6 py-3 rounded-full border border-white/10 text-zinc-300 text-sm font-medium hover:bg-white/5 transition-all w-full sm:w-auto bg-[#050505]/50">
+            </Link>
+            <Link
+              href="/live"
+              className="px-6 py-3 rounded-full border border-white/10 text-zinc-300 text-sm font-medium hover:bg-white/5 transition-all w-full sm:w-auto bg-[#050505]/50"
+            >
               View Live Map
-            </button>
+            </Link>
           </div>
 
           {/* UI Visualization */}
