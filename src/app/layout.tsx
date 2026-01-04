@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
+import Script from "next/script";
 import { AuthProvider } from "@/context/AuthContext";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
@@ -259,6 +260,14 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
+        {/* Google AdSense Script */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9710571190649081"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        
         <AuthProvider>
           <RealtimeProvider>
             {/* Dotted Background Layer */}
