@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
+import AdSense from "@/components/AdSense";
 import {
   User,
   Clock,
@@ -414,6 +415,11 @@ export default function LiveSessionsPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Ad Section - Bottom of Live Sessions */}
+      <div className="max-w-4xl mx-auto mt-12 px-6">
+        <AdSense adSlot="6403800745" className="text-center" />
       </div>
 
       {/* Session Detail Modal */}

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import StudyTimer from "@/components/StudyTimer";
 import UsernameDialog from "@/components/UsernameDialog";
+import AdSense from "@/components/AdSense";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -392,6 +393,11 @@ function DashboardContent() {
               </div>
             </motion.div>
           </motion.div>
+        </div>
+
+        {/* Ad Section - Bottom of Dashboard */}
+        <div className="max-w-6xl mx-auto px-6 pb-12">
+          <AdSense adSlot="6403800745" className="text-center" />
         </div>
       </main>
     </>

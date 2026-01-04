@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Flame, Globe, BarChart2, Trophy } from "lucide-react";
 import LiveBadge from "@/components/LiveBadge";
 import LeaderboardWidget from "@/components/LeaderboardWidget";
+import AdSense from "@/components/AdSense";
 import { Metadata } from "next";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
@@ -268,6 +269,11 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Ad Section - After Hero */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <AdSense adSlot="6403800745" className="text-center" />
+      </div>
+
       {/* Bento Grid Features Section */}
       <section className="py-24 border-t border-white/5 relative">
         <div className="max-w-7xl mx-auto px-6">
@@ -497,6 +503,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Ad Section - After Interactive Strip */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <AdSense adSlot="6403800745" className="text-center" />
+      </div>
 
       {/* SEO Content Section - Hidden but crawlable */}
       <section className="sr-only" aria-hidden="true">
