@@ -339,6 +339,18 @@ export default function RootLayout({
                   </div>
                   <div className="flex gap-6" suppressHydrationWarning>
                     <a
+                      href="/privacy"
+                      className="hover:text-zinc-400 transition-colors"
+                    >
+                      Privacy
+                    </a>
+                    <a
+                      href="/terms"
+                      className="hover:text-zinc-400 transition-colors"
+                    >
+                      Terms
+                    </a>
+                    <a
                       href="#"
                       className="hover:text-zinc-400 transition-colors"
                     >
