@@ -267,7 +267,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        
+
         <AuthProvider>
           <RealtimeProvider>
             {/* Dotted Background Layer */}
