@@ -16,6 +16,6 @@ export const metadata: Metadata = {
     description: "Begin your focused study session with Pomodoro technique and goal tracking.",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev/start-studying",
+    canonical: "https://compstudy.tech/start-studying",
   },
 };

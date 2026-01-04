@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://compstudy.pages.dev'
+  const baseUrl = 'https://compstudy.tech'
 
   return [
     {

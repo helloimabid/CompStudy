@@ -35,6 +35,14 @@ interface AuthContextType {
   uploadProfilePicture: (file: File) => Promise<string>;
   needsUsername: boolean;
   setUsernameForOAuth: (username: string) => Promise<void>;
+  initiatePasswordRecovery: (email: string) => Promise<void>;
+  completePasswordRecovery: (
+    userId: string,
+    secret: string,
+    password: string
+  ) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
+  verifyEmail: (userId: string, secret: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -140,7 +148,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await account.createEmailPasswordSession(email, password);
       console.log("Session created successfully");
 
-      // Step 3: Create user profile in database
+      // Step 3: Send verification email
+      try {
+        const verificationUrl =
+          typeof window !== "undefined"
+            ? `${window.location.origin}/verify-email`
+            : `${
+                process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+              }/verify-email`;
+        await account.createVerification(verificationUrl);
+        console.log("Verification email sent successfully");
+      } catch (verificationError) {
+        console.error("Failed to send verification email:", verificationError);
+        // Don't block registration if verification email fails
+      }
+
+      // Step 4: Create user profile in database
       await databases.createDocument(
         DB_ID,
         COLLECTIONS.PROFILES,
@@ -160,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       console.log("Profile created successfully");
 
-      // Step 4: Refresh user data
+      // Step 5: Refresh user data
       await checkUser();
       router.push("/dashboard");
     } catch (error: any) {
@@ -375,6 +398,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const initiatePasswordRecovery = async (email: string) => {
+    try {
+      const redirectUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/reset-password`
+          : `${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/reset-password`;
+
+      await account.createRecovery(email, redirectUrl);
+    } catch (error: any) {
+      console.error("Password recovery error:", error);
+      throw new Error(error.message || "Failed to initiate password recovery");
+    }
+  };
+
+  const completePasswordRecovery = async (
+    userId: string,
+    secret: string,
+    password: string
+  ) => {
+    try {
+      await account.updateRecovery(userId, secret, password);
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      throw new Error(error.message || "Failed to reset password");
+    }
+  };
+
+  const sendVerificationEmail = async () => {
+    try {
+      const verificationUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/verify-email`
+          : `${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/verify-email`;
+      await account.createVerification(verificationUrl);
+    } catch (error: any) {
+      console.error("Verification email error:", error);
+      throw new Error(error.message || "Failed to send verification email");
+    }
+  };
+
+  const verifyEmail = async (userId: string, secret: string) => {
+    try {
+      await account.updateVerification(userId, secret);
+      await checkUser(); // Refresh user data
+    } catch (error: any) {
+      console.error("Email verification error:", error);
+      throw new Error(error.message || "Failed to verify email");
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -390,6 +467,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         uploadProfilePicture,
         needsUsername,
         setUsernameForOAuth,
+        initiatePasswordRecovery,
+        completePasswordRecovery,
+        sendVerificationEmail,
+        verifyEmail,
       }}
     >
       {children}

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Track your study progress, view statistics, and manage your study sessions.",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev/dashboard",
+    canonical: "https://compstudy.tech/dashboard",
   },
   robots: {
     index: false, // Private dashboard shouldn't be indexed

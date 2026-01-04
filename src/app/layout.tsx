@@ -43,7 +43,7 @@ const electrolize = Electrolize({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://compstudy.pages.dev"),
+  metadataBase: new URL("https://compstudy.tech"),
   title: {
     default:
       "CompStudy - Online Study Timer with Live Rooms & Pomodoro | Free Focus Timer",
@@ -98,7 +98,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://compstudy.pages.dev",
+    url: "https://compstudy.tech",
     title: "CompStudy - Best Free Online Study Timer & Pomodoro Focus App",
     description:
       "Join thousands of students using the best free study timer. Pomodoro technique, live study rooms, goal tracking, and productivity analytics. Start focusing better today!",
@@ -137,7 +137,7 @@ export const metadata: Metadata = {
     // bing: "your-bing-verification-code",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev",
+    canonical: "https://compstudy.tech",
   },
   category: "Education",
 };
@@ -171,7 +171,7 @@ export default function RootLayout({
               "@type": "WebSite",
               name: "CompStudy",
               alternateName: "CompStudy Study Timer",
-              url: "https://compstudy.pages.dev",
+              url: "https://compstudy.tech",
               description:
                 "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking",
               potentialAction: {
@@ -233,8 +233,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "CompStudy",
-              url: "https://compstudy.pages.dev",
-              logo: "https://compstudy.pages.dev/logo.png",
+              url: "https://compstudy.tech",
+              logo: "https://compstudy.tech/logo.png",
               sameAs: [
                 "https://twitter.com/compstudy",
                 "https://github.com/compstudy",

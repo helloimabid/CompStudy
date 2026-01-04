@@ -9,7 +9,7 @@ Disallow: /api/
 Disallow: /room/*/private
 
 # Sitemap location
-Sitemap: https://compstudy.pages.dev/sitemap.xml
+Sitemap: https://compstudy.tech/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

@@ -17,6 +17,6 @@ export const metadata: Metadata = {
     description: "See what thousands of students are studying right now. Join live study rooms and study together.",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev/live",
+    canonical: "https://compstudy.tech/live",
   },
 };

@@ -17,6 +17,6 @@ export const metadata: Metadata = {
     description: "See global rankings of top students by study hours and streaks. Join the competition!",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev/leaderboards",
+    canonical: "https://compstudy.tech/leaderboards",
   },
 };

@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Mail, Lock, User, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  Mail,
+  Lock,
+  User,
+  Loader2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -12,8 +20,20 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
 
-  const { login, register, loginWithGoogle, loading, user } = useAuth();
+  const {
+    login,
+    register,
+    loginWithGoogle,
+    loading,
+    user,
+    initiatePasswordRecovery,
+  } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +73,29 @@ export default function LoginPage() {
 
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
+    setError("");
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setForgotPasswordLoading(true);
+
+    try {
+      await initiatePasswordRecovery(forgotPasswordEmail);
+      setForgotPasswordSuccess(true);
+    } catch (err: any) {
+      console.error("Password recovery error:", err);
+      setError(err.message || "Failed to send recovery email");
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
+  const closeForgotPasswordModal = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordEmail("");
+    setForgotPasswordSuccess(false);
     setError("");
   };
 
@@ -145,14 +188,37 @@ export default function LoginPage() {
             <div className="relative group">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all"
+                className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-10 pr-12 py-3 rounded-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all"
                 placeholder="Password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-400 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
+
+            {!isRegistering && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -236,6 +302,104 @@ export default function LoginPage() {
             </button>
           </div>
         </motion.div>
+
+        {/* Forgot Password Modal */}
+        <AnimatePresence>
+          {showForgotPassword && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+              onClick={closeForgotPasswordModal}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              >
+                {forgotPasswordSuccess ? (
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-green-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-3">
+                      Check your email
+                    </h2>
+                    <p className="text-zinc-400 text-sm mb-6">
+                      We've sent a password reset link to{" "}
+                      <span className="text-white font-medium">
+                        {forgotPasswordEmail}
+                      </span>
+                      . Click the link in the email to reset your password.
+                    </p>
+                    <button
+                      onClick={closeForgotPasswordModal}
+                      className="w-full bg-indigo-600 text-white text-sm font-medium px-4 py-3 rounded-xl hover:bg-indigo-500 transition-colors"
+                    >
+                      Got it
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      Reset your password
+                    </h2>
+                    <p className="text-zinc-400 text-sm mb-6">
+                      Enter your email address and we'll send you a link to
+                      reset your password.
+                    </p>
+
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
+                        {error}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleForgotPassword}>
+                      <div className="relative group mb-6">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                          type="email"
+                          value={forgotPasswordEmail}
+                          onChange={(e) =>
+                            setForgotPasswordEmail(e.target.value)
+                          }
+                          className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all"
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={closeForgotPasswordModal}
+                          className="flex-1 bg-zinc-800/50 text-white text-sm font-medium px-4 py-3 rounded-xl hover:bg-zinc-800 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={forgotPasswordLoading}
+                          className="flex-1 bg-indigo-600 text-white text-sm font-medium px-4 py-3 rounded-xl hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {forgotPasswordLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "Send reset link"
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );

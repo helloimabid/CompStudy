@@ -17,6 +17,6 @@ export const metadata: Metadata = {
     description: "Discover powerful study features: Pomodoro timer, goal tracking, analytics, and community features.",
   },
   alternates: {
-    canonical: "https://compstudy.pages.dev/features",
+    canonical: "https://compstudy.tech/features",
   },
 };
