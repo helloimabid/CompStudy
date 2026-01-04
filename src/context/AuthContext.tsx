@@ -64,6 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session = await account.get();
       setUser(session);
 
+      // Check if email is verified
+      if (!session.emailVerification) {
+        setLoading(false);
+        // Redirect to verification notice page if on protected routes
+        const publicRoutes = ["/", "/login", "/verify-email", "/reset-password", "/features"];
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+        if (!publicRoutes.includes(currentPath)) {
+          router.push("/verify-email-notice");
+        }
+        return;
+      }
+
       // Check if profile exists and create if missing
       try {
         const profiles = await databases.listDocuments(
@@ -122,8 +134,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     }
+    
+    const session = await account.get();
     await checkUser();
-    router.push("/dashboard");
+    
+    // Check if email is verified
+    if (!session.emailVerification) {
+      router.push("/verify-email-notice");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const register = async (
@@ -133,22 +153,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ) => {
     const userId = ID.unique();
 
-    // Check if username is already taken
-    const isAvailable = await checkUsernameAvailable(username);
-    if (!isAvailable) {
-      throw new Error("Username is already taken");
-    }
-
     try {
-      // Step 1: Create the account
+      // Step 1: Check if username is already taken BEFORE creating account
+      const isAvailable = await checkUsernameAvailable(username);
+      if (!isAvailable) {
+        throw new Error("Username is already taken");
+      }
+
+      // Step 2: Create the account
       await account.create(userId, email, password, username);
       console.log("Account created successfully");
 
-      // Step 2: Create session
+      // Step 3: Create session
       await account.createEmailPasswordSession(email, password);
       console.log("Session created successfully");
 
-      // Step 3: Send verification email
+      // Step 4: Send verification email
       try {
         const verificationUrl =
           typeof window !== "undefined"
@@ -163,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Don't block registration if verification email fails
       }
 
-      // Step 4: Create user profile in database
+      // Step 5: Create user profile in database
       await databases.createDocument(
         DB_ID,
         COLLECTIONS.PROFILES,
@@ -183,27 +203,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       console.log("Profile created successfully");
 
-      // Step 5: Refresh user data
+      // Step 6: Redirect to verification notice
       await checkUser();
-      router.push("/dashboard");
+      router.push("/verify-email-notice");
     } catch (error: any) {
       console.error("Registration error:", error);
 
-      // If account was created but profile/session failed, try to login instead
-      if (error.code === 409 || error.message?.includes("already exists")) {
+      // Clean up: Delete account if profile creation failed
+      if (error.message?.includes("profile") || error.message?.includes("database")) {
         try {
-          await account.createEmailPasswordSession(email, password);
-          await checkUser();
-          router.push("/dashboard");
-          return;
-        } catch (loginError) {
-          console.error("Auto-login failed:", loginError);
+          await account.deleteSessions();
+        } catch (cleanupError) {
+          console.error("Cleanup failed:", cleanupError);
         }
       }
 
       // Re-throw the error to be caught by the UI
       throw new Error(
-        error.message || "Registration failed. Please try logging in instead."
+        error.message || "Registration failed. Please try again."
       );
     }
   };
