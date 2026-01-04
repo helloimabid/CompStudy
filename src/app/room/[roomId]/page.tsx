@@ -1877,13 +1877,17 @@ function RoomContent() {
   );
 }
 
+import ProtectedRoute from "@/components/ProtectedRoute";
+
 export default function RoomPage() {
   const params = useParams();
   const roomId = params.roomId as string;
 
   return (
-    <CloudflareWebSocketProvider roomId={roomId}>
-      <RoomContent />
-    </CloudflareWebSocketProvider>
+    <ProtectedRoute>
+      <CloudflareWebSocketProvider roomId={roomId}>
+        <RoomContent />
+      </CloudflareWebSocketProvider>
+    </ProtectedRoute>
   );
 }

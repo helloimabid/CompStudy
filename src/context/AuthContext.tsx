@@ -72,8 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "/",
           "/login",
           "/verify-email",
+          "/verify-email-notice",
           "/reset-password",
           "/features",
+          "/privacy",
+          "/terms",
+          "/live",
+          "/leaderboards",
         ];
         const currentPath =
           typeof window !== "undefined" ? window.location.pathname : "";

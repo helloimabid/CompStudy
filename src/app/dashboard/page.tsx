@@ -23,8 +23,9 @@ import StudyTimer from "@/components/StudyTimer";
 import UsernameDialog from "@/components/UsernameDialog";
 import { motion } from "framer-motion";
 import clsx from "clsx";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, loading, logout, needsUsername, setUsernameForOAuth } =
     useAuth();
   const router = useRouter();
@@ -394,5 +395,13 @@ export default function DashboardPage() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }

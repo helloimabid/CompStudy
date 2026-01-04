@@ -16,6 +16,7 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface Profile {
   $id: string;
@@ -28,7 +29,7 @@ interface Profile {
   xp: number;
 }
 
-export default function EditProfilePage() {
+function EditProfileContent() {
   const router = useRouter();
   const {
     user,
@@ -421,5 +422,13 @@ export default function EditProfilePage() {
         )}
       </AnimatePresence>
     </main>
+  );
+}
+
+export default function EditProfilePage() {
+  return (
+    <ProtectedRoute>
+      <EditProfileContent />
+    </ProtectedRoute>
   );
 }

@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function StartStudyingPage() {
+function StartStudyingContent() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
   const { user, loading } = useAuth();
@@ -103,5 +104,13 @@ export default function StartStudyingPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function StartStudyingPage() {
+  return (
+    <ProtectedRoute>
+      <StartStudyingContent />
+    </ProtectedRoute>
   );
 }

@@ -4,12 +4,13 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Clock, BookOpen } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export default function CreateRoomPage() {
+function CreateRoomContent() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -175,5 +176,13 @@ export default function CreateRoomPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function CreateRoomPage() {
+  return (
+    <ProtectedRoute>
+      <CreateRoomContent />
+    </ProtectedRoute>
   );
 }

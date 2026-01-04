@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { AnimatePresence, motion } from "framer-motion";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface Peer {
   $id: string;
@@ -17,7 +18,7 @@ interface Peer {
   userName?: string; // We'll try to fetch this
 }
 
-export default function FocusPage() {
+function FocusContent() {
   const [peers, setPeers] = useState<Peer[]>([]);
   const [loadingPeers, setLoadingPeers] = useState(true);
   const [showPeersDrawer, setShowPeersDrawer] = useState(false);
@@ -281,5 +282,13 @@ export default function FocusPage() {
         )}
       </AnimatePresence>
     </main>
+  );
+}
+
+export default function FocusPage() {
+  return (
+    <ProtectedRoute>
+      <FocusContent />
+    </ProtectedRoute>
   );
 }
