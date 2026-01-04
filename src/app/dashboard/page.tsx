@@ -319,7 +319,7 @@ function DashboardContent() {
                   <BookOpen className="text-indigo-400" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">
-                  Start Studying Solo 
+                  Start Studying Solo
                 </h3>
                 <p className="text-sm text-zinc-400 mb-4">
                   Begin a new focus session
