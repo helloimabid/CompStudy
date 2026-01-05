@@ -50,6 +50,7 @@ function CreateRoomContent() {
   }, [user]);
 
   const fetchCurriculums = async () => {
+    if (!user) return;
     try {
       const response = await databases.listDocuments(
         DB_ID,

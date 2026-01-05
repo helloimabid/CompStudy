@@ -5,15 +5,104 @@ import { useRealtime } from "@/context/RealtimeContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+
+interface DropdownProps {
+  label: string;
+  items: { href: string; label: string }[];
+  pathname: string;
+}
+
+function NavDropdown({ label, items, pathname }: DropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const isActive = items.some((item) => pathname === item.href);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={clsx(
+          "flex items-center gap-1 transition-colors",
+          isActive ? "text-zinc-200" : "hover:text-zinc-200"
+        )}
+      >
+        {label}
+        <ChevronDown
+          size={12}
+          className={clsx("transition-transform", isOpen && "rotate-180")}
+        />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 py-2 min-w-[140px] bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl"
+          >
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={clsx(
+                  "block px-4 py-2 text-xs transition-colors",
+                  pathname === item.href
+                    ? "text-zinc-200 bg-white/5"
+                    : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { user, loading } = useAuth();
   const { activeLearners } = useRealtime();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const studyLinks = [
+    { href: "/focus", label: "Focus Mode" },
+    { href: "/live", label: "Live Rooms" },
+    { href: "/curriculum", label: "My Curriculum" },
+    { href: "/public-curriculum", label: "Browse Curricula" },
+  ];
+
+  const socialLinks = [
+    { href: "/community", label: "Community" },
+    { href: "/leaderboards", label: "Leaderboards" },
+    { href: "/analytics", label: "Analytics" },
+  ];
+
+  const moreLinks = [
+    { href: "/features", label: "Features" },
+    { href: "/contact", label: "Contact" },
+    { href: "/support", label: "☕ Support" },
+  ];
 
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md">
@@ -38,106 +127,9 @@ export default function Navbar() {
           className="hidden lg:flex items-center gap-6 text-xs font-medium text-zinc-500"
           suppressHydrationWarning
         >
-          <Link
-            href="/features"
-            className={clsx(
-              "transition-colors",
-              pathname === "/features" ? "text-zinc-200" : "hover:text-zinc-200"
-            )}
-          >
-            Features
-          </Link>
-          <Link
-            href="/focus"
-            className={clsx(
-              "transition-colors",
-              pathname === "/focus" ? "text-zinc-200" : "hover:text-zinc-200"
-            )}
-          >
-            Focus Mode
-          </Link>
-          <Link
-            href="/live"
-            className={clsx(
-              "transition-colors",
-              pathname === "/live" ? "text-zinc-200" : "hover:text-zinc-200"
-            )}
-          >
-            Live
-          </Link>
-          <Link
-            href="/leaderboards"
-            className={clsx(
-              "transition-colors",
-              pathname === "/leaderboards"
-                ? "text-zinc-200"
-                : "hover:text-zinc-200"
-            )}
-          >
-            Leaderboards
-          </Link>
-          <Link
-            href="/community"
-            className={clsx(
-              "transition-colors",
-              pathname === "/community"
-                ? "text-zinc-200"
-                : "hover:text-zinc-200"
-            )}
-          >
-            Community
-          </Link>
-          <Link
-            href="/analytics"
-            className={clsx(
-              "transition-colors",
-              pathname === "/analytics"
-                ? "text-zinc-200"
-                : "hover:text-zinc-200"
-            )}
-          >
-            Analytics
-          </Link>
-          <Link
-            href="/curriculum"
-            className={clsx(
-              "transition-colors",
-              pathname === "/curriculum"
-                ? "text-zinc-200"
-                : "hover:text-zinc-200"
-            )}
-          >
-            Curriculum
-          </Link>
-          <Link
-            href="/public-curriculum"
-            className={clsx(
-              "transition-colors",
-              pathname === "/public-curriculum"
-                ? "text-zinc-200"
-                : "hover:text-zinc-200"
-            )}
-          >
-            Browse
-          </Link>
-          <Link
-            href="/contact"
-            className={clsx(
-              "transition-colors",
-              pathname === "/contact" ? "text-zinc-200" : "hover:text-zinc-200"
-            )}
-          >
-            Contact
-          </Link>
-          <Link
-            href="/support"
-            className={clsx(
-              "transition-colors",
-              pathname === "/support" ? "text-zinc-200" : "hover:text-zinc-200"
-            )}
-          >
-            ☕ Support
-          </Link>
+          <NavDropdown label="Study" items={studyLinks} pathname={pathname} />
+          <NavDropdown label="Social" items={socialLinks} pathname={pathname} />
+          <NavDropdown label="More" items={moreLinks} pathname={pathname} />
         </div>
 
         <div className="flex items-center gap-4" suppressHydrationWarning>
@@ -211,127 +203,78 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="lg:hidden border-t border-white/5 bg-[#0a0a0a]"
           >
-            <div className="px-4 py-6 space-y-4">
-              <Link
-                href="/features"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/features"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Features
-              </Link>
-              <Link
-                href="/focus"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/focus"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Focus Mode
-              </Link>
-              <Link
-                href="/live"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/live"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Live
-              </Link>
-              <Link
-                href="/leaderboards"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/leaderboards"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Leaderboards
-              </Link>
-              <Link
-                href="/community"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/community"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Community
-              </Link>
-              <Link
-                href="/analytics"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/analytics"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Analytics
-              </Link>
-              <Link
-                href="/curriculum"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/curriculum"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Curriculum
-              </Link>
-              <Link
-                href="/public-curriculum"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/public-curriculum"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Browse Curricula
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/contact"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                Contact
-              </Link>
-              <Link
-                href="/support"
-                onClick={() => setMobileMenuOpen(false)}
-                className={clsx(
-                  "block text-sm font-medium transition-colors py-2",
-                  pathname === "/support"
-                    ? "text-zinc-200"
-                    : "text-zinc-500 hover:text-zinc-200"
-                )}
-              >
-                ☕ Support
-              </Link>
+            <div className="px-4 py-6 space-y-6">
+              {/* Study Section */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                  Study
+                </span>
+                <div className="space-y-1">
+                  {studyLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={clsx(
+                        "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
+                        pathname === item.href
+                          ? "text-zinc-200 bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Social Section */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                  Social
+                </span>
+                <div className="space-y-1">
+                  {socialLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={clsx(
+                        "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
+                        pathname === item.href
+                          ? "text-zinc-200 bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* More Section */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                  More
+                </span>
+                <div className="space-y-1">
+                  {moreLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={clsx(
+                        "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
+                        pathname === item.href
+                          ? "text-zinc-200 bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
               <div className="pt-4 border-t border-white/5 space-y-3">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
@@ -347,27 +290,27 @@ export default function Navbar() {
                 {!loading && (
                   <>
                     {user ? (
-                      <>
+                      <div className="flex gap-2">
                         <Link
                           href="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
+                          className="flex-1 text-center text-sm font-medium text-zinc-400 border border-white/10 px-4 py-2 rounded-full hover:text-white hover:border-white/20 transition-colors"
                         >
                           Dashboard
                         </Link>
                         <Link
                           href="/start-studying"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block text-center text-sm font-medium bg-zinc-100 text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
+                          className="flex-1 text-center text-sm font-medium bg-zinc-100 text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
                         >
                           Start Studying
                         </Link>
-                      </>
+                      </div>
                     ) : (
                       <Link
                         href="/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block text-sm font-medium text-zinc-400 hover:text-white transition-colors py-2"
+                        className="block text-center text-sm font-medium bg-zinc-100 text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
                       >
                         Log in
                       </Link>
