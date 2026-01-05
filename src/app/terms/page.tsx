@@ -342,6 +342,7 @@ export default function TermsOfServicePage() {
                   <a
                     href="mailto:legal@compstudy.tech"
                     className="text-indigo-400 hover:text-indigo-300"
+                    data-cfasync="false"
                   >
                     legal@compstudy.tech
                   </a>
@@ -360,6 +361,7 @@ export default function TermsOfServicePage() {
                   <a
                     href="mailto:support@compstudy.tech"
                     className="text-indigo-400 hover:text-indigo-300"
+                    data-cfasync="false"
                   >
                     support@compstudy.tech
                   </a>

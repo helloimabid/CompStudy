@@ -186,6 +186,7 @@ export default function PrivacyPolicyPage() {
                 <a
                   href="mailto:privacy@compstudy.tech"
                   className="text-indigo-400 hover:text-indigo-300"
+                  data-cfasync="false"
                 >
                   privacy@compstudy.tech
                 </a>
@@ -280,6 +281,7 @@ export default function PrivacyPolicyPage() {
                   <a
                     href="mailto:privacy@compstudy.tech"
                     className="text-indigo-400 hover:text-indigo-300"
+                    data-cfasync="false"
                   >
                     privacy@compstudy.tech
                   </a>
@@ -298,6 +300,7 @@ export default function PrivacyPolicyPage() {
                   <a
                     href="mailto:support@compstudy.tech"
                     className="text-indigo-400 hover:text-indigo-300"
+                    data-cfasync="false"
                   >
                     support@compstudy.tech
                   </a>
