@@ -47,11 +47,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://compstudy.tech"),
   title: {
     default:
-      "CompStudy - Online Study Timer with Live Rooms & Pomodoro | Free Focus Timer",
+      "CompStudy - Free Online Study Timer & Pomodoro Focus App",
     template: "%s | CompStudy - Study Timer & Focus App",
   },
   description:
-    "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking. Join thousands studying together. Track focus time, set goals, climb leaderboards. Best study timer app 2026.",
+    "Free online study timer with Pomodoro, live study rooms & productivity tracking. Join thousands studying together, climb leaderboards.",
   keywords: [
     "study timer",
     "pomodoro timer",
@@ -136,9 +136,6 @@ export const metadata: Metadata = {
     google: "your-google-verification-code", // Add your Google Search Console verification
     // yandex: "your-yandex-verification-code",
     // bing: "your-bing-verification-code",
-  },
-  alternates: {
-    canonical: "https://compstudy.tech",
   },
   category: "Education",
 };

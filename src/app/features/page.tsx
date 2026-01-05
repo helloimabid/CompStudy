@@ -1,4 +1,5 @@
-import { Zap, Globe, BarChart2, Shield } from "lucide-react";
+import { Zap, Globe, BarChart2, Shield, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function FeaturesPage() {
   return (
@@ -193,6 +194,25 @@ export default function FeaturesPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="mt-16 md:mt-20 text-center">
+          <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-white/10 rounded-2xl p-8 md:p-12">
+            <h2 className="text-2xl md:text-3xl font-medium text-white mb-4">
+              Ready to maximize your focus?
+            </h2>
+            <p className="text-zinc-400 mb-6 max-w-xl mx-auto">
+              Join thousands of students already improving their productivity
+            </p>
+            <Link
+              href="/start-studying"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-100 text-black text-sm font-medium hover:bg-zinc-200 transition-all"
+            >
+              Start Studying Now
+              <ArrowRight strokeWidth={1.5} width={16} />
+            </Link>
           </div>
         </div>
       </div>

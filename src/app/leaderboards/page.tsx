@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
-import { Trophy, Medal, Crown, Loader2, Flame } from "lucide-react";
+import { Trophy, Medal, Crown, Loader2, Flame, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface Profile {
@@ -238,6 +238,25 @@ export default function LeaderboardsPage() {
               </Link>
             ))
           )}
+        </div>
+
+        {/* CTA Section */}
+        <div className="mt-12 md:mt-16 text-center">
+          <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-white/10 rounded-2xl p-6 md:p-10">
+            <h2 className="text-xl md:text-2xl font-medium text-white mb-3">
+              Ready to climb the ranks?
+            </h2>
+            <p className="text-zinc-400 mb-5 max-w-lg mx-auto text-sm">
+              Start studying now and compete with thousands of motivated students
+            </p>
+            <Link
+              href="/start-studying"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-100 text-black text-sm font-medium hover:bg-zinc-200 transition-all"
+            >
+              Start Studying
+              <ArrowRight strokeWidth={1.5} width={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </main>

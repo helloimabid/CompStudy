@@ -102,6 +102,12 @@ export default function Home() {
               </span>
             </Link>
             <Link
+              href="/focus"
+              className="px-6 py-3 rounded-full border border-white/10 text-zinc-300 text-sm font-medium hover:bg-white/5 transition-all w-full sm:w-auto bg-[#050505]/50"
+            >
+              Focus Mode
+            </Link>
+            <Link
               href="/live"
               className="px-6 py-3 rounded-full border border-white/10 text-zinc-300 text-sm font-medium hover:bg-white/5 transition-all w-full sm:w-auto bg-[#050505]/50"
             >

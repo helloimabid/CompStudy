@@ -48,6 +48,15 @@ export default function Navbar() {
             Features
           </Link>
           <Link
+            href="/focus"
+            className={clsx(
+              "transition-colors",
+              pathname === "/focus" ? "text-zinc-200" : "hover:text-zinc-200"
+            )}
+          >
+            Focus Mode
+          </Link>
+          <Link
             href="/live"
             className={clsx(
               "transition-colors",
@@ -163,6 +172,18 @@ export default function Navbar() {
                 )}
               >
                 Features
+              </Link>
+              <Link
+                href="/focus"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/focus"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Focus Mode
               </Link>
               <Link
                 href="/live"

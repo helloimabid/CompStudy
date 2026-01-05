@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import StudyTimer from "@/components/StudyTimer";
@@ -110,11 +110,18 @@ function FocusContent() {
           <div className="h-6 w-px bg-white/10"></div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-            <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+            <h1 className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
               Focus Mode
-            </span>
+            </h1>
           </div>
         </div>
+        <Link
+          href="/start-studying"
+          className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-black text-xs font-medium hover:bg-zinc-200 transition-all"
+        >
+          Join Study Room
+          <ArrowRight width={14} />
+        </Link>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
