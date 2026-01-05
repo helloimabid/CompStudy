@@ -26,5 +26,11 @@ export const COLLECTIONS = {
     COMMUNITY_MEMBERS: 'community_members',
     POSTS: 'posts',
     COMMENTS: 'comments',
-    REACTIONS: 'reactions'
+    REACTIONS: 'reactions',
+    CURRICULUM: 'curriculum',
+    SUBJECTS: 'subjects',
+    TOPICS: 'topics',
+    PUBLIC_CURRICULUM: 'public_curriculum',
+    CURRICULUM_RATINGS: 'curriculum_ratings',
+    CONTACT_SUBMISSIONS: 'contact_submissions'
 };

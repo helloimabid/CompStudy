@@ -35,7 +35,7 @@ export default function Navbar() {
         </Link>
 
         <div
-          className="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-500"
+          className="hidden lg:flex items-center gap-6 text-xs font-medium text-zinc-500"
           suppressHydrationWarning
         >
           <Link
@@ -87,11 +87,62 @@ export default function Navbar() {
           >
             Community
           </Link>
+          <Link
+            href="/analytics"
+            className={clsx(
+              "transition-colors",
+              pathname === "/analytics"
+                ? "text-zinc-200"
+                : "hover:text-zinc-200"
+            )}
+          >
+            Analytics
+          </Link>
+          <Link
+            href="/curriculum"
+            className={clsx(
+              "transition-colors",
+              pathname === "/curriculum"
+                ? "text-zinc-200"
+                : "hover:text-zinc-200"
+            )}
+          >
+            Curriculum
+          </Link>
+          <Link
+            href="/public-curriculum"
+            className={clsx(
+              "transition-colors",
+              pathname === "/public-curriculum"
+                ? "text-zinc-200"
+                : "hover:text-zinc-200"
+            )}
+          >
+            Browse
+          </Link>
+          <Link
+            href="/contact"
+            className={clsx(
+              "transition-colors",
+              pathname === "/contact" ? "text-zinc-200" : "hover:text-zinc-200"
+            )}
+          >
+            Contact
+          </Link>
+          <Link
+            href="/support"
+            className={clsx(
+              "transition-colors",
+              pathname === "/support" ? "text-zinc-200" : "hover:text-zinc-200"
+            )}
+          >
+            ☕ Support
+          </Link>
         </div>
 
         <div className="flex items-center gap-4" suppressHydrationWarning>
           <div
-            className="hidden md:flex items-center gap-2 px-2 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20"
+            className="hidden lg:flex items-center gap-2 px-2 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20"
             suppressHydrationWarning
           >
             <span className="relative flex h-1.5 w-1.5">
@@ -103,7 +154,7 @@ export default function Navbar() {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <>
               {user ? (
                 <>
@@ -143,7 +194,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-zinc-400 hover:text-white transition-colors p-2"
+            className="lg:hidden text-zinc-400 hover:text-white transition-colors p-2"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -158,7 +209,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden border-t border-white/5 bg-[#0a0a0a]"
+            className="lg:hidden border-t border-white/5 bg-[#0a0a0a]"
           >
             <div className="px-4 py-6 space-y-4">
               <Link
@@ -220,6 +271,66 @@ export default function Navbar() {
                 )}
               >
                 Community
+              </Link>
+              <Link
+                href="/analytics"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/analytics"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Analytics
+              </Link>
+              <Link
+                href="/curriculum"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/curriculum"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Curriculum
+              </Link>
+              <Link
+                href="/public-curriculum"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/public-curriculum"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Browse Curricula
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/contact"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                Contact
+              </Link>
+              <Link
+                href="/support"
+                onClick={() => setMobileMenuOpen(false)}
+                className={clsx(
+                  "block text-sm font-medium transition-colors py-2",
+                  pathname === "/support"
+                    ? "text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-200"
+                )}
+              >
+                ☕ Support
               </Link>
 
               <div className="pt-4 border-t border-white/5 space-y-3">

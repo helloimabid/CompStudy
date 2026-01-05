@@ -84,10 +84,64 @@ export default function StudyTimer({
 
   // Session Details State
   const [subject, setSubject] = useState("");
+  const [curriculumId, setCurriculumId] = useState("");
+  const [curriculums, setCurriculums] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [topics, setTopics] = useState<any[]>([]);
   const [goal, setGoal] = useState("");
   const [sessionType, setSessionType] = useState<SessionType>("focus");
   const [sessionGoals, setSessionGoals] = useState<GoalItem[]>([]);
   const [showGoalsPanel, setShowGoalsPanel] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchCurriculums();
+      fetchSubjects();
+      fetchTopics();
+    }
+  }, [user]);
+
+  const fetchCurriculums = async () => {
+    if (!user) return;
+    try {
+      const response = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.CURRICULUM,
+        [Query.equal("userId", user.$id)]
+      );
+      setCurriculums(response.documents);
+    } catch (error) {
+      console.error("Error fetching curriculums:", error);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    if (!user) return;
+    try {
+      const response = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.SUBJECTS,
+        [Query.equal("userId", user.$id)]
+      );
+      setSubjects(response.documents);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+    }
+  };
+
+  const fetchTopics = async () => {
+    if (!user) return;
+    try {
+      const response = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.TOPICS,
+        [Query.equal("userId", user.$id)]
+      );
+      setTopics(response.documents);
+    } catch (error) {
+      console.error("Error fetching topics:", error);
+    }
+  };
 
   // Planner State
   const [schedule, setSchedule] = useState<ScheduledSession[]>([]);
@@ -122,6 +176,8 @@ export default function StudyTimer({
           setDefaultFocusDuration(parsed.defaultFocusDuration);
         if (parsed.defaultBreakDuration !== undefined)
           setDefaultBreakDuration(parsed.defaultBreakDuration);
+        if (parsed.mode) setMode(parsed.mode);
+        if (parsed.targetDuration) setTargetDuration(parsed.targetDuration);
       } catch (e) {
         console.error("Failed to parse settings", e);
       }
@@ -143,6 +199,8 @@ export default function StudyTimer({
         strictMode,
         defaultFocusDuration,
         defaultBreakDuration,
+        mode,
+        targetDuration,
       })
     );
   }, [
@@ -156,6 +214,8 @@ export default function StudyTimer({
     strictMode,
     defaultFocusDuration,
     defaultBreakDuration,
+    mode,
+    targetDuration,
   ]);
 
   useEffect(() => {
@@ -359,15 +419,21 @@ export default function StudyTimer({
 
     try {
       const startTime = new Date();
+      const sessionTypeToUse = overrides?.type || sessionType;
+      const subjectToUse =
+        overrides?.subject ||
+        subject ||
+        (sessionTypeToUse === "break" ? "Break Time" : "Focus Session");
       const docData: any = {
         userId: user.$id,
         startTime: startTime.toISOString(),
         status: "active",
         isPublic: privacy === "public",
-        duration: 0,
-        subject: overrides?.subject || subject || "Untitled Session",
-        goal: goal,
-        type: overrides?.type || sessionType,
+        duration: mode === "timer" ? targetDuration : 0,
+        subject: subjectToUse,
+        curriculumId: curriculumId || null,
+        goal: sessionGoals.length > 0 ? JSON.stringify(sessionGoals) : goal,
+        type: sessionTypeToUse,
       };
 
       let session;
@@ -1120,6 +1186,39 @@ export default function StudyTimer({
                   </>
                 ) : (
                   <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      {curriculums.length > 0 ? (
+                        <select
+                          value={curriculumId}
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            setCurriculumId(id);
+                            if (id) {
+                              const selected = curriculums.find(
+                                (c) => c.$id === id
+                              );
+                              if (selected) setSubject(selected.name);
+                            }
+                          }}
+                          className="bg-zinc-900/50 border border-zinc-800 text-zinc-400 text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500/50"
+                        >
+                          <option value="">From My Curriculum...</option>
+                          {curriculums.map((c) => (
+                            <option key={c.$id} value={c.$id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <a
+                          href="/curriculum"
+                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+                        >
+                          <Plus size={12} />
+                          Add subjects to curriculum
+                        </a>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={subject}
@@ -1568,6 +1667,9 @@ export default function StudyTimer({
           onSave={handleSaveDesigner}
           onStartNow={handleStartNowDesigner}
           existingSchedule={schedule}
+          curriculums={curriculums}
+          subjects={subjects}
+          topics={topics}
           onDeleteScheduledItem={async (id: string) => {
             try {
               await databases.deleteDocument(

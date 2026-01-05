@@ -15,7 +15,8 @@ interface Peer {
   userId: string;
   subject: string;
   startTime: string;
-  userName?: string; // We'll try to fetch this
+  userName?: string;
+  profilePic?: string;
 }
 
 function FocusContent() {
@@ -55,11 +56,16 @@ function FocusContent() {
           );
 
           const profileMap = new Map(
-            profiles.documents.map((p: any) => [p.userId, p.username])
+            profiles.documents.map((p: any) => [
+              p.userId,
+              { username: p.username, profilePic: p.profilePic },
+            ])
           );
 
           sessions.forEach((s) => {
-            s.userName = profileMap.get(s.userId) || "Anonymous Student";
+            const profile = profileMap.get(s.userId);
+            s.userName = profile?.username || "Anonymous Student";
+            s.profilePic = profile?.profilePic;
           });
         }
 
@@ -155,9 +161,17 @@ function FocusContent() {
                 <div key={peer.$id} className="group">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-indigo-600 text-white">
-                        {(peer.userName || "A").substring(0, 2).toUpperCase()}
-                      </div>
+                      {peer.profilePic ? (
+                        <img
+                          src={peer.profilePic}
+                          alt={peer.userName || "Student"}
+                          className="w-8 h-8 rounded-full object-cover border border-indigo-500/30"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-indigo-600 text-white">
+                          {(peer.userName || "A").substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-white">
                           {peer.userName || "Student"}
@@ -256,11 +270,19 @@ function FocusContent() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-600 text-white">
-                            {(peer.userName || "A")
-                              .substring(0, 2)
-                              .toUpperCase()}
-                          </div>
+                          {peer.profilePic ? (
+                            <img
+                              src={peer.profilePic}
+                              alt={peer.userName || "Student"}
+                              className="w-10 h-10 rounded-full object-cover border border-indigo-500/30"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-600 text-white">
+                              {(peer.userName || "A")
+                                .substring(0, 2)
+                                .toUpperCase()}
+                            </div>
+                          )}
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-white">
                               {peer.userName || "Student"}

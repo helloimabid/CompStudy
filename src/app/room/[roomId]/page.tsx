@@ -17,6 +17,7 @@ import {
   Settings,
   Maximize2,
   Minimize2,
+  Lock,
 } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
@@ -60,6 +61,7 @@ interface Room {
   timerState: "idle" | "running" | "paused";
   timeRemaining: number;
   mode: "pomodoro" | "short-break" | "long-break";
+  visibility?: "public" | "private";
   $createdAt: string;
   $updatedAt: string;
 }
@@ -203,7 +205,9 @@ function RoomContent() {
   const requestedRoomConfigRef = useRef<{
     name?: string;
     subject?: string;
+    curriculumId?: string;
     isStrict?: boolean;
+    visibility?: "public" | "private";
     durations?: Record<Room["mode"], number>;
   } | null>(null);
 
@@ -224,11 +228,16 @@ function RoomContent() {
 
     const name = searchParams.get("name") || undefined;
     const subject = searchParams.get("subject") || undefined;
+    const curriculumId = searchParams.get("curriculumId") || undefined;
+    const visibility =
+      (searchParams.get("visibility") as "public" | "private") || "public";
 
     requestedRoomConfigRef.current = {
       name,
       subject,
+      curriculumId,
       isStrict: strict === "1" ? true : strict === "0" ? false : undefined,
+      visibility,
       durations: {
         pomodoro: pMin * 60,
         "short-break": sMin * 60,
@@ -348,6 +357,9 @@ function RoomContent() {
             return;
           }
 
+          // Private rooms - user just needs the room code (URL) to join
+          // No separate join code verification needed since room ID IS the code
+
           // Check if user is already a participant
           const participantCheck = await databases.listDocuments(
             DB_ID,
@@ -419,7 +431,9 @@ function RoomContent() {
             `Study Room ${roomId}`;
           const requestedSubject =
             (requested?.subject && requested.subject.trim()) || "General";
+          const requestedCurriculumId = requested?.curriculumId || null;
           const requestedIsStrict = requested?.isStrict ?? false;
+          const requestedVisibility = requested?.visibility || "public";
 
           const newRoom = await databases.createDocument(
             DB_ID,
@@ -428,6 +442,7 @@ function RoomContent() {
             {
               name: requestedName,
               subject: requestedSubject,
+              curriculumId: requestedCurriculumId,
               activeUsers: 1,
               isStrict: requestedIsStrict,
               roomId: roomId,
@@ -436,6 +451,7 @@ function RoomContent() {
               timerState: "idle",
               timeRemaining: requestedDurations.pomodoro,
               mode: "pomodoro",
+              visibility: requestedVisibility,
             },
             [
               Permission.read(Role.any()),
@@ -1393,6 +1409,17 @@ function RoomContent() {
                     <Copy className="w-4 h-4" />
                   )}
                 </button>
+
+                {/* Private Room Indicator */}
+                {room?.visibility === "private" && (
+                  <>
+                    <span className="text-zinc-600">•</span>
+                    <div className="flex items-center gap-1 px-2 py-1 rounded bg-purple-500/10 border border-purple-500/20">
+                      <Lock className="w-3 h-3 text-purple-400" />
+                      <span className="text-xs text-purple-400">Private</span>
+                    </div>
+                  </>
+                )}
 
                 {/* WebSocket Status Indicator */}
                 <div

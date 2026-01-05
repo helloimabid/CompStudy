@@ -248,6 +248,40 @@ function DashboardContent() {
               </div>
             </motion.div>
 
+            {/* Analytics Link */}
+            <motion.div
+              variants={item}
+              onClick={() => router.push("/analytics")}
+              className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 hover:border-indigo-500/30 transition-all cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
+                <TrendingUp className="text-indigo-400" size={20} />
+              </div>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-2">
+                Analytics
+              </p>
+              <p className="text-sm text-white font-medium">
+                View Stats <ArrowRight className="inline w-3 h-3 ml-1" />
+              </p>
+            </motion.div>
+
+            {/* Curriculum Link */}
+            <motion.div
+              variants={item}
+              onClick={() => router.push("/curriculum")}
+              className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 hover:border-emerald-500/30 transition-all cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+                <BookOpen className="text-emerald-400" size={20} />
+              </div>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-2">
+                Curriculum
+              </p>
+              <p className="text-sm text-white font-medium">
+                Manage Subjects <ArrowRight className="inline w-3 h-3 ml-1" />
+              </p>
+            </motion.div>
+
             {/* Recent Activity */}
             <motion.div
               variants={item}

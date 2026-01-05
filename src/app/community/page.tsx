@@ -6,7 +6,17 @@ import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { useAuth } from "@/context/AuthContext";
 import { Query, ID, Permission, Role } from "appwrite";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Search, Loader2, X, TrendingUp } from "lucide-react";
+import {
+  Users,
+  Plus,
+  Search,
+  Loader2,
+  X,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 import Link from "next/link";
 
 interface Community {
@@ -123,21 +133,34 @@ export default function CommunityPage() {
   }
 
   return (
-    <main className="min-h-screen p-6 pt-24">
-      <div className="max-w-6xl mx-auto">
+    <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Communities</h1>
-            <p className="text-zinc-400 text-sm">
-              Join communities, share knowledge, and connect with fellow
-              learners
-            </p>
+        <div className="text-center mb-10 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-white tracking-tight mb-4 md:mb-6">
+            Study <span className="text-gradient">Communities</span>
+          </h1>
+          <p className="text-sm md:text-base text-zinc-500 max-w-2xl mx-auto">
+            Join communities, share knowledge, and connect with fellow learners
+            around the world.
+          </p>
+        </div>
+
+        {/* Actions Bar */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-8">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search communities..."
+              className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
+            />
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => {
               if (!user) {
                 router.push("/login");
@@ -145,53 +168,49 @@ export default function CommunityPage() {
                 setShowCreateModal(true);
               }
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg"
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-zinc-100 text-black rounded-xl hover:bg-zinc-200 transition-all text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             Create Community
-          </motion.button>
+          </button>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search communities..."
-            className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          />
-        </div>
-
-        {/* Communities Grid */}
+        {/* Communities Grid - Bento Style */}
         {filteredCommunities.length === 0 ? (
           <div className="text-center py-20">
-            <Users className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
-            <p className="text-zinc-500 text-lg mb-4">
+            <div className="w-20 h-20 rounded-2xl bg-zinc-900/50 border border-white/10 flex items-center justify-center mx-auto mb-6">
+              <Users className="w-10 h-10 text-zinc-600" />
+            </div>
+            <p className="text-zinc-400 text-lg mb-2">
               {searchQuery ? "No communities found" : "No communities yet"}
+            </p>
+            <p className="text-zinc-600 text-sm mb-6">
+              {searchQuery
+                ? "Try a different search term"
+                : "Be the first to create one!"}
             </p>
             <button
               onClick={() =>
                 !user ? router.push("/login") : setShowCreateModal(true)
               }
-              className="text-indigo-400 hover:text-indigo-300 text-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-100 text-black rounded-full text-sm font-medium hover:bg-zinc-200 transition-all"
             >
-              Be the first to create one!
+              <Plus className="w-4 h-4" />
+              Create Community
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCommunities.map((community) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {filteredCommunities.map((community, idx) => (
               <Link href={`/community/${community.$id}`} key={community.$id}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -4 }}
-                  className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-indigo-500/30 transition-all cursor-pointer group"
+                  transition={{ delay: idx * 0.05 }}
+                  className="bento-card relative overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] hover:border-indigo-500/30 transition-all cursor-pointer group h-full"
                 >
-                  {/* Cover Image */}
-                  <div className="h-32 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 flex items-center justify-center relative overflow-hidden">
+                  {/* Cover Gradient */}
+                  <div className="h-24 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent relative overflow-hidden">
                     {community.coverImage ? (
                       <img
                         src={community.coverImage}
@@ -199,29 +218,41 @@ export default function CommunityPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Users className="w-12 h-12 text-indigo-400/50" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Users className="w-10 h-10 text-indigo-400/30" />
+                      </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
                   </div>
 
                   {/* Content */}
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors line-clamp-1">
+                  <div className="p-5 -mt-6 relative z-10">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center backdrop-blur-md">
+                        <MessageSquare className="text-indigo-400" width={18} />
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-900/80 px-2 py-1 rounded-full">
+                        <Users className="w-3 h-3" />
+                        {community.memberCount}
+                      </div>
+                    </div>
+
+                    <h3 className="text-lg font-medium text-white mb-2 group-hover:text-indigo-400 transition-colors line-clamp-1">
                       {community.name}
                     </h3>
-                    <p className="text-zinc-400 text-sm mb-4 line-clamp-2">
+                    <p className="text-sm text-zinc-500 mb-4 line-clamp-2 min-h-[40px]">
                       {community.description || "No description"}
                     </p>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-zinc-500">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{community.memberCount} members</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="w-4 h-4" />
+                    <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                      <div className="flex items-center gap-1 text-xs text-zinc-500">
+                        <TrendingUp className="w-3 h-3 text-emerald-400" />
                         <span>Active</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-indigo-400 font-medium group-hover:gap-2 transition-all">
+                        View
+                        <ArrowRight className="w-3 h-3" />
                       </div>
                     </div>
                   </div>

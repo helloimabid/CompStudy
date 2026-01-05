@@ -28,6 +28,9 @@ export type SessionBlock = {
   type: "focus" | "break";
   duration: number; // minutes
   subject?: string;
+  subjectId?: string; // For tracking which subject is selected
+  topic?: string; // Topic name
+  topicId?: string; // For tracking which topic is selected
   goal?: string;
   goals?: GoalItem[]; // checklist goals
 };
@@ -47,6 +50,9 @@ interface SessionDesignerProps {
   }>;
   onDeleteScheduledItem?: (id: string) => void;
   onStartScheduledSession?: (id: string) => void;
+  curriculums?: any[];
+  subjects?: any[];
+  topics?: any[]; // Topics from TOPICS collection
 }
 
 const getDefaultBlocks = (): SessionBlock[] => [
@@ -74,8 +80,12 @@ export default function SessionDesigner({
   existingSchedule,
   onDeleteScheduledItem,
   onStartScheduledSession,
+  curriculums,
+  subjects,
+  topics,
 }: SessionDesignerProps) {
   const [blocks, setBlocks] = useState<SessionBlock[]>(getDefaultBlocks());
+  const [selectedCurriculum, setSelectedCurriculum] = useState<string>("");
   const [startTime, setStartTime] = useState(getCurrentTime());
   const [viewMode, setViewMode] = useState<"create" | "view">("create");
 
@@ -482,17 +492,161 @@ export default function SessionDesigner({
                                   <label className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider mb-1 block">
                                     Subject
                                   </label>
-                                  <input
-                                    type="text"
-                                    value={block.subject || ""}
-                                    onChange={(e) =>
-                                      updateBlock(block.id, {
-                                        subject: e.target.value,
-                                      })
-                                    }
-                                    placeholder="What are you studying?"
-                                    className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white/20"
-                                  />
+                                  {curriculums && curriculums.length > 0 && (
+                                    <select
+                                      value={selectedCurriculum}
+                                      onChange={(e) => {
+                                        setSelectedCurriculum(e.target.value);
+                                        // Clear subject and topic when curriculum changes
+                                        updateBlock(block.id, {
+                                          subject: "",
+                                          subjectId: "",
+                                          topic: "",
+                                          topicId: "",
+                                        });
+                                      }}
+                                      className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-zinc-400 focus:outline-none focus:border-white/20 mb-2"
+                                    >
+                                      <option value="">
+                                        Select Curriculum...
+                                      </option>
+                                      {curriculums.map((c) => (
+                                        <option key={c.$id} value={c.$id}>
+                                          {c.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  {subjects &&
+                                    subjects.length > 0 &&
+                                    selectedCurriculum && (
+                                      <select
+                                        value={block.subjectId || ""}
+                                        onChange={(e) => {
+                                          const id = e.target.value;
+                                          if (id) {
+                                            const selected = subjects.find(
+                                              (s) => s.$id === id
+                                            );
+                                            if (selected) {
+                                              // Check if this subject has topics
+                                              const subjectTopics =
+                                                topics?.filter(
+                                                  (t) => t.subjectId === id
+                                                ) || [];
+
+                                              if (subjectTopics.length === 0) {
+                                                // No topics - use subject name as topic
+                                                updateBlock(block.id, {
+                                                  subject: selected.name,
+                                                  subjectId: id,
+                                                  topic: selected.name,
+                                                  topicId: "",
+                                                });
+                                              } else {
+                                                // Has topics - clear topic selection
+                                                updateBlock(block.id, {
+                                                  subject: selected.name,
+                                                  subjectId: id,
+                                                  topic: "",
+                                                  topicId: "",
+                                                });
+                                              }
+                                            }
+                                          } else {
+                                            updateBlock(block.id, {
+                                              subject: "",
+                                              subjectId: "",
+                                              topic: "",
+                                              topicId: "",
+                                            });
+                                          }
+                                        }}
+                                        className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-zinc-400 focus:outline-none focus:border-white/20 mb-2"
+                                      >
+                                        <option value="">
+                                          Select Subject...
+                                        </option>
+                                        {subjects
+                                          .filter(
+                                            (s) =>
+                                              s.curriculumId ===
+                                              selectedCurriculum
+                                          )
+                                          .map((s) => (
+                                            <option key={s.$id} value={s.$id}>
+                                              {s.name}
+                                            </option>
+                                          ))}
+                                      </select>
+                                    )}
+                                  {/* Topic dropdown - only show if subject has topics */}
+                                  {block.subjectId &&
+                                    topics &&
+                                    topics.filter(
+                                      (t) => t.subjectId === block.subjectId
+                                    ).length > 0 && (
+                                      <select
+                                        value={block.topicId || ""}
+                                        onChange={(e) => {
+                                          const id = e.target.value;
+                                          if (id) {
+                                            const selected = topics.find(
+                                              (t) => t.$id === id
+                                            );
+                                            if (selected) {
+                                              updateBlock(block.id, {
+                                                topic: selected.name,
+                                                topicId: id,
+                                              });
+                                            }
+                                          } else {
+                                            updateBlock(block.id, {
+                                              topic: "",
+                                              topicId: "",
+                                            });
+                                          }
+                                        }}
+                                        className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-zinc-400 focus:outline-none focus:border-white/20 mb-2"
+                                      >
+                                        <option value="">
+                                          Select Topic...
+                                        </option>
+                                        {topics
+                                          .filter(
+                                            (t) =>
+                                              t.subjectId === block.subjectId
+                                          )
+                                          .map((t) => (
+                                            <option key={t.$id} value={t.$id}>
+                                              {t.name}
+                                            </option>
+                                          ))}
+                                      </select>
+                                    )}
+                                  {/* Show selected topic info */}
+                                  {block.topic && (
+                                    <div className="text-xs text-indigo-400 mb-2">
+                                      📝 Topic: {block.topic}
+                                    </div>
+                                  )}
+                                  {/* Only show custom input when no subject is selected */}
+                                  {!block.subjectId && (
+                                    <input
+                                      type="text"
+                                      value={block.subject || ""}
+                                      onChange={(e) =>
+                                        updateBlock(block.id, {
+                                          subject: e.target.value,
+                                          subjectId: "",
+                                          topic: e.target.value,
+                                          topicId: "",
+                                        })
+                                      }
+                                      placeholder="Or type custom subject..."
+                                      className="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white/20"
+                                    />
+                                  )}
                                 </div>
                               )}
                             </div>
