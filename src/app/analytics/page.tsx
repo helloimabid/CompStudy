@@ -41,6 +41,7 @@ export default function AnalyticsPage() {
   }, [user, timeRange]);
 
   const fetchSessions = async () => {
+    if (!user) return;
     try {
       setLoading(true);
       let queries = [
@@ -305,7 +306,7 @@ export default function AnalyticsPage() {
                       fill="#8884d8"
                       dataKey="value"
                       label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
+                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                     >
                       {typeData.map((entry, index) => (
