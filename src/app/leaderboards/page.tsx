@@ -247,7 +247,8 @@ export default function LeaderboardsPage() {
               Ready to climb the ranks?
             </h2>
             <p className="text-zinc-400 mb-5 max-w-lg mx-auto text-sm">
-              Start studying now and compete with thousands of motivated students
+              Start studying now and compete with thousands of motivated
+              students
             </p>
             <Link
               href="/start-studying"

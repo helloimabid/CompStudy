@@ -24,8 +24,9 @@ export default function AdSense({
       if (typeof window !== "undefined" && !isAdPushed.current) {
         // Check if the ins element doesn't already have data-adsbygoogle-status
         const insElement = adRef.current;
-        if (insElement && !insElement.getAttribute('data-adsbygoogle-status')) {
-          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        if (insElement && !insElement.getAttribute("data-adsbygoogle-status")) {
+          ((window as any).adsbygoogle =
+            (window as any).adsbygoogle || []).push({});
           isAdPushed.current = true;
         }
       }
