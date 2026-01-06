@@ -63,6 +63,12 @@ interface Comment {
   author?: any;
 }
 
+interface Profile {
+  $id: string;
+  username: string;
+  profilePicture?: string;
+}
+
 export default function CommunityViewPage() {
   const params = useParams();
   const router = useRouter();
@@ -90,6 +96,7 @@ export default function CommunityViewPage() {
     {}
   );
   const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     if (communityId) {
@@ -772,9 +779,19 @@ export default function CommunityViewPage() {
                     {isMember && (
                       <div className="flex gap-3 mt-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          <span className="text-white text-xs">
-                            {user?.name?.[0]?.toUpperCase()}
-                          </span>
+                          {userProfile?.profilePicture ? (
+                            <img
+                              src={userProfile.profilePicture}
+                              alt={userProfile.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-white text-xs">
+                              {user?.name
+                                ? user.name.charAt(0).toUpperCase()
+                                : "A"}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1 flex gap-2">
                           <input
@@ -795,6 +812,7 @@ export default function CommunityViewPage() {
                             }}
                           />
                           <button
+                            title="addComment"
                             onClick={() =>
                               handleAddComment(post.$id, post.comments)
                             }

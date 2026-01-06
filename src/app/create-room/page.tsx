@@ -190,7 +190,7 @@ function CreateRoomContent() {
 
             <div>
               <label className="block text-sm text-zinc-400 mb-2">
-                Subject
+                Subject / Curriculum
               </label>
               <div className="space-y-2">
                 {curriculums.length > 0 ? (

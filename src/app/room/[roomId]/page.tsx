@@ -18,6 +18,25 @@ import {
   Maximize2,
   Minimize2,
   Lock,
+  MessageCircle,
+  Send,
+  X,
+  ChevronDown,
+  BellOff,
+  CalendarDays,
+  BookOpen,
+  GraduationCap,
+  Plus,
+  Trash2,
+  Eye,
+  EyeOff,
+  ChevronRight,
+  Coffee,
+  PlayCircle,
+  StopCircle,
+  ChevronUp,
+  Pencil,
+  Save,
 } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
@@ -62,8 +81,37 @@ interface Room {
   timeRemaining: number;
   mode: "pomodoro" | "short-break" | "long-break";
   visibility?: "public" | "private";
+  schedule?: string; // JSON stringified schedule data
   $createdAt: string;
   $updatedAt: string;
+}
+
+interface ScheduleItem {
+  id: string;
+  curriculumId: string;
+  curriculumName: string;
+  subjectId?: string;
+  subjectName?: string;
+  topicId?: string;
+  topicName?: string;
+  duration: number; // in minutes
+  order: number;
+  completed: boolean;
+  isBreak?: boolean; // true for break items
+}
+
+interface Curriculum {
+  $id: string;
+  name: string;
+  description?: string;
+  subjects?: string;
+}
+
+interface CurriculumSubject {
+  name: string;
+  description?: string;
+  color?: string;
+  topics?: string[];
 }
 
 type PresenceUser = {
@@ -191,6 +239,23 @@ function RoomContent() {
   const [autoStartBreak, setAutoStartBreak] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  // Chat State
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(true);
+  const [chatMessages, setChatMessages] = useState<
+    Array<{
+      id: string;
+      userId: string;
+      username: string;
+      message: string;
+      timestamp: string;
+    }>
+  >([]);
+  const [chatInput, setChatInput] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [chatMuted, setChatMuted] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const [configDraft, setConfigDraft] = useState<{
     name: string;
     subject: string;
@@ -200,6 +265,30 @@ function RoomContent() {
     longBreakMin: number;
   } | null>(null);
   const [configSaving, setConfigSaving] = useState(false);
+
+  // Schedule State
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
+  const [availableCurricula, setAvailableCurricula] = useState<Curriculum[]>(
+    []
+  );
+  const [selectedCurriculumId, setSelectedCurriculumId] = useState<string>("");
+  const [selectedSubjectName, setSelectedSubjectName] = useState<string>("");
+  const [selectedTopicName, setSelectedTopicName] = useState<string>("");
+  const [parsedSubjects, setParsedSubjects] = useState<CurriculumSubject[]>([]);
+  const [scheduleDuration, setScheduleDuration] = useState<number>(25);
+  const [breakDuration, setBreakDuration] = useState<number>(5);
+  const [scheduleVisible, setScheduleVisible] = useState(true);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
+  const [scheduleRunning, setScheduleRunning] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editItemData, setEditItemData] = useState<{
+    curriculumId: string;
+    subjectName: string;
+    topicName: string;
+    duration: number;
+  } | null>(null);
 
   // // Timer Settings State
   // const [showSettings, setShowSettings] = useState(false);
@@ -548,6 +637,69 @@ function RoomContent() {
     initRoom();
   }, [user, profile, roomId]);
 
+  // Fetch available curricula for schedule (using PUBLIC_CURRICULUM for wider selection)
+  useEffect(() => {
+    const fetchCurricula = async () => {
+      try {
+        const response = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.PUBLIC_CURRICULUM,
+          [Query.limit(100)]
+        );
+        setAvailableCurricula(response.documents as unknown as Curriculum[]);
+      } catch (error) {
+        console.error("Failed to fetch curricula:", error);
+      }
+    };
+    fetchCurricula();
+  }, []);
+
+  // Load schedule from room when room data changes
+  useEffect(() => {
+    if (room?.schedule) {
+      try {
+        const parsed = JSON.parse(room.schedule);
+        if (parsed.items && Array.isArray(parsed.items)) {
+          setScheduleItems(parsed.items);
+        }
+        if (typeof parsed.visible === "boolean") {
+          setScheduleVisible(parsed.visible);
+        }
+        if (typeof parsed.currentIndex === "number") {
+          setCurrentScheduleIndex(parsed.currentIndex);
+        }
+        if (typeof parsed.running === "boolean") {
+          setScheduleRunning(parsed.running);
+        }
+      } catch {
+        // Invalid schedule JSON, ignore
+      }
+    }
+  }, [room?.schedule]);
+
+  // Parse subjects when curriculum selection changes
+  useEffect(() => {
+    if (!selectedCurriculumId) {
+      setParsedSubjects([]);
+      return;
+    }
+    const curriculum = availableCurricula.find(
+      (c) => c.$id === selectedCurriculumId
+    );
+    if (curriculum?.subjects) {
+      try {
+        const subjects = JSON.parse(curriculum.subjects) as CurriculumSubject[];
+        setParsedSubjects(subjects);
+      } catch {
+        setParsedSubjects([]);
+      }
+    } else {
+      setParsedSubjects([]);
+    }
+    setSelectedSubjectName("");
+    setSelectedTopicName("");
+  }, [selectedCurriculumId, availableCurricula]);
+
   // Request timer sync when joining as a participant (not creator)
   useEffect(() => {
     if (!room || !user || !isConnected) return;
@@ -625,6 +777,22 @@ function RoomContent() {
           timeRemaining: currentTime,
           mode: room.mode,
         });
+      }
+
+      // Handle chat messages
+      if (message.type === "chat" && message.data?.message) {
+        const chatMsg = {
+          id: `${message.userId}-${message.timestamp}`,
+          userId: message.userId,
+          username: message.username,
+          message: message.data.message as string,
+          timestamp: message.timestamp,
+        };
+        setChatMessages((prev) => [...prev.slice(-99), chatMsg]);
+        // Increment unread if chat is minimized and message is from others
+        if (chatMinimized && message.userId !== user?.$id) {
+          setUnreadCount((prev) => prev + 1);
+        }
       }
 
       if (message.type === "timer-sync" && message.data) {
@@ -879,6 +1047,9 @@ function RoomContent() {
     }
   };
 
+  // Track if we've already handled completion for current timer cycle
+  const timerCompletedRef = useRef(false);
+
   // Derived timer display (single source of truth: Appwrite room doc + $updatedAt)
   useEffect(() => {
     if (!room) return;
@@ -908,6 +1079,94 @@ function RoomContent() {
     }
 
     try {
+      // Check if we're running a schedule (only creator handles schedule progression)
+      const isRoomCreator = user && room.creatorId === user.$id;
+      if (scheduleRunning && scheduleItems.length > 0 && isRoomCreator) {
+        // Mark current item as completed
+        const updatedItems = scheduleItems.map((item, idx) =>
+          idx === currentScheduleIndex ? { ...item, completed: true } : item
+        );
+
+        // Check if there's a next item
+        const nextIndex = currentScheduleIndex + 1;
+        if (nextIndex < scheduleItems.length) {
+          const nextItem = scheduleItems[nextIndex];
+          const nextDuration = nextItem.duration * 60; // Convert minutes to seconds
+
+          // Save updated schedule and start next timer
+          const scheduleData = JSON.stringify({
+            items: updatedItems,
+            visible: scheduleVisible,
+            currentIndex: nextIndex,
+            running: true,
+          });
+
+          await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+            schedule: scheduleData,
+            timerState: "running",
+            timeRemaining: nextDuration,
+            mode: nextItem.isBreak ? "short-break" : "pomodoro",
+          });
+
+          setScheduleItems(updatedItems);
+          setCurrentScheduleIndex(nextIndex);
+          setLocalTimeRemaining(nextDuration);
+          setRoom((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  timerState: "running",
+                  timeRemaining: nextDuration,
+                  mode: nextItem.isBreak ? "short-break" : "pomodoro",
+                  schedule: scheduleData,
+                  $updatedAt: new Date().toISOString(),
+                }
+              : prev
+          );
+
+          // Broadcast timer sync
+          sendMessage("timer-sync", {
+            action: "play",
+            timeRemaining: nextDuration,
+            mode: nextItem.isBreak ? "short-break" : "pomodoro",
+          });
+          return;
+        } else {
+          // Schedule complete
+          const scheduleData = JSON.stringify({
+            items: updatedItems,
+            visible: scheduleVisible,
+            currentIndex: 0,
+            running: false,
+          });
+
+          await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+            schedule: scheduleData,
+            timerState: "idle",
+            timeRemaining: roomDurations.pomodoro,
+            mode: "pomodoro",
+          });
+
+          setScheduleItems(updatedItems);
+          setScheduleRunning(false);
+          setCurrentScheduleIndex(0);
+          setLocalTimeRemaining(roomDurations.pomodoro);
+          setRoom((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  timerState: "idle",
+                  timeRemaining: roomDurations.pomodoro,
+                  mode: "pomodoro",
+                  schedule: scheduleData,
+                  $updatedAt: new Date().toISOString(),
+                }
+              : prev
+          );
+          return;
+        }
+      }
+
       const shouldAutoStart =
         (room.mode === "pomodoro" && autoStartBreak) ||
         (room.mode !== "pomodoro" && autoStartFocus);
@@ -956,6 +1215,20 @@ function RoomContent() {
       console.error("Failed to complete timer:", error);
     }
   };
+
+  // Detect when timer reaches 0 and trigger completion
+  useEffect(() => {
+    if (!room || room.timerState !== "running") {
+      timerCompletedRef.current = false;
+      return;
+    }
+
+    if (localTimeRemaining <= 0 && !timerCompletedRef.current) {
+      timerCompletedRef.current = true;
+      handleTimerComplete();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localTimeRemaining, room?.timerState]);
 
   const handlePlayPause = async () => {
     if (!room || !user) return;
@@ -1218,6 +1491,318 @@ function RoomContent() {
     navigator.clipboard.writeText(roomId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Chat functions
+  const handleSendChat = () => {
+    if (!chatInput.trim() || !user || !profile) return;
+    sendMessage("chat", { message: chatInput.trim() });
+    // Add own message locally immediately
+    const chatMsg = {
+      id: `${user.$id}-${new Date().toISOString()}`,
+      userId: user.$id,
+      username: profile.username,
+      message: chatInput.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    setChatMessages((prev) => [...prev.slice(-99), chatMsg]);
+    setChatInput("");
+  };
+
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendChat();
+    }
+  };
+
+  const toggleChat = () => {
+    setChatMinimized(!chatMinimized);
+    if (chatMinimized) {
+      setUnreadCount(0);
+    }
+  };
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (!chatMinimized && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, chatMinimized]);
+
+  // Schedule functions
+  const handleAddScheduleItem = () => {
+    if (!selectedCurriculumId) return;
+    const curriculum = availableCurricula.find(
+      (c) => c.$id === selectedCurriculumId
+    );
+    if (!curriculum) return;
+
+    const newItem: ScheduleItem = {
+      id: ID.unique(),
+      curriculumId: selectedCurriculumId,
+      curriculumName: curriculum.name,
+      subjectId: selectedSubjectName || undefined,
+      subjectName: selectedSubjectName || undefined,
+      topicId: selectedTopicName || undefined,
+      topicName: selectedTopicName || undefined,
+      duration: scheduleDuration,
+      order: scheduleItems.length,
+      completed: false,
+      isBreak: false,
+    };
+
+    setScheduleItems([...scheduleItems, newItem]);
+    setSelectedCurriculumId("");
+    setSelectedSubjectName("");
+    setSelectedTopicName("");
+    setScheduleDuration(25);
+  };
+
+  const handleAddBreakItem = () => {
+    const newItem: ScheduleItem = {
+      id: ID.unique(),
+      curriculumId: "break",
+      curriculumName: "Break",
+      duration: breakDuration,
+      order: scheduleItems.length,
+      completed: false,
+      isBreak: true,
+    };
+
+    setScheduleItems([...scheduleItems, newItem]);
+    setBreakDuration(5);
+  };
+
+  const handleRemoveScheduleItem = (id: string) => {
+    setScheduleItems(scheduleItems.filter((item) => item.id !== id));
+  };
+
+  const handleStartEditItem = (item: ScheduleItem) => {
+    setEditingItemId(item.id);
+    setEditItemData({
+      curriculumId: item.curriculumId,
+      subjectName: item.subjectName || "",
+      topicName: item.topicName || "",
+      duration: item.duration,
+    });
+  };
+
+  const handleCancelEditItem = () => {
+    setEditingItemId(null);
+    setEditItemData(null);
+  };
+
+  const handleSaveEditItem = () => {
+    if (!editingItemId || !editItemData) return;
+
+    const itemToEdit = scheduleItems.find((item) => item.id === editingItemId);
+    if (!itemToEdit) return;
+
+    if (itemToEdit.isBreak) {
+      // For break items, only update duration
+      setScheduleItems(
+        scheduleItems.map((item) =>
+          item.id === editingItemId
+            ? { ...item, duration: editItemData.duration }
+            : item
+        )
+      );
+    } else {
+      // For study items, update curriculum, subject, topic, and duration
+      const curriculum = availableCurricula.find(
+        (c) => c.$id === editItemData.curriculumId
+      );
+
+      setScheduleItems(
+        scheduleItems.map((item) =>
+          item.id === editingItemId
+            ? {
+                ...item,
+                curriculumId: editItemData.curriculumId,
+                curriculumName: curriculum?.name || item.curriculumName,
+                subjectName: editItemData.subjectName || undefined,
+                topicName: editItemData.topicName || undefined,
+                duration: editItemData.duration,
+              }
+            : item
+        )
+      );
+    }
+
+    setEditingItemId(null);
+    setEditItemData(null);
+  };
+
+  // Get subjects for the curriculum being edited
+  const getEditSubjects = (): CurriculumSubject[] => {
+    if (!editItemData?.curriculumId) return [];
+    const curriculum = availableCurricula.find(
+      (c) => c.$id === editItemData.curriculumId
+    );
+    if (!curriculum?.subjects) return [];
+    try {
+      return JSON.parse(curriculum.subjects) as CurriculumSubject[];
+    } catch {
+      return [];
+    }
+  };
+
+  // Get topics for the subject being edited
+  const getEditTopics = (): string[] => {
+    if (!editItemData?.subjectName) return [];
+    const subjects = getEditSubjects();
+    const subject = subjects.find((s) => s.name === editItemData.subjectName);
+    return subject?.topics || [];
+  };
+
+  const handleToggleScheduleItemComplete = (id: string) => {
+    setScheduleItems(
+      scheduleItems.map((item) =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!room || !user || room.creatorId !== user.$id) return;
+    setScheduleSaving(true);
+    try {
+      const scheduleData = JSON.stringify({
+        items: scheduleItems,
+        visible: scheduleVisible,
+        currentIndex: currentScheduleIndex,
+        running: scheduleRunning,
+      });
+      await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+        schedule: scheduleData,
+      });
+      setRoom({ ...room, schedule: scheduleData });
+    } catch (error) {
+      console.error("Failed to save schedule:", error);
+    } finally {
+      setScheduleSaving(false);
+    }
+  };
+
+  const handleStartSchedule = async () => {
+    if (!room || !user || room.creatorId !== user.$id) return;
+    if (scheduleItems.length === 0) return;
+
+    // Reset all items to incomplete and start from first
+    const resetItems = scheduleItems.map((item) => ({
+      ...item,
+      completed: false,
+    }));
+    const firstItem = resetItems[0];
+    const firstDuration = firstItem.duration * 60;
+
+    setScheduleItems(resetItems);
+    setCurrentScheduleIndex(0);
+    setScheduleRunning(true);
+
+    try {
+      const scheduleData = JSON.stringify({
+        items: resetItems,
+        visible: scheduleVisible,
+        currentIndex: 0,
+        running: true,
+      });
+
+      await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+        schedule: scheduleData,
+        timerState: "running",
+        timeRemaining: firstDuration,
+        mode: firstItem.isBreak ? "short-break" : "pomodoro",
+      });
+
+      setLocalTimeRemaining(firstDuration);
+      setRoom((prev) =>
+        prev
+          ? {
+              ...prev,
+              timerState: "running",
+              timeRemaining: firstDuration,
+              mode: firstItem.isBreak ? "short-break" : "pomodoro",
+              schedule: scheduleData,
+              $updatedAt: new Date().toISOString(),
+            }
+          : prev
+      );
+
+      // Broadcast timer sync
+      sendMessage("timer-sync", {
+        action: "play",
+        timeRemaining: firstDuration,
+        mode: firstItem.isBreak ? "short-break" : "pomodoro",
+      });
+    } catch (error) {
+      console.error("Failed to start schedule:", error);
+      setScheduleRunning(false);
+    }
+  };
+
+  const handleStopSchedule = async () => {
+    if (!room || !user || room.creatorId !== user.$id) return;
+
+    setScheduleRunning(false);
+
+    try {
+      const scheduleData = JSON.stringify({
+        items: scheduleItems,
+        visible: scheduleVisible,
+        currentIndex: currentScheduleIndex,
+        running: false,
+      });
+
+      await databases.updateDocument(DB_ID, COLLECTIONS.ROOMS, room.$id, {
+        schedule: scheduleData,
+        timerState: "paused",
+      });
+
+      setRoom((prev) =>
+        prev
+          ? {
+              ...prev,
+              timerState: "paused",
+              schedule: scheduleData,
+              $updatedAt: new Date().toISOString(),
+            }
+          : prev
+      );
+
+      sendMessage("timer-sync", {
+        action: "pause",
+        timeRemaining: localTimeRemaining,
+      });
+    } catch (error) {
+      console.error("Failed to stop schedule:", error);
+    }
+  };
+
+  const handleMoveScheduleItem = (index: number, direction: "up" | "down") => {
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === scheduleItems.length - 1) return;
+
+    const newItems = [...scheduleItems];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    [newItems[index], newItems[targetIndex]] = [
+      newItems[targetIndex],
+      newItems[index],
+    ];
+
+    // Update order values
+    newItems.forEach((item, i) => {
+      item.order = i;
+    });
+
+    setScheduleItems(newItems);
+  };
+
+  const getSelectedTopics = (): string[] => {
+    if (!selectedSubjectName) return [];
+    const subject = parsedSubjects.find((s) => s.name === selectedSubjectName);
+    return subject?.topics || [];
   };
 
   const formatTime = (seconds: number) => {
@@ -1603,6 +2188,62 @@ function RoomContent() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Timer Section */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Schedule Running Indicator */}
+              {scheduleRunning && scheduleItems[currentScheduleIndex] && (
+                <div
+                  className={clsx(
+                    "flex items-center gap-3 p-4 rounded-lg border",
+                    scheduleItems[currentScheduleIndex].isBreak
+                      ? "bg-amber-500/10 border-amber-500/30"
+                      : "bg-indigo-500/10 border-indigo-500/30"
+                  )}
+                >
+                  {scheduleItems[currentScheduleIndex].isBreak ? (
+                    <Coffee className="w-5 h-5 text-amber-400" />
+                  ) : (
+                    <PlayCircle className="w-5 h-5 text-indigo-400" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={clsx(
+                          "text-sm font-medium",
+                          scheduleItems[currentScheduleIndex].isBreak
+                            ? "text-amber-400"
+                            : "text-white"
+                        )}
+                      >
+                        {scheduleItems[currentScheduleIndex].curriculumName}
+                      </span>
+                      {scheduleItems[currentScheduleIndex].subjectName && (
+                        <span className="text-xs text-zinc-500">
+                          • {scheduleItems[currentScheduleIndex].subjectName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-zinc-500">
+                        Item {currentScheduleIndex + 1} of{" "}
+                        {scheduleItems.length}
+                      </span>
+                      <span className="text-xs text-zinc-600">•</span>
+                      <span className="text-xs text-zinc-500">
+                        {scheduleItems.filter((s) => s.completed).length}{" "}
+                        completed
+                      </span>
+                    </div>
+                  </div>
+                  {isCreator && (
+                    <button
+                      onClick={handleStopSchedule}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                    >
+                      Stop
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Mode Selector */}
               <div className="flex gap-2 flex-wrap">
                 <button
@@ -1839,7 +2480,7 @@ function RoomContent() {
 
                     <div>
                       <label className="block text-xs text-zinc-500 mb-1">
-                        Subject
+                        Subject/Curriculum
                       </label>
                       <input
                         value={configDraft.subject}
@@ -1961,6 +2602,527 @@ function RoomContent() {
                 </div>
               )}
 
+              {/* Study Schedule */}
+              <div className="card-glass p-6">
+                <div
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setShowSchedule(!showSchedule)}
+                >
+                  <div className="flex items-center gap-3">
+                    <CalendarDays
+                      className={clsx("w-5 h-5", currentTheme.text)}
+                    />
+                    <h3 className="text-sm font-medium text-zinc-400">
+                      Study Schedule
+                    </h3>
+                    {scheduleItems.length > 0 && (
+                      <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400">
+                        {scheduleItems.filter((s) => s.completed).length}/
+                        {scheduleItems.length}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight
+                    className={clsx(
+                      "w-4 h-4 text-zinc-500 transition-transform",
+                      showSchedule && "rotate-90"
+                    )}
+                  />
+                </div>
+
+                {showSchedule && (
+                  <div className="mt-4 space-y-4">
+                    {/* Schedule visibility toggle (creator only) */}
+                    {isCreator && (
+                      <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+                        <div className="flex items-center gap-2 text-sm text-zinc-400">
+                          {scheduleVisible ? (
+                            <Eye className="w-4 h-4" />
+                          ) : (
+                            <EyeOff className="w-4 h-4" />
+                          )}
+                          <span>
+                            {scheduleVisible
+                              ? "Visible to all"
+                              : "Hidden from others"}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setScheduleVisible(!scheduleVisible)}
+                          className="text-xs text-indigo-400 hover:text-indigo-300"
+                        >
+                          {scheduleVisible ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Schedule Items List */}
+                    {(scheduleVisible || isCreator) &&
+                      scheduleItems.length > 0 && (
+                        <div className="space-y-2">
+                          {scheduleItems.map((item, index) => (
+                            <div
+                              key={item.id}
+                              className={clsx(
+                                "p-3 rounded-lg transition-all",
+                                item.completed
+                                  ? "bg-green-500/10 border border-green-500/20"
+                                  : index === currentScheduleIndex &&
+                                    scheduleRunning
+                                  ? item.isBreak
+                                    ? "bg-amber-500/10 border border-amber-500/30"
+                                    : "bg-indigo-500/10 border border-indigo-500/30"
+                                  : item.isBreak
+                                  ? "bg-amber-500/5 border border-amber-500/20"
+                                  : "bg-zinc-900/50 border border-zinc-800"
+                              )}
+                            >
+                              {/* Edit Mode */}
+                              {editingItemId === item.id && editItemData ? (
+                                <div className="space-y-3">
+                                  {item.isBreak ? (
+                                    // Break edit - only duration
+                                    <div className="flex items-center gap-2">
+                                      <Coffee className="w-4 h-4 text-amber-500" />
+                                      <span className="text-sm text-amber-400 font-medium">
+                                        Edit Break
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    // Study item edit - curriculum, subject, topic
+                                    <>
+                                      <select
+                                        value={editItemData.curriculumId}
+                                        onChange={(e) => {
+                                          setEditItemData({
+                                            ...editItemData,
+                                            curriculumId: e.target.value,
+                                            subjectName: "",
+                                            topicName: "",
+                                          });
+                                        }}
+                                        title="Select curriculum"
+                                        className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                                      >
+                                        <option value="">
+                                          Select Curriculum...
+                                        </option>
+                                        {availableCurricula.map((c) => (
+                                          <option key={c.$id} value={c.$id}>
+                                            {c.name}
+                                          </option>
+                                        ))}
+                                      </select>
+
+                                      {getEditSubjects().length > 0 && (
+                                        <select
+                                          value={editItemData.subjectName}
+                                          onChange={(e) => {
+                                            setEditItemData({
+                                              ...editItemData,
+                                              subjectName: e.target.value,
+                                              topicName: "",
+                                            });
+                                          }}
+                                          title="Select subject"
+                                          className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                                        >
+                                          <option value="">
+                                            Select Subject (optional)...
+                                          </option>
+                                          {getEditSubjects().map((s, i) => (
+                                            <option key={i} value={s.name}>
+                                              {s.name}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      )}
+
+                                      {getEditTopics().length > 0 && (
+                                        <select
+                                          value={editItemData.topicName}
+                                          onChange={(e) =>
+                                            setEditItemData({
+                                              ...editItemData,
+                                              topicName: e.target.value,
+                                            })
+                                          }
+                                          title="Select topic"
+                                          className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                                        >
+                                          <option value="">
+                                            Select Topic (optional)...
+                                          </option>
+                                          {getEditTopics().map((t, i) => (
+                                            <option key={i} value={t}>
+                                              {t}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      )}
+                                    </>
+                                  )}
+
+                                  {/* Duration input for both */}
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={180}
+                                      value={editItemData.duration}
+                                      onChange={(e) =>
+                                        setEditItemData({
+                                          ...editItemData,
+                                          duration: Number(e.target.value) || 1,
+                                        })
+                                      }
+                                      title="Duration in minutes"
+                                      className={clsx(
+                                        "w-20 bg-zinc-900/50 border text-white px-3 py-2 rounded-lg focus:outline-none text-sm",
+                                        item.isBreak
+                                          ? "border-amber-500/30 focus:border-amber-500/50"
+                                          : "border-zinc-700 focus:border-indigo-500/50"
+                                      )}
+                                    />
+                                    <span className="text-xs text-zinc-500">
+                                      minutes
+                                    </span>
+                                  </div>
+
+                                  {/* Save/Cancel buttons */}
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={handleSaveEditItem}
+                                      className={clsx(
+                                        "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors",
+                                        item.isBreak
+                                          ? "bg-amber-600 hover:bg-amber-500 text-white"
+                                          : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                                      )}
+                                    >
+                                      <Save className="w-4 h-4" />
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={handleCancelEditItem}
+                                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // Normal display mode
+                                <div className="flex items-start gap-3">
+                                  <button
+                                    onClick={() =>
+                                      handleToggleScheduleItemComplete(item.id)
+                                    }
+                                    disabled={!isCreator}
+                                    className={clsx(
+                                      "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
+                                      item.completed
+                                        ? "bg-green-500 border-green-500"
+                                        : item.isBreak
+                                        ? "border-amber-500 hover:border-amber-400"
+                                        : "border-zinc-600 hover:border-zinc-400",
+                                      !isCreator && "cursor-default"
+                                    )}
+                                  >
+                                    {item.completed && (
+                                      <Check className="w-3 h-3 text-white" />
+                                    )}
+                                  </button>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      {item.isBreak ? (
+                                        <Coffee className="w-3.5 h-3.5 text-amber-500" />
+                                      ) : (
+                                        <GraduationCap className="w-3.5 h-3.5 text-zinc-500" />
+                                      )}
+                                      <span
+                                        className={clsx(
+                                          "text-sm font-medium truncate",
+                                          item.completed
+                                            ? "text-zinc-500 line-through"
+                                            : item.isBreak
+                                            ? "text-amber-400"
+                                            : "text-white"
+                                        )}
+                                      >
+                                        {item.curriculumName}
+                                      </span>
+                                    </div>
+                                    {item.subjectName && !item.isBreak && (
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <BookOpen className="w-3 h-3 text-zinc-600" />
+                                        <span className="text-xs text-zinc-400 truncate">
+                                          {item.subjectName}
+                                          {item.topicName &&
+                                            ` → ${item.topicName}`}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <span
+                                      className={clsx(
+                                        "text-xs mt-1 block",
+                                        item.isBreak
+                                          ? "text-amber-500/70"
+                                          : "text-zinc-500"
+                                      )}
+                                    >
+                                      {item.duration} min
+                                    </span>
+                                  </div>
+                                  {isCreator && !scheduleRunning && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() =>
+                                          handleStartEditItem(item)
+                                        }
+                                        className="p-1 text-zinc-500 hover:text-indigo-400 transition-colors"
+                                        title="Edit item"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleMoveScheduleItem(index, "up")
+                                        }
+                                        disabled={index === 0}
+                                        className={clsx(
+                                          "p-1 transition-colors",
+                                          index === 0
+                                            ? "text-zinc-700 cursor-not-allowed"
+                                            : "text-zinc-500 hover:text-zinc-300"
+                                        )}
+                                        title="Move up"
+                                      >
+                                        <ChevronUp className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleMoveScheduleItem(index, "down")
+                                        }
+                                        disabled={
+                                          index === scheduleItems.length - 1
+                                        }
+                                        className={clsx(
+                                          "p-1 transition-colors",
+                                          index === scheduleItems.length - 1
+                                            ? "text-zinc-700 cursor-not-allowed"
+                                            : "text-zinc-500 hover:text-zinc-300"
+                                        )}
+                                        title="Move down"
+                                      >
+                                        <ChevronDown className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleRemoveScheduleItem(item.id)
+                                        }
+                                        className="p-1 text-zinc-500 hover:text-red-400 transition-colors"
+                                        title="Remove item"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {!scheduleVisible && !isCreator && (
+                      <p className="text-sm text-zinc-500 text-center py-4">
+                        Schedule is hidden by the room creator
+                      </p>
+                    )}
+
+                    {scheduleItems.length === 0 &&
+                      (scheduleVisible || isCreator) && (
+                        <p className="text-sm text-zinc-500 text-center py-4">
+                          No schedule items yet
+                        </p>
+                      )}
+
+                    {/* Add Schedule Item (Creator only) */}
+                    {isCreator && (
+                      <div className="pt-3 border-t border-zinc-800 space-y-3">
+                        <p className="text-xs text-zinc-500 font-medium">
+                          Add to Schedule
+                        </p>
+
+                        {/* Curriculum Select */}
+                        <select
+                          value={selectedCurriculumId}
+                          onChange={(e) =>
+                            setSelectedCurriculumId(e.target.value)
+                          }
+                          title="Select a curriculum"
+                          className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                        >
+                          <option value="">Select Curriculum...</option>
+                          {availableCurricula.map((c) => (
+                            <option key={c.$id} value={c.$id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Subject Select */}
+                        {parsedSubjects.length > 0 && (
+                          <select
+                            value={selectedSubjectName}
+                            onChange={(e) => {
+                              setSelectedSubjectName(e.target.value);
+                              setSelectedTopicName("");
+                            }}
+                            title="Select a subject"
+                            className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                          >
+                            <option value="">
+                              Select Subject (optional)...
+                            </option>
+                            {parsedSubjects.map((s, i) => (
+                              <option key={i} value={s.name}>
+                                {s.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* Topic Select */}
+                        {getSelectedTopics().length > 0 && (
+                          <select
+                            value={selectedTopicName}
+                            onChange={(e) =>
+                              setSelectedTopicName(e.target.value)
+                            }
+                            title="Select a topic"
+                            className="w-full bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                          >
+                            <option value="">Select Topic (optional)...</option>
+                            {getSelectedTopics().map((t, i) => (
+                              <option key={i} value={t}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* Duration */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={180}
+                            value={scheduleDuration}
+                            onChange={(e) =>
+                              setScheduleDuration(Number(e.target.value))
+                            }
+                            className="w-20 bg-zinc-900/50 border border-zinc-800 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500/50 text-sm"
+                          />
+                          <span className="text-xs text-zinc-500">minutes</span>
+                        </div>
+
+                        {/* Add Study Item Button */}
+                        <button
+                          onClick={handleAddScheduleItem}
+                          disabled={!selectedCurriculumId || scheduleRunning}
+                          className={clsx(
+                            "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                            selectedCurriculumId && !scheduleRunning
+                              ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                              : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                          )}
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Study Item
+                        </button>
+
+                        {/* Add Break Section */}
+                        <div className="pt-3 border-t border-zinc-700/50 space-y-2">
+                          <p className="text-xs text-amber-500/80 font-medium flex items-center gap-1">
+                            <Coffee className="w-3 h-3" />
+                            Add Break
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min={1}
+                              max={60}
+                              value={breakDuration}
+                              onChange={(e) =>
+                                setBreakDuration(Number(e.target.value))
+                              }
+                              className="w-20 bg-zinc-900/50 border border-amber-500/30 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500/50 text-sm"
+                            />
+                            <span className="text-xs text-zinc-500">
+                              min break
+                            </span>
+                            <button
+                              onClick={handleAddBreakItem}
+                              disabled={scheduleRunning}
+                              className={clsx(
+                                "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                                scheduleRunning
+                                  ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                                  : "bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30"
+                              )}
+                            >
+                              <Coffee className="w-4 h-4" />
+                              Add Break
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Schedule Control Buttons */}
+                        {scheduleItems.length > 0 && (
+                          <div className="pt-3 border-t border-zinc-700/50 space-y-2">
+                            {/* Start/Stop Schedule Button */}
+                            {!scheduleRunning ? (
+                              <button
+                                onClick={handleStartSchedule}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors bg-green-600 hover:bg-green-500 text-white"
+                              >
+                                <PlayCircle className="w-4 h-4" />
+                                Start Schedule
+                              </button>
+                            ) : (
+                              <button
+                                onClick={handleStopSchedule}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors bg-red-600 hover:bg-red-500 text-white"
+                              >
+                                <StopCircle className="w-4 h-4" />
+                                Stop Schedule
+                              </button>
+                            )}
+
+                            {/* Save Schedule Button */}
+                            <button
+                              onClick={handleSaveSchedule}
+                              disabled={scheduleSaving || scheduleRunning}
+                              className={clsx(
+                                "w-full bg-zinc-800 border border-zinc-700 text-zinc-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                                scheduleSaving || scheduleRunning
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:bg-zinc-700"
+                              )}
+                            >
+                              {scheduleSaving ? "Saving..." : "Save Schedule"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Room Info */}
               <div className="card-glass p-6">
                 <h3 className="text-sm font-medium text-zinc-400 mb-4">
@@ -2026,6 +3188,166 @@ function RoomContent() {
         setTargetDuration={() => {}}
         applyPreset={() => {}}
       />
+
+      {/* Floating Chat Widget - Non-distracting study chat */}
+      <div
+        className={clsx(
+          "fixed z-50 transition-all duration-300 ease-in-out",
+          isFullScreen ? "bottom-4 right-4" : "bottom-6 right-6"
+        )}
+      >
+        {/* Minimized State - Just a button */}
+        {chatMinimized ? (
+          <button
+            onClick={toggleChat}
+            className={clsx(
+              "relative flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105",
+              "bg-zinc-900/90 backdrop-blur-sm border border-zinc-700/50 hover:border-zinc-600",
+              unreadCount > 0 && "ring-2 ring-indigo-500/50"
+            )}
+          >
+            <MessageCircle className="w-5 h-5 text-zinc-300" />
+            <span className="text-sm font-medium text-zinc-300 hidden sm:inline">
+              Chat
+            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-indigo-500 text-white text-xs font-bold rounded-full animate-pulse">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+        ) : (
+          /* Expanded Chat Panel */
+          <div
+            className={clsx(
+              "flex flex-col bg-zinc-900/95 backdrop-blur-md rounded-xl shadow-2xl border border-zinc-700/50 overflow-hidden",
+              "w-[320px] sm:w-[360px] h-[400px] sm:h-[450px]"
+            )}
+          >
+            {/* Chat Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-zinc-800/50 border-b border-zinc-700/50">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-indigo-400" />
+                <span className="text-sm font-medium text-white">
+                  Room Chat
+                </span>
+                <span className="text-xs text-zinc-500">
+                  ({displayUsers.length} online)
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setChatMuted(!chatMuted)}
+                  className={clsx(
+                    "p-1.5 rounded-lg transition-colors",
+                    chatMuted
+                      ? "bg-red-500/20 text-red-400"
+                      : "hover:bg-zinc-700 text-zinc-400"
+                  )}
+                  title={
+                    chatMuted ? "Unmute notifications" : "Mute notifications"
+                  }
+                >
+                  <BellOff className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={toggleChat}
+                  className="p-1.5 hover:bg-zinc-700 rounded-lg text-zinc-400 transition-colors"
+                  title="Minimize chat"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+              {chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                  <MessageCircle className="w-10 h-10 text-zinc-600 mb-3" />
+                  <p className="text-sm text-zinc-500">No messages yet</p>
+                  <p className="text-xs text-zinc-600 mt-1">
+                    Start a conversation with your study group
+                  </p>
+                </div>
+              ) : (
+                chatMessages.map((msg) => {
+                  const isOwn = msg.userId === user?.$id;
+                  return (
+                    <div
+                      key={msg.id}
+                      className={clsx(
+                        "flex flex-col max-w-[85%]",
+                        isOwn ? "ml-auto items-end" : "mr-auto items-start"
+                      )}
+                    >
+                      {!isOwn && (
+                        <span className="text-xs text-zinc-500 mb-0.5 px-1">
+                          {msg.username}
+                        </span>
+                      )}
+                      <div
+                        className={clsx(
+                          "px-3 py-2 rounded-2xl text-sm break-words",
+                          isOwn
+                            ? "bg-indigo-600 text-white rounded-br-md"
+                            : "bg-zinc-800 text-zinc-200 rounded-bl-md"
+                        )}
+                      >
+                        {msg.message}
+                      </div>
+                      <span className="text-[10px] text-zinc-600 mt-0.5 px-1">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Study Focus Reminder */}
+            {room?.timerState === "running" && !chatMuted && (
+              <div className="px-3 py-1.5 bg-amber-500/10 border-t border-amber-500/20">
+                <p className="text-xs text-amber-400/80 text-center">
+                  📚 Focus session active - minimize distractions
+                </p>
+              </div>
+            )}
+
+            {/* Chat Input */}
+            <div className="p-3 border-t border-zinc-700/50 bg-zinc-800/30">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={handleChatKeyDown}
+                  placeholder="Type a message..."
+                  maxLength={500}
+                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50"
+                />
+                <button
+                  onClick={handleSendChat}
+                  disabled={!chatInput.trim()}
+                  title="Send message"
+                  className={clsx(
+                    "p-2 rounded-lg transition-all",
+                    chatInput.trim()
+                      ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                      : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                  )}
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
