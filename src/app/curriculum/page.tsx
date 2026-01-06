@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import clsx from "clsx";
 
 interface Curriculum {
@@ -68,7 +69,7 @@ const colorOptions = [
   { value: "#84cc16", name: "Lime" },
 ];
 
-export default function CurriculumPage() {
+function CurriculumContent() {
   const { user } = useAuth();
   const router = useRouter();
 
@@ -1097,5 +1098,12 @@ function EmptyState({
         {buttonText}
       </button>
     </div>
+  );
+}
+export default function CurriculumPage() {
+  return (
+    <ProtectedRoute>
+      <CurriculumContent />
+    </ProtectedRoute>
   );
 }

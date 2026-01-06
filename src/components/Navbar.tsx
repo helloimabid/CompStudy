@@ -83,7 +83,7 @@ function NavDropdown({ label, items, pathname }: DropdownProps) {
 
 export default function Navbar() {
   const { user, loading } = useAuth();
-  const { activeLearners } = useRealtime();
+  const { activeLearners, activeVisitors } = useRealtime();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -255,16 +255,30 @@ export default function Navbar() {
           </div>
 
           <div
-            className="hidden lg:flex items-center gap-2 px-2 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20"
+            className="hidden lg:flex items-center gap-3"
             suppressHydrationWarning
           >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
-            </span>
-            <span className="text-[10px] font-medium text-indigo-300 tabular-nums">
-              {activeLearners} Online
-            </span>
+            {/* Active Visitors Indicator */}
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-medium text-emerald-300 tabular-nums">
+                {activeVisitors} Online
+              </span>
+            </div>
+
+            {/* Active Studying Indicator */}
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+              </span>
+              <span className="text-[10px] font-medium text-indigo-300 tabular-nums">
+                {activeLearners} Studying
+              </span>
+            </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -435,14 +449,25 @@ export default function Navbar() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
-                  </span>
-                  <span className="text-xs font-medium text-indigo-300 tabular-nums">
-                    {activeLearners} Online
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-medium text-emerald-300 tabular-nums">
+                      {activeVisitors} Online
+                    </span>
+                  </div>
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+                    </span>
+                    <span className="text-xs font-medium text-indigo-300 tabular-nums">
+                      {activeLearners} Studying
+                    </span>
+                  </div>
                 </div>
 
                 {!loading && (

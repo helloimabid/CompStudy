@@ -32,5 +32,6 @@ export const COLLECTIONS = {
     TOPICS: 'topics',
     PUBLIC_CURRICULUM: 'public_curriculum',
     CURRICULUM_RATINGS: 'curriculum_ratings',
-    CONTACT_SUBMISSIONS: 'contact_submissions'
+    CONTACT_SUBMISSIONS: 'contact_submissions',
+    VISITORS: 'visitors'
 };

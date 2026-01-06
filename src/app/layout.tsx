@@ -296,6 +296,19 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9710571190649081"
           crossOrigin="anonymous"
         />
+
+        {/* Umami Analytics - Privacy-focused visitor tracking */}
+        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+          <Script
+            defer
+            src={
+              process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
+              "https://cloud.umami.is/script.js"
+            }
+            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body
         className={clsx(
