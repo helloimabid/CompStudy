@@ -66,7 +66,11 @@ interface Room {
   $updatedAt: string;
 }
 
-type PresenceUser = { userId: string; username: string; profilePicture?: string };
+type PresenceUser = {
+  userId: string;
+  username: string;
+  profilePicture?: string;
+};
 
 const DEFAULT_DURATIONS: Record<Room["mode"], number> = {
   pomodoro: 25 * 60,
@@ -162,9 +166,14 @@ function RoomContent() {
   const [room, setRoom] = useState<Room | null>(null);
   const [participants, setParticipants] = useState<RoomParticipant[]>([]);
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
-  const [participantProfiles, setParticipantProfiles] = useState<Map<string, { username: string; profilePicture?: string }>>(new Map());
+  const [participantProfiles, setParticipantProfiles] = useState<
+    Map<string, { username: string; profilePicture?: string }>
+  >(new Map());
   const [roomLoading, setRoomLoading] = useState(true);
-  const [profile, setProfile] = useState<{ username: string; profilePicture?: string } | null>(null);
+  const [profile, setProfile] = useState<{
+    username: string;
+    profilePicture?: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState(0);
   const lastMessageIndexRef = useRef(0);
@@ -338,8 +347,11 @@ function RoomContent() {
           COLLECTIONS.PROFILES,
           [Query.equal("userId", userIds)]
         );
-        
-        const profileMap = new Map<string, { username: string; profilePicture?: string }>();
+
+        const profileMap = new Map<
+          string,
+          { username: string; profilePicture?: string }
+        >();
         profiles.documents.forEach((p: any) => {
           profileMap.set(p.userId, {
             username: p.username,
@@ -541,7 +553,7 @@ function RoomContent() {
     if (!room || !user || !isConnected) return;
     // Only request sync if we're a participant (not the creator)
     if (room.creatorId === user.$id) return;
-    
+
     // Request timer sync from creator
     sendMessage("timer-sync-request", { roomId });
   }, [room?.$id, user?.$id, isConnected]);
@@ -569,10 +581,23 @@ function RoomContent() {
         });
 
         // If someone joined and we're the creator, broadcast current timer state
-        if (status === "joined" && room && user && room.creatorId === user.$id) {
-          const currentTime = computeDerivedRemaining(room, serverOffsetMsRef.current);
+        if (
+          status === "joined" &&
+          room &&
+          user &&
+          room.creatorId === user.$id
+        ) {
+          const currentTime = computeDerivedRemaining(
+            room,
+            serverOffsetMsRef.current
+          );
           sendMessage("timer-sync", {
-            action: room.timerState === "running" ? "play" : room.timerState === "paused" ? "pause" : "reset",
+            action:
+              room.timerState === "running"
+                ? "play"
+                : room.timerState === "paused"
+                ? "pause"
+                : "reset",
             timeRemaining: currentTime,
             mode: room.mode,
           });
@@ -580,10 +605,23 @@ function RoomContent() {
       }
 
       // Handle timer sync request from participants
-      if (message.type === "timer-sync-request" && room && user && room.creatorId === user.$id) {
-        const currentTime = computeDerivedRemaining(room, serverOffsetMsRef.current);
+      if (
+        message.type === "timer-sync-request" &&
+        room &&
+        user &&
+        room.creatorId === user.$id
+      ) {
+        const currentTime = computeDerivedRemaining(
+          room,
+          serverOffsetMsRef.current
+        );
         sendMessage("timer-sync", {
-          action: room.timerState === "running" ? "play" : room.timerState === "paused" ? "pause" : "reset",
+          action:
+            room.timerState === "running"
+              ? "play"
+              : room.timerState === "paused"
+              ? "pause"
+              : "reset",
           timeRemaining: currentTime,
           mode: room.mode,
         });
@@ -1314,19 +1352,25 @@ function RoomContent() {
   const fallbackUsers = dedupeUsers(
     participants.map((p) => {
       const profileData = participantProfiles.get(p.userId);
-      return { 
-        userId: p.userId, 
+      return {
+        userId: p.userId,
         username: profileData?.username || p.username,
         profilePicture: profileData?.profilePicture,
       };
     })
   );
-  const displayUsers: Array<{ userId: string; username: string; profilePicture?: string }> =
+  const displayUsers: Array<{
+    userId: string;
+    username: string;
+    profilePicture?: string;
+  }> =
     isConnected && presenceUsers.length > 0
-      ? dedupeUsers(presenceUsers.map(pu => ({
-          ...pu,
-          profilePicture: participantProfiles.get(pu.userId)?.profilePicture,
-        })))
+      ? dedupeUsers(
+          presenceUsers.map((pu) => ({
+            ...pu,
+            profilePicture: participantProfiles.get(pu.userId)?.profilePicture,
+          }))
+        )
       : fallbackUsers;
 
   return (
