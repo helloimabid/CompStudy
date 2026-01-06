@@ -13,10 +13,13 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 interface Peer {
   $id: string;
   userId: string;
+  username: string;
   subject: string;
   startTime: string;
-  userName?: string;
+  status: "active" | "paused" | "completed";
   profilePicture?: string;
+  elapsedTime: number;
+  isPublic: boolean;
 }
 
 function FocusContent() {
@@ -29,47 +32,15 @@ function FocusContent() {
       try {
         const response = await databases.listDocuments(
           DB_ID,
-          COLLECTIONS.STUDY_SESSIONS,
+          COLLECTIONS.LIVE_SESSIONS,
           [
             Query.equal("status", "active"),
+            Query.equal("isPublic", true),
             Query.orderDesc("startTime"),
             Query.limit(20),
           ]
         );
-
-        // For now, we'll just use the session data.
-        // In a real app, we'd fetch profiles to get names.
-        // We'll assume for now that we might add userName to the session or just show "Student"
-        const sessions = response.documents as any as Peer[];
-
-        // Fetch profiles for these users to get names
-        if (sessions.length > 0) {
-          const userIds = sessions.map((s) => s.userId);
-          // Appwrite doesn't support "in" query for arrays easily in all versions,
-          // but we can try fetching profiles or just map if we have a small number.
-          // For this fix, let's try to fetch profiles for the sessions.
-
-          const profiles = await databases.listDocuments(
-            DB_ID,
-            COLLECTIONS.PROFILES,
-            [Query.equal("userId", userIds)]
-          );
-
-          const profileMap = new Map(
-            profiles.documents.map((p: any) => [
-              p.userId,
-              { username: p.username, profilePicture: p.profilePicture },
-            ])
-          );
-
-          sessions.forEach((s) => {
-            const profile = profileMap.get(s.userId);
-            s.userName = profile?.username || "Anonymous Student";
-            s.profilePicture = profile?.profilePicture || undefined;
-          });
-        }
-
-        setPeers(sessions);
+        setPeers(response.documents as unknown as Peer[]);
       } catch (error) {
         console.error("Failed to fetch peers:", error);
       } finally {
@@ -79,11 +50,35 @@ function FocusContent() {
 
     fetchPeers();
 
+    // Subscribe to real-time updates
     const unsubscribe = client.subscribe(
-      `databases.${DB_ID}.collections.${COLLECTIONS.STUDY_SESSIONS}.documents`,
+      `databases.${DB_ID}.collections.${COLLECTIONS.LIVE_SESSIONS}.documents`,
       (response) => {
-        // We could be more surgical here, but refetching is safer for consistency
-        fetchPeers();
+        const event = response.events[0];
+        const doc = response.payload as unknown as Peer;
+
+        if (event.includes(".create") && doc.isPublic && doc.status === "active") {
+          setPeers((prev) => {
+            const filtered = prev.filter((p) => p.userId !== doc.userId);
+            return [doc, ...filtered];
+          });
+        } else if (event.includes(".update")) {
+          if (doc.status === "active" && doc.isPublic) {
+            setPeers((prev) => {
+              const exists = prev.find((p) => p.$id === doc.$id);
+              if (exists) {
+                return prev.map((p) => (p.$id === doc.$id ? doc : p));
+              } else {
+                return [doc, ...prev];
+              }
+            });
+          } else {
+            // Remove if no longer active or public
+            setPeers((prev) => prev.filter((p) => p.$id !== doc.$id));
+          }
+        } else if (event.includes(".delete")) {
+          setPeers((prev) => prev.filter((p) => p.$id !== doc.$id));
+        }
       }
     );
 
@@ -164,17 +159,17 @@ function FocusContent() {
                       {peer.profilePicture ? (
                         <img
                           src={peer.profilePicture}
-                          alt={peer.userName || "Student"}
+                          alt={peer.username || "Student"}
                           className="w-8 h-8 rounded-full object-cover border border-indigo-500/30"
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-indigo-600 text-white">
-                          {(peer.userName || "A").substring(0, 2).toUpperCase()}
+                          {(peer.username || "A").substring(0, 2).toUpperCase()}
                         </div>
                       )}
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-white">
-                          {peer.userName || "Student"}
+                          {peer.username || "Student"}
                         </span>
                         <span className="text-xs text-zinc-500 truncate max-w-[120px]">
                           {peer.subject || "Focusing"}
@@ -274,19 +269,19 @@ function FocusContent() {
                           {peer.profilePicture ? (
                             <img
                               src={peer.profilePicture}
-                              alt={peer.userName || "Student"}
+                              alt={peer.username || "Student"}
                               className="w-10 h-10 rounded-full object-cover border border-indigo-500/30"
                             />
                           ) : (
                             <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-600 text-white">
-                              {(peer.userName || "A")
+                              {(peer.username || "A")
                                 .substring(0, 2)
                                 .toUpperCase()}
                             </div>
                           )}
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-white">
-                              {peer.userName || "Student"}
+                              {peer.username || "Student"}
                             </span>
                             <span className="text-xs text-zinc-500">
                               {peer.subject || "Focusing"}

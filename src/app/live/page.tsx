@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
+import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import AdSense from "@/components/AdSense";
 import Link from "next/link";
@@ -38,18 +38,23 @@ interface GoalItem {
 interface StudySession {
   $id: string;
   userId: string;
-  username?: string;
+  username: string;
   subject: string;
   goal: string;
   startTime: string;
-  status: string;
-  type: "focus" | "break";
+  status: "active" | "paused" | "completed";
+  sessionType: "focus" | "break";
   duration?: number; // target duration in seconds (for timer mode)
+  elapsedTime: number;
   isPublic: boolean;
   // Profile info
-  profilePicture?: string;
+    profilePicture?: string;
   streak?: number;
   totalHours?: number;
+}
+
+interface Profile {
+  profilePicture?: string;
 }
 
 interface LiveRoom {
@@ -78,6 +83,7 @@ export default function LiveSessionsPage() {
   );
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [activeTab, setActiveTab] = useState<"sessions" | "rooms">("sessions");
+  const [profilePictures, setProfilePictures] = useState<Record<string, Profile>>({});
 
   // Update current time every second for live duration display
   useEffect(() => {
@@ -87,7 +93,68 @@ export default function LiveSessionsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch live rooms
+  // Fetch live sessions from Appwrite
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const response = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.LIVE_SESSIONS,
+          [
+            Query.equal("status", "active"),
+            Query.equal("isPublic", true),
+            Query.orderDesc("startTime"),
+            Query.limit(50),
+          ]
+        );
+        setSessions(response.documents as unknown as StudySession[]);
+      } catch (error) {
+        console.error("Failed to fetch live sessions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessions();
+
+    // Subscribe to real-time updates
+    const unsubscribe = client.subscribe(
+      `databases.${DB_ID}.collections.${COLLECTIONS.LIVE_SESSIONS}.documents`,
+      (response) => {
+        const event = response.events[0];
+        const doc = response.payload as unknown as StudySession;
+
+        if (event.includes(".create") && doc.isPublic && doc.status === "active") {
+          setSessions((prev) => {
+            const filtered = prev.filter((p) => p.userId !== doc.userId);
+            return [doc, ...filtered];
+          });
+        } else if (event.includes(".update")) {
+          if (doc.status === "active" && doc.isPublic) {
+            setSessions((prev) => {
+              const exists = prev.find((p) => p.$id === doc.$id);
+              if (exists) {
+                return prev.map((p) => (p.$id === doc.$id ? doc : p));
+              } else {
+                return [doc, ...prev];
+              }
+            });
+          } else {
+            // Remove if no longer active or public
+            setSessions((prev) => prev.filter((p) => p.$id !== doc.$id));
+          }
+        } else if (event.includes(".delete")) {
+          setSessions((prev) => prev.filter((p) => p.$id !== doc.$id));
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Fetch live rooms (still using Appwrite for rooms)
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -144,67 +211,6 @@ export default function LiveSessionsPage() {
 
     fetchRooms();
     const interval = setInterval(fetchRooms, 15000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        // Fetch active public sessions
-        const response = await databases.listDocuments(
-          DB_ID,
-          COLLECTIONS.STUDY_SESSIONS,
-          [
-            Query.equal("status", "active"),
-            Query.equal("isPublic", true),
-            Query.orderDesc("startTime"),
-            Query.limit(50),
-          ]
-        );
-
-        const sessionDocs = response.documents as unknown as StudySession[];
-
-        // Fetch profiles for these users to get usernames and stats
-        const userIds = [...new Set(sessionDocs.map((s) => s.userId))];
-        if (userIds.length > 0) {
-          const profiles = await databases.listDocuments(
-            DB_ID,
-            COLLECTIONS.PROFILES,
-            [Query.equal("userId", userIds)]
-          );
-
-          const userMap = new Map();
-          profiles.documents.forEach((p: any) => {
-            userMap.set(p.userId, {
-              username: p.username,
-              profilePicture: p.profilePicture,
-              streak: p.streak || 0,
-              totalHours: p.totalHours || 0,
-            });
-          });
-
-          const sessionsWithInfo = sessionDocs.map((s) => ({
-            ...s,
-            username: userMap.get(s.userId)?.username || "Student",
-            profilePicture: userMap.get(s.userId)?.profilePicture,
-            streak: userMap.get(s.userId)?.streak || 0,
-            totalHours: userMap.get(s.userId)?.totalHours || 0,
-          }));
-          setSessions(sessionsWithInfo);
-        } else {
-          setSessions(sessionDocs);
-        }
-      } catch (error) {
-        console.error("Failed to fetch live sessions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSessions();
-
-    // Poll every 10 seconds for more real-time feel
-    const interval = setInterval(fetchSessions, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -377,7 +383,7 @@ export default function LiveSessionsPage() {
                       onClick={() => setSelectedSession(session)}
                       className={clsx(
                         "bg-[#0a0a0a] border rounded-2xl p-5 transition-all cursor-pointer group relative overflow-hidden",
-                        session.type === "break"
+                        session.sessionType === "break"
                           ? "border-green-500/20 hover:border-green-500/40"
                           : "border-indigo-500/20 hover:border-indigo-500/40"
                       )}
@@ -396,9 +402,9 @@ export default function LiveSessionsPage() {
                       {/* User Info */}
                       <div className="flex items-center gap-3 mb-4">
                         <div className="relative">
-                          {session.profilePicture ? (
+                          {profilePictures[session.userId]?.profilePicture ? (
                             <img
-                              src={session.profilePicture}
+                              src={profilePictures[session.userId].profilePicture}
                               alt={session.username || "Student"}
                               className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500/30"
                             />
@@ -410,12 +416,12 @@ export default function LiveSessionsPage() {
                           <div
                             className={clsx(
                               "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white",
-                              session.type === "break"
+                              session.sessionType === "break"
                                 ? "bg-green-500"
                                 : "bg-indigo-500"
                             )}
                           >
-                            {session.type === "break" ? (
+                            {session.sessionType === "break" ? (
                               <Coffee size={10} />
                             ) : (
                               <BookOpen size={10} />
@@ -452,12 +458,12 @@ export default function LiveSessionsPage() {
                             <span
                               className={clsx(
                                 "text-xs font-medium uppercase tracking-wider",
-                                session.type === "break"
+                                session.sessionType === "break"
                                   ? "text-green-400"
                                   : "text-indigo-400"
                               )}
                             >
-                              {session.type === "break"
+                              {session.sessionType === "break"
                                 ? "☕ Break"
                                 : "🎯 Focus Session"}
                             </span>
@@ -482,7 +488,7 @@ export default function LiveSessionsPage() {
                           <div
                             className={clsx(
                               "text-2xl font-mono font-bold tracking-wider mt-1",
-                              session.type === "break"
+                              session.sessionType === "break"
                                 ? "text-green-400"
                                 : "text-indigo-400"
                             )}
@@ -495,7 +501,7 @@ export default function LiveSessionsPage() {
                               <div
                                 className={clsx(
                                   "h-full rounded-full transition-all duration-1000",
-                                  session.type === "break"
+                                  session.sessionType === "break"
                                     ? "bg-green-500"
                                     : "bg-indigo-500"
                                 )}
@@ -759,6 +765,7 @@ export default function LiveSessionsPage() {
                 session={selectedSession}
                 onClose={() => setSelectedSession(null)}
                 currentTime={currentTime}
+                profilePictures={profilePictures}
               />
             </motion.div>
           </>
@@ -773,10 +780,12 @@ function SessionDetailView({
   session,
   onClose,
   currentTime,
+  profilePictures,
 }: {
   session: StudySession;
   onClose: () => void;
   currentTime: number;
+  profilePictures: Record<string, Profile>;
 }) {
   const elapsed = Math.floor(
     (currentTime - new Date(session.startTime).getTime()) / 1000
@@ -824,7 +833,7 @@ function SessionDetailView({
       <div
         className={clsx(
           "p-6 border-b border-white/5 relative",
-          session.type === "break"
+          session.sessionType === "break"
             ? "bg-gradient-to-br from-green-500/10 to-transparent"
             : "bg-gradient-to-br from-indigo-500/10 to-transparent"
         )}
@@ -838,9 +847,9 @@ function SessionDetailView({
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            {session.profilePicture ? (
+            {profilePictures[session.userId]?.profilePicture ? (
               <img
-                src={session.profilePicture}
+                src={profilePictures[session.userId].profilePicture}
                 alt={session.username || "Student"}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-500/30"
               />
@@ -852,10 +861,10 @@ function SessionDetailView({
             <div
               className={clsx(
                 "absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white",
-                session.type === "break" ? "bg-green-500" : "bg-indigo-500"
+                session.sessionType === "break" ? "bg-green-500" : "bg-indigo-500"
               )}
             >
-              {session.type === "break" ? (
+              {session.sessionType === "break" ? (
                 <Coffee size={12} />
               ) : (
                 <BookOpen size={12} />
@@ -901,12 +910,12 @@ function SessionDetailView({
           <span
             className={clsx(
               "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider mb-3",
-              session.type === "break"
+              session.sessionType === "break"
                 ? "bg-green-500/10 text-green-400"
                 : "bg-indigo-500/10 text-indigo-400"
             )}
           >
-            {session.type === "break" ? (
+            {session.sessionType === "break" ? (
               <>
                 <Coffee size={12} /> Break Time
               </>
@@ -925,7 +934,7 @@ function SessionDetailView({
         <div
           className={clsx(
             "rounded-2xl p-6 text-center",
-            session.type === "break"
+            session.sessionType === "break"
               ? "bg-green-500/5 border border-green-500/20"
               : "bg-indigo-500/5 border border-indigo-500/20"
           )}
@@ -936,7 +945,7 @@ function SessionDetailView({
           <div
             className={clsx(
               "text-5xl md:text-6xl font-mono font-bold tracking-wider",
-              session.type === "break" ? "text-green-400" : "text-indigo-400"
+              session.sessionType === "break" ? "text-green-400" : "text-indigo-400"
             )}
           >
             {session.duration ? formatTime(remaining) : formatTime(elapsed)}
@@ -949,7 +958,7 @@ function SessionDetailView({
                 <div
                   className={clsx(
                     "h-full rounded-full transition-all duration-1000",
-                    session.type === "break" ? "bg-green-500" : "bg-indigo-500"
+                    session.sessionType === "break" ? "bg-green-500" : "bg-indigo-500"
                   )}
                   style={{ width: `${progress}%` }}
                 />
@@ -1036,10 +1045,10 @@ function SessionDetailView({
           </div>
           <div className="bg-zinc-900/50 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-white">
-              {session.type === "focus" ? "🎯" : "☕"}
+              {session.sessionType === "focus" ? "🎯" : "☕"}
             </div>
             <div className="text-xs text-zinc-500 mt-1 capitalize">
-              {session.type}
+              {session.sessionType}
             </div>
           </div>
           <div className="bg-zinc-900/50 rounded-xl p-4 text-center">
@@ -1055,7 +1064,7 @@ function SessionDetailView({
         {/* Encouragement */}
         <div className="text-center py-4 border-t border-white/5">
           <p className="text-zinc-400 text-sm">
-            {session.type === "break"
+            {session.sessionType === "break"
               ? "Taking a well-deserved break! 🌟"
               : elapsed < 600
               ? "Just getting started! Keep it up! 💪"

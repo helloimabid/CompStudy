@@ -6,6 +6,23 @@ type BanRecord =
   | { type: "permanent" }
   | { type: "temporary"; untilMs: number };
 
+interface StudySessionData {
+  userId: string;
+  username: string;
+  subject: string;
+  goal: string;
+  startTime: string;
+  status: "active" | "paused" | "completed";
+  type: "focus" | "break";
+  duration?: number; // target duration in seconds
+  elapsedTime: number; // actual elapsed time in seconds
+  isPublic: boolean;
+  profilePicture?: string;
+  streak?: number;
+  totalHours?: number;
+  lastUpdateTime: string;
+}
+
 export class StudyRoom {
   state: DurableObjectState;
   sessions: Set<WebSocket>;
@@ -13,6 +30,8 @@ export class StudyRoom {
   userConnections: Map<string, { username: string; count: number }>;
   bans: Map<string, BanRecord>;
   bansLoaded: boolean;
+  studySessions: Map<string, StudySessionData>; // userId -> session data
+  sessionsLoaded: boolean;
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -21,6 +40,8 @@ export class StudyRoom {
     this.userConnections = new Map();
     this.bans = new Map();
     this.bansLoaded = false;
+    this.studySessions = new Map();
+    this.sessionsLoaded = false;
   }
 
   async ensureBansLoaded() {
@@ -53,6 +74,31 @@ export class StudyRoom {
       obj[userId] = record;
     }
     await this.state.storage.put("bans", obj);
+  }
+
+  async ensureSessionsLoaded() {
+    if (this.sessionsLoaded) return;
+    const stored = (await this.state.storage.get<Record<string, StudySessionData>>(
+      "studySessions"
+    )) as Record<string, StudySessionData> | undefined;
+    if (stored && typeof stored === "object") {
+      for (const [userId, sessionData] of Object.entries(stored)) {
+        if (!userId || !sessionData) continue;
+        // Only load active sessions (completed sessions will be removed)
+        if (sessionData.status === "active" || sessionData.status === "paused") {
+          this.studySessions.set(userId, sessionData);
+        }
+      }
+    }
+    this.sessionsLoaded = true;
+  }
+
+  async persistSessions() {
+    const obj: Record<string, StudySessionData> = {};
+    for (const [userId, sessionData] of this.studySessions.entries()) {
+      obj[userId] = sessionData;
+    }
+    await this.state.storage.put("studySessions", obj);
   }
 
   getActiveBan(userId: string): BanRecord | null {
@@ -103,6 +149,18 @@ export class StudyRoom {
   }
 
   async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    // HTTP endpoint to get active sessions
+    if (url.pathname.endsWith("/sessions") && request.method === "GET") {
+      await this.ensureSessionsLoaded();
+      const sessionsList = Array.from(this.studySessions.values());
+      return new Response(JSON.stringify({ sessions: sessionsList }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
     if (request.headers.get("Upgrade") !== "websocket") {
       return new Response("Expected Upgrade: websocket", { status: 426 });
     }
@@ -125,6 +183,7 @@ export class StudyRoom {
     webSocket.addEventListener("message", async (msg) => {
       try {
         await this.ensureBansLoaded();
+        await this.ensureSessionsLoaded();
         const raw = msg.data;
 
         if (typeof raw === "string") {
@@ -134,6 +193,134 @@ export class StudyRoom {
           } catch {
             // If it's not JSON, just broadcast it
             this.broadcast(raw, webSocket);
+            return;
+          }
+
+          // Session tracking handling
+          if (parsed?.type === "session-start") {
+            const userId = String(parsed.userId || "");
+            const sessionData: StudySessionData = {
+              userId,
+              username: String(parsed.username || "Anonymous"),
+              subject: String(parsed.subject || "General"),
+              goal: String(parsed.goal || ""),
+              startTime: parsed.startTime || new Date().toISOString(),
+              status: "active",
+              type: parsed.sessionType || "focus",
+              duration: parsed.duration,
+              elapsedTime: 0,
+              isPublic: Boolean(parsed.isPublic),
+              profilePicture: parsed.profilePicture,
+              streak: parsed.streak,
+              totalHours: parsed.totalHours,
+              lastUpdateTime: new Date().toISOString(),
+            };
+
+            this.studySessions.set(userId, sessionData);
+            await this.persistSessions();
+
+            // Broadcast to all connected clients
+            this.broadcast(
+              JSON.stringify({
+                type: "session-update",
+                userId: "server",
+                username: "server",
+                data: {
+                  action: "session-started",
+                  session: sessionData,
+                },
+                timestamp: new Date().toISOString(),
+              }),
+              null // Send to all including sender
+            );
+            return;
+          }
+
+          if (parsed?.type === "session-update") {
+            const userId = String(parsed.userId || "");
+            const existingSession = this.studySessions.get(userId);
+
+            if (existingSession) {
+              // Update session data
+              const updatedSession: StudySessionData = {
+                ...existingSession,
+                status: parsed.status || existingSession.status,
+                elapsedTime: parsed.elapsedTime ?? existingSession.elapsedTime,
+                subject: parsed.subject || existingSession.subject,
+                goal: parsed.goal || existingSession.goal,
+                type: parsed.sessionType || existingSession.type,
+                lastUpdateTime: new Date().toISOString(),
+              };
+
+              this.studySessions.set(userId, updatedSession);
+              await this.persistSessions();
+
+              // Broadcast update
+              this.broadcast(
+                JSON.stringify({
+                  type: "session-update",
+                  userId: "server",
+                  username: "server",
+                  data: {
+                    action: "session-updated",
+                    session: updatedSession,
+                  },
+                  timestamp: new Date().toISOString(),
+                }),
+                null
+              );
+            }
+            return;
+          }
+
+          if (parsed?.type === "session-end") {
+            const userId = String(parsed.userId || "");
+            const session = this.studySessions.get(userId);
+
+            if (session) {
+              // Remove from active sessions
+              this.studySessions.delete(userId);
+              await this.persistSessions();
+
+              // Broadcast end
+              this.broadcast(
+                JSON.stringify({
+                  type: "session-update",
+                  userId: "server",
+                  username: "server",
+                  data: {
+                    action: "session-ended",
+                    userId,
+                    finalSession: {
+                      ...session,
+                      status: "completed",
+                      elapsedTime: parsed.elapsedTime || session.elapsedTime,
+                    },
+                  },
+                  timestamp: new Date().toISOString(),
+                }),
+                null
+              );
+            }
+            return;
+          }
+
+          // Request all active sessions
+          if (parsed?.type === "session-list-request") {
+            const sessionsList = Array.from(this.studySessions.values());
+            try {
+              webSocket.send(
+                JSON.stringify({
+                  type: "session-list",
+                  userId: "server",
+                  username: "server",
+                  data: { sessions: sessionsList },
+                  timestamp: new Date().toISOString(),
+                })
+              );
+            } catch {
+              // ignore
+            }
             return;
           }
 
@@ -344,7 +531,7 @@ export class StudyRoom {
     });
   }
 
-  broadcast(message: string | ArrayBuffer, sender: WebSocket) {
+  broadcast(message: string | ArrayBuffer, sender: WebSocket | null) {
     for (const session of this.sessions) {
       if (session !== sender) {
         try {

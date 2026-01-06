@@ -52,6 +52,10 @@ interface ScheduledSession {
   type: SessionType;
 }
 
+interface Profile{
+  profilePicture?:string;
+}
+
 export default function StudyTimer({
   onSessionComplete,
 }: {
@@ -148,12 +152,17 @@ export default function StudyTimer({
   const [showDesigner, setShowDesigner] = useState(false);
   const [activePeers, setActivePeers] = useState(0);
   const [peers, setPeers] = useState<any[]>([]);
+  const [profilePicture, setProfilePicture] = useState<Profile | undefined>(undefined);
   const [profileStats, setProfileStats] = useState<{
     streak: number;
     xp: number;
     rank: number;
     totalHours: number;
+    profilePicture?: string;
   }>({ streak: 0, xp: 0, rank: 0, totalHours: 0 });
+
+  // Live session ID for real-time tracking
+  const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
 
   // Load settings from localStorage
   useEffect(() => {
@@ -252,8 +261,217 @@ export default function StudyTimer({
     };
   }, []);
 
+  // Fetch profile stats
+  useEffect(() => {
+    const fetchProfileStats = async () => {
+      if (!user) return;
+      try {
+        const profiles = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          [Query.equal("userId", user.$id)]
+        );
+
+        if (profiles.documents.length > 0) {
+          const profile = profiles.documents[0] as any;
+          setProfileStats({
+            streak: profile.streak || 0,
+            xp: profile.xp || 0,
+            rank: profile.rank || 0,
+            totalHours: profile.totalHours || 0,
+            // profilePicture: profile.profilePicture,
+          });
+          setProfilePicture(profile);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile stats:", error);
+      }
+    };
+
+    fetchProfileStats();
+  }, [user]);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number | null>(null);
+
+  // Restore session state from localStorage on mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem("activeStudySession");
+    if (savedSession && user) {
+      try {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.userId === user.$id && parsed.sessionId) {
+          setSessionId(parsed.sessionId);
+          setLiveSessionId(parsed.liveSessionId || null);
+          setIsActive(parsed.isActive);
+          setIsPaused(parsed.isPaused);
+          setSubject(parsed.subject || "");
+          setGoal(parsed.goal || "");
+          setSessionType(parsed.sessionType || "focus");
+          setMode(parsed.mode || "stopwatch");
+          setTargetDuration(parsed.targetDuration || 25 * 60);
+          setPrivacy(parsed.privacy || "public");
+
+          // Restore elapsed time from saved value
+          const savedElapsed = parsed.elapsed || 0;
+          
+          // If it was active AND not paused, continue timing from where we left off
+          if (parsed.isActive && !parsed.isPaused) {
+            // Calculate additional time that passed while page was closed
+            const savedTimestamp = parsed.savedAt || Date.now();
+            const additionalTime = Math.floor((Date.now() - savedTimestamp) / 1000);
+            const totalElapsed = savedElapsed + additionalTime;
+            
+            setElapsed(totalElapsed);
+            startTimeRef.current = Date.now() - totalElapsed * 1000;
+
+            // Update live session with current elapsed time
+            if (parsed.liveSessionId) {
+              updateLiveSession(parsed.liveSessionId, {
+                status: "active",
+                elapsedTime: totalElapsed,
+              });
+            }
+
+            intervalRef.current = setInterval(() => {
+              if (startTimeRef.current) {
+                const now = Date.now();
+                const diff = Math.floor((now - startTimeRef.current) / 1000);
+                setElapsed(diff);
+              }
+            }, 1000);
+          } else if (parsed.isActive && parsed.isPaused) {
+            // If paused, just restore the elapsed time without starting the timer
+            setElapsed(savedElapsed);
+            startTimeRef.current = Date.now() - savedElapsed * 1000;
+            
+            // Update live session to show paused status
+            if (parsed.liveSessionId) {
+              updateLiveSession(parsed.liveSessionId, {
+                status: "paused",
+                elapsedTime: savedElapsed,
+              });
+            }
+          } else {
+            // Not active, just restore elapsed
+            setElapsed(savedElapsed);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to restore session:", error);
+        localStorage.removeItem("activeStudySession");
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [user]);
+
+  // Save session state to localStorage whenever it changes
+  useEffect(() => {
+    if (sessionId && user) {
+      localStorage.setItem(
+        "activeStudySession",
+        JSON.stringify({
+          userId: user.$id,
+          sessionId,
+          liveSessionId,
+          isActive,
+          isPaused,
+          elapsed,
+          subject,
+          goal,
+          sessionType,
+          mode,
+          targetDuration,
+          privacy,
+          savedAt: Date.now(), // Timestamp when this was saved
+        })
+      );
+    } else {
+      localStorage.removeItem("activeStudySession");
+    }
+  }, [sessionId, liveSessionId, isActive, isPaused, elapsed, user, subject, goal, sessionType, mode, targetDuration, privacy]);
+
+  // --- Helper Functions for Live Session Tracking ---
+
+  const createLiveSession = async (sessionData: {
+    subject: string;
+    goal: string;
+    startTime: string;
+    duration?: number;
+    sessionType: SessionType;
+  }) => {
+    if (!user) return null;
+
+    try {
+      const liveSession = await databases.createDocument(
+        DB_ID,
+        COLLECTIONS.LIVE_SESSIONS,
+        ID.unique(),
+        {
+          userId: user.$id,
+          username: user.name || "Anonymous",
+          subject: sessionData.subject,
+          goal: sessionData.goal,
+          startTime: sessionData.startTime,
+          lastUpdateTime: new Date().toISOString(),
+          status: "active",
+          sessionType: sessionData.sessionType,
+          duration: sessionData.duration || null,
+          elapsedTime: 0,
+          isPublic: privacy === "public",
+          profilePicture: profilePicture || null,
+          streak: profileStats.streak || 0,
+          totalHours: profileStats.totalHours || 0,
+        },
+        [
+          Permission.read(privacy === "public" ? Role.any() : Role.user(user.$id)),
+          Permission.update(Role.user(user.$id)),
+          Permission.delete(Role.user(user.$id)),
+        ]
+      );
+      return liveSession.$id;
+    } catch (error) {
+      console.error("Failed to create live session:", error);
+      return null;
+    }
+  };
+
+  const updateLiveSession = async (
+    liveId: string,
+    updates: {
+      status?: "active" | "paused" | "completed";
+      elapsedTime?: number;
+    }
+  ) => {
+    if (!liveId) return;
+
+    try {
+      await databases.updateDocument(
+        DB_ID,
+        COLLECTIONS.LIVE_SESSIONS,
+        liveId,
+        {
+          ...updates,
+          lastUpdateTime: new Date().toISOString(),
+        }
+      );
+    } catch (error) {
+      console.error("Failed to update live session:", error);
+    }
+  };
+
+  const deleteLiveSession = async (liveId: string) => {
+    if (!liveId) return;
+
+    try {
+      await databases.deleteDocument(DB_ID, COLLECTIONS.LIVE_SESSIONS, liveId);
+    } catch (error) {
+      console.error("Failed to delete live session:", error);
+    }
+  };
 
   // --- Helpers ---
 
@@ -364,12 +582,28 @@ export default function StudyTimer({
       setIsPaused(false);
       startTimeRef.current = Date.now() - elapsed * 1000;
 
+      // Update live session status
+      if (liveSessionId) {
+        updateLiveSession(liveSessionId, {
+          status: "active",
+          elapsedTime: elapsed,
+        });
+      }
+
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(() => {
         if (startTimeRef.current) {
           const now = Date.now();
           const diff = Math.floor((now - startTimeRef.current) / 1000);
           setElapsed(diff);
+
+          // Update live session every 30 seconds
+          if (diff % 30 === 0 && liveSessionId) {
+            updateLiveSession(liveSessionId, {
+              elapsedTime: diff,
+              status: "active",
+            });
+          }
         }
       }, 1000);
       return;
@@ -465,6 +699,16 @@ export default function StudyTimer({
       setIsPaused(false);
       startTimeRef.current = Date.now();
 
+      // Create live session in Appwrite
+      const newLiveSessionId = await createLiveSession({
+        subject: subjectToUse,
+        goal: sessionGoals.length > 0 ? JSON.stringify(sessionGoals) : goal,
+        startTime: session.startTime,
+        duration: mode === "timer" ? targetDuration : undefined,
+        sessionType: sessionTypeToUse,
+      });
+      setLiveSessionId(newLiveSessionId);
+
       // Clear any existing interval just in case
       if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -473,6 +717,14 @@ export default function StudyTimer({
           const now = Date.now();
           const diff = Math.floor((now - startTimeRef.current) / 1000);
           setElapsed(diff);
+
+          // Update live session every 30 seconds
+          if (diff % 30 === 0 && newLiveSessionId) {
+            updateLiveSession(newLiveSessionId, {
+              elapsedTime: diff,
+              status: "active",
+            });
+          }
         }
       }, 1000);
     } catch (error) {
@@ -483,14 +735,60 @@ export default function StudyTimer({
   const pauseSession = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setIsPaused(true);
-    // Optionally update DB status to 'paused' here if needed
+
+    // Update live session status
+    if (liveSessionId) {
+      updateLiveSession(liveSessionId, {
+        status: "paused",
+        elapsedTime: elapsed,
+      });
+    }
+  };
+
+  const resumeSession = () => {
+    if (!isPaused) return;
+    setIsPaused(false);
+    startTimeRef.current = Date.now() - elapsed * 1000;
+
+    // Update live session status
+    if (liveSessionId) {
+      updateLiveSession(liveSessionId, {
+        status: "active",
+        elapsedTime: elapsed,
+      });
+    }
+
+    intervalRef.current = setInterval(() => {
+      if (startTimeRef.current) {
+        const now = Date.now();
+        const diff = Math.floor((now - startTimeRef.current) / 1000);
+        setElapsed(diff);
+
+        // Update live session every 30 seconds
+        if (diff % 30 === 0 && liveSessionId) {
+          updateLiveSession(liveSessionId, {
+            elapsedTime: diff,
+            status: "active",
+          });
+        }
+      }
+    }, 1000);
   };
 
   const resetSession = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setIsActive(false);
     setIsPaused(false);
+
+    // Delete live session
+    if (liveSessionId) {
+      await deleteLiveSession(liveSessionId);
+    }
+
     setElapsed(0);
+
+    // Clear localStorage
+    localStorage.removeItem("activeStudySession");
 
     // If we have a session ID, we should probably mark it as abandoned or delete it
     // For now, let's just clear the local state.
@@ -504,6 +802,7 @@ export default function StudyTimer({
       }
     }
     setSessionId(null);
+    setLiveSessionId(null);
   };
 
   const stopSession = async () => {
@@ -513,6 +812,15 @@ export default function StudyTimer({
     setIsActive(false);
     setIsPaused(false);
     startTimeRef.current = null;
+
+    // Clear localStorage
+    localStorage.removeItem("activeStudySession");
+
+    // Delete live session
+    if (liveSessionId) {
+      await deleteLiveSession(liveSessionId);
+      setLiveSessionId(null);
+    }
 
     try {
       await databases.updateDocument(

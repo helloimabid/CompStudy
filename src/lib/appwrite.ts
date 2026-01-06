@@ -22,6 +22,7 @@ export const COLLECTIONS = {
     DISCUSSIONS: 'discussions',
     GROUPS: 'groups',
     STUDY_SESSIONS: 'study_sessions',
+    LIVE_SESSIONS: 'live_sessions',
     COMMUNITIES: 'communities',
     COMMUNITY_MEMBERS: 'community_members',
     POSTS: 'posts',
