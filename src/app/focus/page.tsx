@@ -16,7 +16,7 @@ interface Peer {
   subject: string;
   startTime: string;
   userName?: string;
-  profilePic?: string;
+  profilePicture?: string;
 }
 
 function FocusContent() {
@@ -58,14 +58,14 @@ function FocusContent() {
           const profileMap = new Map(
             profiles.documents.map((p: any) => [
               p.userId,
-              { username: p.username, profilePic: p.profilePic },
+              { username: p.username, profilePicture: p.profilePicture },
             ])
           );
 
           sessions.forEach((s) => {
             const profile = profileMap.get(s.userId);
             s.userName = profile?.username || "Anonymous Student";
-            s.profilePic = profile?.profilePic;
+            s.profilePicture = profile?.profilePicture || undefined;
           });
         }
 
@@ -161,9 +161,9 @@ function FocusContent() {
                 <div key={peer.$id} className="group">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      {peer.profilePic ? (
+                      {peer.profilePicture ? (
                         <img
-                          src={peer.profilePic}
+                          src={peer.profilePicture}
                           alt={peer.userName || "Student"}
                           className="w-8 h-8 rounded-full object-cover border border-indigo-500/30"
                         />
@@ -234,6 +234,7 @@ function FocusContent() {
                   Live Peers ({peers.length})
                 </h3>
                 <button
+                  title="peersDrawer"
                   onClick={() => setShowPeersDrawer(false)}
                   className="text-zinc-500 hover:text-white transition-colors p-2"
                 >
@@ -270,9 +271,9 @@ function FocusContent() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          {peer.profilePic ? (
+                          {peer.profilePicture ? (
                             <img
-                              src={peer.profilePic}
+                              src={peer.profilePicture}
                               alt={peer.userName || "Student"}
                               className="w-10 h-10 rounded-full object-cover border border-indigo-500/30"
                             />

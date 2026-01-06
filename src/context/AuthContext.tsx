@@ -124,9 +124,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           );
         }
       } catch (error) {
-        console.error("Error ensuring profile exists:", error);
+        // Only log in development
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error ensuring profile exists:", error);
+        }
       }
-    } catch (error) {
+    } catch {
+      // User not logged in - this is expected, silently handle it
       setUser(null);
     } finally {
       setLoading(false);

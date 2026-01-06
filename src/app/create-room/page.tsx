@@ -32,6 +32,9 @@ function CreateRoomContent() {
   const [isStrict, setIsStrict] = useState(false);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [copied, setCopied] = useState(false);
+  const [hasExistingRoom, setHasExistingRoom] = useState(false);
+  const [existingRoomId, setExistingRoomId] = useState<string | null>(null);
+  const [checkingRoom, setCheckingRoom] = useState(true);
 
   const [pomodoroMin, setPomodoroMin] = useState(25);
   const [shortBreakMin, setShortBreakMin] = useState(5);
@@ -46,8 +49,27 @@ function CreateRoomContent() {
   useEffect(() => {
     if (user) {
       fetchCurriculums();
+      checkExistingRoom();
     }
   }, [user]);
+
+  const checkExistingRoom = async () => {
+    if (!user) return;
+    try {
+      const response = await databases.listDocuments(DB_ID, COLLECTIONS.ROOMS, [
+        Query.equal("creatorId", user.$id),
+        Query.limit(1),
+      ]);
+      if (response.documents.length > 0) {
+        setHasExistingRoom(true);
+        setExistingRoomId(response.documents[0].roomId);
+      }
+    } catch (error) {
+      console.error("Error checking existing room:", error);
+    } finally {
+      setCheckingRoom(false);
+    }
+  };
 
   const fetchCurriculums = async () => {
     if (!user) return;
@@ -63,7 +85,7 @@ function CreateRoomContent() {
     }
   };
 
-  if (loading) {
+  if (loading || checkingRoom) {
     return (
       <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
@@ -74,6 +96,43 @@ function CreateRoomContent() {
   if (!user) {
     router.push("/login");
     return null;
+  }
+
+  // Show message if user already has a room
+  if (hasExistingRoom && existingRoomId) {
+    return (
+      <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 min-h-screen">
+        <div className="max-w-xl mx-auto px-4 md:px-6">
+          <div className="text-center p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-6">
+              <BookOpen className="text-amber-400" size={32} />
+            </div>
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              You already have an active room
+            </h2>
+            <p className="text-zinc-400 mb-6">
+              You can only have one room at a time. Enter your existing room or
+              delete it to create a new one.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => router.push(`/room/${existingRoomId}`)}
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowRight size={18} />
+                Enter Your Room
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="px-6 py-3 border border-white/10 hover:bg-white/5 text-zinc-300 rounded-xl font-medium transition-colors"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const handleCreate = (e: React.FormEvent) => {

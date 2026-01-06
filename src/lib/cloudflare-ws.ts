@@ -13,6 +13,7 @@ export interface WebSocketMessage {
     | "presence-update"
     | "chat"
     | "timer-sync"
+    | "timer-sync-request"
     | "user-action"
     | "admin-action";
   userId: string;

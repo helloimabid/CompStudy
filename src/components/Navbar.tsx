@@ -3,11 +3,13 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/RealtimeContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Search, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
+import { Query } from "appwrite";
 
 interface DropdownProps {
   label: string;
@@ -83,7 +85,51 @@ export default function Navbar() {
   const { user, loading } = useAuth();
   const { activeLearners } = useRealtime();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowSearch(false);
+        setSearchQuery("");
+        setSearchResults([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        [Query.search("username", query), Query.limit(5)]
+      );
+      setSearchResults(response.documents);
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const studyLinks = [
     { href: "/focus", label: "Focus Mode" },
@@ -133,6 +179,81 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4" suppressHydrationWarning>
+          {/* User Search */}
+          <div ref={searchRef} className="relative hidden lg:block">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            >
+              <Search size={16} />
+            </button>
+            <AnimatePresence>
+              {showSearch && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full right-0 mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                >
+                  <div className="p-3 border-b border-white/5">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
+                      <Search size={14} className="text-zinc-500" />
+                      <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="flex-1 bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {searching ? (
+                      <div className="p-4 text-center text-zinc-500 text-sm">
+                        Searching...
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      searchResults.map((profile) => (
+                        <Link
+                          key={profile.$id}
+                          href={`/profile/${profile.userId}`}
+                          onClick={() => {
+                            setShowSearch(false);
+                            setSearchQuery("");
+                            setSearchResults([]);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                            {profile.username?.[0]?.toUpperCase() || "U"}
+                          </div>
+                          <div>
+                            <p className="text-sm text-white font-medium">
+                              {profile.username}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              {profile.totalHours?.toFixed(1) || 0}h studied
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : searchQuery.length >= 2 ? (
+                      <div className="p-4 text-center text-zinc-500 text-sm">
+                        No users found
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-zinc-500 text-sm">
+                        Type to search users
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div
             className="hidden lg:flex items-center gap-2 px-2 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20"
             suppressHydrationWarning
@@ -277,6 +398,43 @@ export default function Navbar() {
               </div>
 
               <div className="pt-4 border-t border-white/5 space-y-3">
+                {/* Mobile Search */}
+                <div className="px-3">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
+                    <Search size={14} className="text-zinc-500" />
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="flex-1 bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
+                    />
+                  </div>
+                  {searchResults.length > 0 && (
+                    <div className="mt-2 bg-white/5 rounded-lg overflow-hidden">
+                      {searchResults.map((profile) => (
+                        <Link
+                          key={profile.$id}
+                          href={`/profile/${profile.userId}`}
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setSearchQuery("");
+                            setSearchResults([]);
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                            {profile.username?.[0]?.toUpperCase() || "U"}
+                          </div>
+                          <span className="text-sm text-white">
+                            {profile.username}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -290,21 +448,31 @@ export default function Navbar() {
                 {!loading && (
                   <>
                     {user ? (
-                      <div className="flex gap-2">
+                      <div className="space-y-2">
                         <Link
-                          href="/dashboard"
+                          href={`/profile/${user.$id}`}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex-1 text-center text-sm font-medium text-zinc-400 border border-white/10 px-4 py-2 rounded-full hover:text-white hover:border-white/20 transition-colors"
+                          className="flex items-center gap-2 w-full text-sm font-medium text-zinc-400 border border-white/10 px-4 py-2 rounded-full hover:text-white hover:border-white/20 transition-colors"
                         >
-                          Dashboard
+                          <User size={16} />
+                          My Profile
                         </Link>
-                        <Link
-                          href="/start-studying"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex-1 text-center text-sm font-medium bg-zinc-100 text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
-                        >
-                          Start Studying
-                        </Link>
+                        <div className="flex gap-2">
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex-1 text-center text-sm font-medium text-zinc-400 border border-white/10 px-4 py-2 rounded-full hover:text-white hover:border-white/20 transition-colors"
+                          >
+                            Dashboard
+                          </Link>
+                          <Link
+                            href="/start-studying"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex-1 text-center text-sm font-medium bg-zinc-100 text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
+                          >
+                            Start Studying
+                          </Link>
+                        </div>
                       </div>
                     ) : (
                       <Link

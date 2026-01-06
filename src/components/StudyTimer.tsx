@@ -543,6 +543,35 @@ export default function StudyTimer({
             xpGained += 50; // Bonus for hitting target
           }
 
+          // Streak calculation
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const lastStudyDate = profile.lastStudyDate
+            ? new Date(profile.lastStudyDate)
+            : null;
+          let newStreak = profile.streak || 0;
+
+          if (lastStudyDate) {
+            lastStudyDate.setHours(0, 0, 0, 0);
+            const daysSinceLastStudy = Math.floor(
+              (today.getTime() - lastStudyDate.getTime()) /
+                (1000 * 60 * 60 * 24)
+            );
+
+            if (daysSinceLastStudy === 0) {
+              // Already studied today, keep streak
+            } else if (daysSinceLastStudy === 1) {
+              // Studied yesterday, increment streak
+              newStreak += 1;
+            } else {
+              // Missed days, reset streak to 1
+              newStreak = 1;
+            }
+          } else {
+            // First time studying
+            newStreak = 1;
+          }
+
           await databases.updateDocument(
             DB_ID,
             COLLECTIONS.PROFILES,
@@ -550,6 +579,8 @@ export default function StudyTimer({
             {
               totalHours: newTotalHours,
               xp: (profile.xp || 0) + xpGained,
+              streak: newStreak,
+              lastStudyDate: new Date().toISOString(),
             }
           );
 

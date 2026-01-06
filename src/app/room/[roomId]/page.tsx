@@ -66,7 +66,7 @@ interface Room {
   $updatedAt: string;
 }
 
-type PresenceUser = { userId: string; username: string };
+type PresenceUser = { userId: string; username: string; profilePicture?: string };
 
 const DEFAULT_DURATIONS: Record<Room["mode"], number> = {
   pomodoro: 25 * 60,
@@ -162,8 +162,9 @@ function RoomContent() {
   const [room, setRoom] = useState<Room | null>(null);
   const [participants, setParticipants] = useState<RoomParticipant[]>([]);
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
+  const [participantProfiles, setParticipantProfiles] = useState<Map<string, { username: string; profilePicture?: string }>>(new Map());
   const [roomLoading, setRoomLoading] = useState(true);
-  const [profile, setProfile] = useState<{ username: string } | null>(null);
+  const [profile, setProfile] = useState<{ username: string; profilePicture?: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [localTimeRemaining, setLocalTimeRemaining] = useState(0);
   const lastMessageIndexRef = useRef(0);
@@ -311,7 +312,11 @@ function RoomContent() {
           [Query.equal("userId", user.$id), Query.limit(1)]
         );
         if (profiles.documents.length > 0) {
-          setProfile(profiles.documents[0] as any);
+          const profileData = profiles.documents[0] as any;
+          setProfile({
+            username: profileData.username,
+            profilePicture: profileData.profilePicture,
+          });
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
@@ -320,6 +325,35 @@ function RoomContent() {
 
     fetchProfile();
   }, [user]);
+
+  // Fetch profiles for all participants
+  useEffect(() => {
+    const fetchParticipantProfiles = async () => {
+      const userIds = participants.map((p) => p.userId);
+      if (userIds.length === 0) return;
+
+      try {
+        const profiles = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          [Query.equal("userId", userIds)]
+        );
+        
+        const profileMap = new Map<string, { username: string; profilePicture?: string }>();
+        profiles.documents.forEach((p: any) => {
+          profileMap.set(p.userId, {
+            username: p.username,
+            profilePicture: p.profilePicture,
+          });
+        });
+        setParticipantProfiles(profileMap);
+      } catch (error) {
+        console.error("Failed to fetch participant profiles:", error);
+      }
+    };
+
+    fetchParticipantProfiles();
+  }, [participants]);
 
   // Fetch or create room
   useEffect(() => {
@@ -403,6 +437,8 @@ function RoomContent() {
             }
 
             // Add current user as participant
+            // Note: Users can only grant permissions to themselves, not other users
+            // The kicked user deletes their own record via WebSocket admin-action handler
             await databases.createDocument(
               DB_ID,
               COLLECTIONS.ROOM_PARTICIPANTS,
@@ -417,8 +453,6 @@ function RoomContent() {
                 Permission.read(Role.any()),
                 Permission.update(Role.user(user.$id)),
                 Permission.delete(Role.user(user.$id)),
-                // Allow the room creator to remove participants
-                Permission.delete(Role.user(currentRoom.creatorId)),
               ]
             );
           }
@@ -502,6 +536,16 @@ function RoomContent() {
     initRoom();
   }, [user, profile, roomId]);
 
+  // Request timer sync when joining as a participant (not creator)
+  useEffect(() => {
+    if (!room || !user || !isConnected) return;
+    // Only request sync if we're a participant (not the creator)
+    if (room.creatorId === user.$id) return;
+    
+    // Request timer sync from creator
+    sendMessage("timer-sync-request", { roomId });
+  }, [room?.$id, user?.$id, isConnected]);
+
   // Maintain presence roster from Cloudflare WS
   useEffect(() => {
     const newMessages = messages.slice(lastMessageIndexRef.current);
@@ -522,6 +566,26 @@ function RoomContent() {
           return status === "joined"
             ? dedupeUsers([...without, userInfo])
             : dedupeUsers(without);
+        });
+
+        // If someone joined and we're the creator, broadcast current timer state
+        if (status === "joined" && room && user && room.creatorId === user.$id) {
+          const currentTime = computeDerivedRemaining(room, serverOffsetMsRef.current);
+          sendMessage("timer-sync", {
+            action: room.timerState === "running" ? "play" : room.timerState === "paused" ? "pause" : "reset",
+            timeRemaining: currentTime,
+            mode: room.mode,
+          });
+        }
+      }
+
+      // Handle timer sync request from participants
+      if (message.type === "timer-sync-request" && room && user && room.creatorId === user.$id) {
+        const currentTime = computeDerivedRemaining(room, serverOffsetMsRef.current);
+        sendMessage("timer-sync", {
+          action: room.timerState === "running" ? "play" : room.timerState === "paused" ? "pause" : "reset",
+          timeRemaining: currentTime,
+          mode: room.mode,
         });
       }
 
@@ -1248,11 +1312,21 @@ function RoomContent() {
 
   const isCreator = room.creatorId === user.$id;
   const fallbackUsers = dedupeUsers(
-    participants.map((p) => ({ userId: p.userId, username: p.username }))
+    participants.map((p) => {
+      const profileData = participantProfiles.get(p.userId);
+      return { 
+        userId: p.userId, 
+        username: profileData?.username || p.username,
+        profilePicture: profileData?.profilePicture,
+      };
+    })
   );
-  const displayUsers: Array<{ userId: string; username: string }> =
+  const displayUsers: Array<{ userId: string; username: string; profilePicture?: string }> =
     isConnected && presenceUsers.length > 0
-      ? dedupeUsers(presenceUsers)
+      ? dedupeUsers(presenceUsers.map(pu => ({
+          ...pu,
+          profilePicture: participantProfiles.get(pu.userId)?.profilePicture,
+        })))
       : fallbackUsers;
 
   return (
@@ -1641,15 +1715,23 @@ function RoomContent() {
                       key={participant.userId}
                       className="flex items-center gap-3 p-3 bg-zinc-900/50 rounded-lg"
                     >
-                      <div
-                        className={clsx(
-                          "w-10 h-10 rounded-full flex items-center justify-center font-medium",
-                          currentTheme.glow,
-                          currentTheme.text
-                        )}
-                      >
-                        {participant.username[0].toUpperCase()}
-                      </div>
+                      {participant.profilePicture ? (
+                        <img
+                          src={participant.profilePicture}
+                          alt={participant.username}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className={clsx(
+                            "w-10 h-10 rounded-full flex items-center justify-center font-medium",
+                            currentTheme.glow,
+                            currentTheme.text
+                          )}
+                        >
+                          {participant.username[0].toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">
                           {participant.username}

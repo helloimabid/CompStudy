@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-zinc-500">Study time by subject</p>
               </div>
             </div>
-            <div className="h-[280px]">
+            <div className="h-[220px]">
               {typeData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -300,13 +300,13 @@ export default function AnalyticsPage() {
                       data={typeData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      outerRadius={90}
-                      innerRadius={50}
+                      labelLine={true}
+                      outerRadius={70}
+                      innerRadius={40}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      label={({ percent }) =>
+                        `${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                     >
                       {typeData.map((entry, index) => (
@@ -322,6 +322,15 @@ export default function AnalyticsPage() {
                         border: "1px solid rgba(255,255,255,0.1)",
                         borderRadius: "12px",
                       }}
+                      formatter={(value: number | undefined) => {
+                        if (value === undefined) return ["", "Time"];
+                        const hours = Math.floor(value / 3600);
+                        const minutes = Math.floor((value % 3600) / 60);
+                        if (hours > 0) {
+                          return [`${hours}h ${minutes}m`, "Time"];
+                        }
+                        return [`${minutes}m`, "Time"];
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -331,6 +340,22 @@ export default function AnalyticsPage() {
                 </div>
               )}
             </div>
+            {/* Legend */}
+            {typeData.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-4 justify-center">
+                {typeData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-xs text-zinc-400 truncate max-w-[100px]">
+                      {entry.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
 

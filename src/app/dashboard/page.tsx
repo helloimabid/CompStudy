@@ -18,6 +18,8 @@ import {
   Target,
   ChevronRight,
   Sparkles,
+  DoorOpen,
+  Play,
 } from "lucide-react";
 import StudyTimer from "@/components/StudyTimer";
 import UsernameDialog from "@/components/UsernameDialog";
@@ -25,6 +27,15 @@ import AdSense from "@/components/AdSense";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+interface ActiveRoom {
+  $id: string;
+  roomId: string;
+  name: string;
+  subject: string;
+  activeUsers: number;
+  timerState: "idle" | "running" | "paused";
+}
 
 function DashboardContent() {
   const { user, loading, logout, needsUsername, setUsernameForOAuth } =
@@ -34,12 +45,32 @@ function DashboardContent() {
   const [fetchingProfile, setFetchingProfile] = useState(true);
   const [usernameError, setUsernameError] = useState("");
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
+  const [activeRoom, setActiveRoom] = useState<ActiveRoom | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
     }
   }, [user, loading, router]);
+
+  const fetchActiveRoom = async () => {
+    if (user) {
+      try {
+        const response = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.ROOMS,
+          [Query.equal("creatorId", user.$id), Query.limit(1)]
+        );
+        if (response.documents.length > 0) {
+          setActiveRoom(response.documents[0] as unknown as ActiveRoom);
+        } else {
+          setActiveRoom(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch active room:", error);
+      }
+    }
+  };
 
   const fetchProfile = async () => {
     if (user) {
@@ -84,6 +115,7 @@ function DashboardContent() {
     if (user) {
       fetchProfile();
       fetchRecentSessions();
+      fetchActiveRoom();
     }
   }, [user]);
 
@@ -341,6 +373,57 @@ function DashboardContent() {
                 )}
               </div>
             </motion.div>
+
+            {/* Active Room Card */}
+            {activeRoom && (
+              <motion.div
+                variants={item}
+                onClick={() => router.push(`/room/${activeRoom.roomId}`)}
+                className="lg:col-span-2 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-3xl p-6 relative overflow-hidden cursor-pointer group hover:border-purple-500/50 transition-all"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <DoorOpen className="text-purple-400" size={24} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+                          Your Active Room
+                        </p>
+                        <h3 className="text-lg font-semibold text-white">
+                          {activeRoom.name || "My Study Room"}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {activeRoom.timerState === "running" && (
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-medium">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                          </span>
+                          Running
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1 text-xs text-zinc-400">
+                        <Users size={14} /> {activeRoom.activeUsers || 1}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-400">
+                      📚 {activeRoom.subject || "General"}
+                    </span>
+                    <div className="flex items-center text-purple-400 text-sm font-medium">
+                      <Play size={14} className="mr-1" /> Enter Room{" "}
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Quick Actions */}
             <motion.div

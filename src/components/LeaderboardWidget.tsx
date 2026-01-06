@@ -8,6 +8,7 @@ import { Trophy } from "lucide-react";
 interface Profile {
   $id: string;
   username: string;
+  profilePicture?: string;
   totalHours: number;
 }
 
@@ -81,7 +82,15 @@ export default function LeaderboardWidget() {
                     index === 0 ? "bg-indigo-500" : "bg-zinc-700"
                   }`}
                 >
-                  {user.username.charAt(0).toUpperCase()}
+                  {user.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt={user.username}
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                  ) : (
+                    user.username.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="text-xs text-zinc-300 truncate max-w-[80px]">
                   {user.username}

@@ -47,7 +47,7 @@ interface StudySession {
   duration?: number; // target duration in seconds (for timer mode)
   isPublic: boolean;
   // Profile info
-  profilePic?: string;
+  profilePicture?: string;
   streak?: number;
   totalHours?: number;
 }
@@ -65,7 +65,7 @@ interface LiveRoom {
   $createdAt: string;
   // Profile info
   creatorName?: string;
-  creatorProfilePic?: string;
+  creatorProfilePicture?: string;
 }
 
 export default function LiveSessionsPage() {
@@ -122,14 +122,14 @@ export default function LiveSessionsPage() {
           profiles.documents.forEach((p: any) => {
             userMap.set(p.userId, {
               username: p.username,
-              profilePic: p.profilePic,
+              profilePicture: p.profilePicture,
             });
           });
 
           const roomsWithInfo = publicRooms.map((r) => ({
             ...r,
             creatorName: userMap.get(r.creatorId)?.username || "Host",
-            creatorProfilePic: userMap.get(r.creatorId)?.profilePic,
+            creatorProfilePicture: userMap.get(r.creatorId)?.profilePicture,
           }));
           setRooms(roomsWithInfo);
         } else {
@@ -177,7 +177,7 @@ export default function LiveSessionsPage() {
           profiles.documents.forEach((p: any) => {
             userMap.set(p.userId, {
               username: p.username,
-              profilePic: p.profilePic,
+              profilePicture: p.profilePicture,
               streak: p.streak || 0,
               totalHours: p.totalHours || 0,
             });
@@ -186,7 +186,7 @@ export default function LiveSessionsPage() {
           const sessionsWithInfo = sessionDocs.map((s) => ({
             ...s,
             username: userMap.get(s.userId)?.username || "Student",
-            profilePic: userMap.get(s.userId)?.profilePic,
+            profilePicture: userMap.get(s.userId)?.profilePicture,
             streak: userMap.get(s.userId)?.streak || 0,
             totalHours: userMap.get(s.userId)?.totalHours || 0,
           }));
@@ -396,9 +396,9 @@ export default function LiveSessionsPage() {
                       {/* User Info */}
                       <div className="flex items-center gap-3 mb-4">
                         <div className="relative">
-                          {session.profilePic ? (
+                          {session.profilePicture ? (
                             <img
-                              src={session.profilePic}
+                              src={session.profilePicture}
                               alt={session.username || "Student"}
                               className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500/30"
                             />
@@ -616,9 +616,9 @@ export default function LiveSessionsPage() {
                     {/* Room Info */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="relative">
-                        {room.creatorProfilePic ? (
+                        {room.creatorProfilePicture ? (
                           <img
-                            src={room.creatorProfilePic}
+                            src={room.creatorProfilePicture}
                             alt={room.creatorName || "Host"}
                             className="w-12 h-12 rounded-full object-cover border-2 border-purple-500/30"
                           />
@@ -838,9 +838,9 @@ function SessionDetailView({
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            {session.profilePic ? (
+            {session.profilePicture ? (
               <img
-                src={session.profilePic}
+                src={session.profilePicture}
                 alt={session.username || "Student"}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-500/30"
               />
