@@ -10,9 +10,6 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
-import AestheticPomodoroTimerPage from "@/app/aesthetic-pomodoro-timer/page";
-import OnlineStopwatchPage from "@/app/online-stopwatch/page";
-import PomodoroPage from "@/app/pomodoro/page";
 
 interface DropdownProps {
   label: string;
@@ -155,16 +152,16 @@ export default function Navbar() {
 
   const quickLinks = [
     { href: "/pomodoro-timer", label: "Pomodoro Timer" },
-    { href: "/timer", label: "Timer" },
-    { href: "/stopwatch", label: "Stopwatch" },
-    { href: "/25-minute-timer", label: "25 Min Timer" },
-    { href: "/study-timer", label: "Study Timer" },
-    { href: "/pomofocus", label: "PomoFocus" },
-    { href: "/25-minute-timer", label: "25 Minute Timer" },
+    { href: "/pomodoro-timer-online", label: "Pomodoro Timer Online" },
     { href: "/aesthetic-pomodoro-timer", label: "Aesthetic Pomodoro Timer" },
-    { href: "/online-stopwatch", label: "Online Stopwatch" },
     { href: "/pomodoro", label: "Pomodoro" },
-    
+    { href: "/pomofocus", label: "PomoFocus" },
+    { href: "/timer", label: "Timer" },
+    { href: "/25-minute-timer", label: "25 Minute Timer" },
+    { href: "/study-timer", label: "Study Timer" },
+    { href: "/stopwatch", label: "Stopwatch" },
+    { href: "/stop-watch", label: "Stop Watch" },
+    { href: "/online-stopwatch", label: "Online Stopwatch" },
   ];
 
   return (
