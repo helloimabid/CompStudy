@@ -10,6 +10,9 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
+import AestheticPomodoroTimerPage from "@/app/aesthetic-pomodoro-timer/page";
+import OnlineStopwatchPage from "@/app/online-stopwatch/page";
+import PomodoroPage from "@/app/pomodoro/page";
 
 interface DropdownProps {
   label: string;
@@ -157,6 +160,11 @@ export default function Navbar() {
     { href: "/25-minute-timer", label: "25 Min Timer" },
     { href: "/study-timer", label: "Study Timer" },
     { href: "/pomofocus", label: "PomoFocus" },
+    { href: "/25-minute-timer", label: "25 Minute Timer" },
+    { href: "/aesthetic-pomodoro-timer", label: "Aesthetic Pomodoro Timer" },
+    { href: "/online-stopwatch", label: "Online Stopwatch" },
+    { href: "/pomodoro", label: "Pomodoro" },
+    
   ];
 
   return (
