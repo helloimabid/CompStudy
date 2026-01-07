@@ -48,7 +48,7 @@ interface StudySession {
   elapsedTime: number;
   isPublic: boolean;
   // Profile info
-    profilePicture?: string;
+  profilePicture?: string;
   streak?: number;
   totalHours?: number;
 }
@@ -83,7 +83,9 @@ export default function LiveSessionsPage() {
   );
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [activeTab, setActiveTab] = useState<"sessions" | "rooms">("sessions");
-  const [profilePictures, setProfilePictures] = useState<Record<string, Profile>>({});
+  const [profilePictures, setProfilePictures] = useState<
+    Record<string, Profile>
+  >({});
 
   // Update current time every second for live duration display
   useEffect(() => {
@@ -124,7 +126,11 @@ export default function LiveSessionsPage() {
         const event = response.events[0];
         const doc = response.payload as unknown as StudySession;
 
-        if (event.includes(".create") && doc.isPublic && doc.status === "active") {
+        if (
+          event.includes(".create") &&
+          doc.isPublic &&
+          doc.status === "active"
+        ) {
           setSessions((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];
@@ -404,7 +410,9 @@ export default function LiveSessionsPage() {
                         <div className="relative">
                           {profilePictures[session.userId]?.profilePicture ? (
                             <img
-                              src={profilePictures[session.userId].profilePicture}
+                              src={
+                                profilePictures[session.userId].profilePicture
+                              }
                               alt={session.username || "Student"}
                               className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500/30"
                             />
@@ -861,7 +869,9 @@ function SessionDetailView({
             <div
               className={clsx(
                 "absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white",
-                session.sessionType === "break" ? "bg-green-500" : "bg-indigo-500"
+                session.sessionType === "break"
+                  ? "bg-green-500"
+                  : "bg-indigo-500"
               )}
             >
               {session.sessionType === "break" ? (
@@ -945,7 +955,9 @@ function SessionDetailView({
           <div
             className={clsx(
               "text-5xl md:text-6xl font-mono font-bold tracking-wider",
-              session.sessionType === "break" ? "text-green-400" : "text-indigo-400"
+              session.sessionType === "break"
+                ? "text-green-400"
+                : "text-indigo-400"
             )}
           >
             {session.duration ? formatTime(remaining) : formatTime(elapsed)}
@@ -958,7 +970,9 @@ function SessionDetailView({
                 <div
                   className={clsx(
                     "h-full rounded-full transition-all duration-1000",
-                    session.sessionType === "break" ? "bg-green-500" : "bg-indigo-500"
+                    session.sessionType === "break"
+                      ? "bg-green-500"
+                      : "bg-indigo-500"
                   )}
                   style={{ width: `${progress}%` }}
                 />

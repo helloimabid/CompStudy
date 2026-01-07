@@ -52,8 +52,8 @@ interface ScheduledSession {
   type: SessionType;
 }
 
-interface Profile{
-  profilePicture?:string;
+interface Profile {
+  profilePicture?: string;
 }
 
 export default function StudyTimer({
@@ -152,7 +152,9 @@ export default function StudyTimer({
   const [showDesigner, setShowDesigner] = useState(false);
   const [activePeers, setActivePeers] = useState(0);
   const [peers, setPeers] = useState<any[]>([]);
-  const [profilePicture, setProfilePicture] = useState<Profile | undefined>(undefined);
+  const [profilePicture, setProfilePicture] = useState<Profile | undefined>(
+    undefined
+  );
   const [profileStats, setProfileStats] = useState<{
     streak: number;
     xp: number;
@@ -314,14 +316,16 @@ export default function StudyTimer({
 
           // Restore elapsed time from saved value
           const savedElapsed = parsed.elapsed || 0;
-          
+
           // If it was active AND not paused, continue timing from where we left off
           if (parsed.isActive && !parsed.isPaused) {
             // Calculate additional time that passed while page was closed
             const savedTimestamp = parsed.savedAt || Date.now();
-            const additionalTime = Math.floor((Date.now() - savedTimestamp) / 1000);
+            const additionalTime = Math.floor(
+              (Date.now() - savedTimestamp) / 1000
+            );
             const totalElapsed = savedElapsed + additionalTime;
-            
+
             setElapsed(totalElapsed);
             startTimeRef.current = Date.now() - totalElapsed * 1000;
 
@@ -344,7 +348,7 @@ export default function StudyTimer({
             // If paused, just restore the elapsed time without starting the timer
             setElapsed(savedElapsed);
             startTimeRef.current = Date.now() - savedElapsed * 1000;
-            
+
             // Update live session to show paused status
             if (parsed.liveSessionId) {
               updateLiveSession(parsed.liveSessionId, {
@@ -392,7 +396,20 @@ export default function StudyTimer({
     } else {
       localStorage.removeItem("activeStudySession");
     }
-  }, [sessionId, liveSessionId, isActive, isPaused, elapsed, user, subject, goal, sessionType, mode, targetDuration, privacy]);
+  }, [
+    sessionId,
+    liveSessionId,
+    isActive,
+    isPaused,
+    elapsed,
+    user,
+    subject,
+    goal,
+    sessionType,
+    mode,
+    targetDuration,
+    privacy,
+  ]);
 
   // --- Helper Functions for Live Session Tracking ---
 
@@ -427,7 +444,9 @@ export default function StudyTimer({
           totalHours: profileStats.totalHours || 0,
         },
         [
-          Permission.read(privacy === "public" ? Role.any() : Role.user(user.$id)),
+          Permission.read(
+            privacy === "public" ? Role.any() : Role.user(user.$id)
+          ),
           Permission.update(Role.user(user.$id)),
           Permission.delete(Role.user(user.$id)),
         ]
@@ -449,15 +468,10 @@ export default function StudyTimer({
     if (!liveId) return;
 
     try {
-      await databases.updateDocument(
-        DB_ID,
-        COLLECTIONS.LIVE_SESSIONS,
-        liveId,
-        {
-          ...updates,
-          lastUpdateTime: new Date().toISOString(),
-        }
-      );
+      await databases.updateDocument(DB_ID, COLLECTIONS.LIVE_SESSIONS, liveId, {
+        ...updates,
+        lastUpdateTime: new Date().toISOString(),
+      });
     } catch (error) {
       console.error("Failed to update live session:", error);
     }

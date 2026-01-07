@@ -90,11 +90,11 @@ export default async function Image() {
           Free Pomodoro Timer • Live Study Rooms • Track Your Progress
         </div>
 
-        {/* Stats */}
+        {/* Features (instead of fake stats) */}
         <div
           style={{
             display: "flex",
-            gap: "60px",
+            gap: "40px",
             alignItems: "center",
           }}
         >
@@ -106,11 +106,18 @@ export default async function Image() {
             }}
           >
             <div
-              style={{ fontSize: "40px", fontWeight: "bold", color: "white" }}
+              style={{ 
+                fontSize: "32px", 
+                fontWeight: "bold", 
+                color: "#6366f1",
+                marginBottom: "8px" 
+              }}
             >
-              10k+
+              ⏱️
             </div>
-            <div style={{ fontSize: "18px", color: "#71717a" }}>Students</div>
+            <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
+              Pomodoro Timer
+            </div>
           </div>
           <div
             style={{
@@ -120,12 +127,17 @@ export default async function Image() {
             }}
           >
             <div
-              style={{ fontSize: "40px", fontWeight: "bold", color: "white" }}
+              style={{ 
+                fontSize: "32px", 
+                fontWeight: "bold", 
+                color: "#6366f1",
+                marginBottom: "8px"  
+              }}
             >
-              1M+
+              👥
             </div>
-            <div style={{ fontSize: "18px", color: "#71717a" }}>
-              Hours Studied
+            <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
+              Live Rooms
             </div>
           </div>
           <div
@@ -136,12 +148,52 @@ export default async function Image() {
             }}
           >
             <div
-              style={{ fontSize: "40px", fontWeight: "bold", color: "#6366f1" }}
+              style={{ 
+                fontSize: "32px", 
+                fontWeight: "bold", 
+                color: "#6366f1",
+                marginBottom: "8px"  
+              }}
             >
-              Free
+              🏆
             </div>
-            <div style={{ fontSize: "18px", color: "#71717a" }}>Forever</div>
+            <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
+              Leaderboards
+            </div>
           </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{ 
+                fontSize: "40px", 
+                fontWeight: "bold", 
+                color: "#22c55e",
+                marginBottom: "8px"  
+              }}
+            >
+              FREE
+            </div>
+            <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
+              Forever
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom tagline */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "40px",
+            fontSize: "18px",
+            color: "#71717a",
+          }}
+        >
+          • Start studying now
         </div>
       </div>
     ),

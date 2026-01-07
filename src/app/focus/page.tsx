@@ -57,7 +57,11 @@ function FocusContent() {
         const event = response.events[0];
         const doc = response.payload as unknown as Peer;
 
-        if (event.includes(".create") && doc.isPublic && doc.status === "active") {
+        if (
+          event.includes(".create") &&
+          doc.isPublic &&
+          doc.status === "active"
+        ) {
           setPeers((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];

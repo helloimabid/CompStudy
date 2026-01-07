@@ -47,45 +47,41 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://compstudy.tech"),
   title: {
     default: "CompStudy - Free Online Study Timer & Pomodoro Focus App",
-    template: "%s | CompStudy - Study Timer & Focus App",
+    template: "%s | CompStudy",
   },
   description:
-    "Free online study timer with Pomodoro, live study rooms & productivity tracking. Join thousands studying together, climb leaderboards.",
+    "Free online Pomodoro study timer with live study rooms, leaderboards, and focus tracking. Study together, compete with friends, stay motivated. No signup required.",
   keywords: [
+    // Primary keywords
     "study timer",
-    "pomodoro timer",
-    "focus timer",
-    "online study timer",
     "free study timer",
+    "pomodoro timer",
+    "online study timer",
     "study timer online",
-    "pomodoro technique",
-    "productivity timer",
-    "study timer with music",
-    "concentration timer",
-    "study session timer",
-    "time management app",
-    "focus app",
-    "study planner",
-    "study tracker",
-    "academic timer",
-    "homework timer",
-    "exam preparation timer",
-    "study room online",
-    "virtual study room",
-    "study with me",
+    
+    // Long-tail keywords (from your Ahrefs research)
+    "study timer aesthetic",
+    "pomodoro study timer",
+    "aesthetic study timer",
+    "2 hour study timer",
+    "study timer with breaks",
+    "25 minute study timer",
+    
+    // Feature-specific
+    "online study room",
+    "study with friends online",
+    "live study room",
     "study together online",
-    "collaborative studying",
-    "study productivity app",
-    "student timer",
-    "learning timer",
-    "study break timer",
-    "focus session",
-    "deep work timer",
-    "study goals tracker",
-    "study statistics",
     "study leaderboard",
     "competitive studying",
+    
+    // Intent-based
+    "focus timer",
+    "concentration timer",
+    "productivity timer",
+    "deep work timer",
     "study motivation app",
+    "time management app",
   ],
   authors: [{ name: "CompStudy Team" }],
   creator: "CompStudy",
@@ -94,6 +90,9 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
+  },
+  alternates: {
+    canonical: "https://compstudy.tech",
   },
   icons: {
     icon: [
@@ -122,13 +121,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://compstudy.tech",
-    title: "CompStudy - Best Free Online Study Timer & Pomodoro Focus App",
+    title: "CompStudy - Free Study Timer with Live Rooms & Leaderboards",
     description:
-      "Join thousands of students using the best free study timer. Pomodoro technique, live study rooms, goal tracking, and productivity analytics. Start focusing better today!",
+      "Join students worldwide using our free Pomodoro study timer. Live study rooms, competitive leaderboards, and focus tracking. No signup needed to start!",
     siteName: "CompStudy",
     images: [
       {
-        url: "/og-image.png", // Create this image
+        url: "/opengraph-image", // Uses your dynamic OG image
         width: 1200,
         height: 630,
         alt: "CompStudy - Online Study Timer and Focus App",
@@ -137,11 +136,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CompStudy - Free Study Timer & Pomodoro Focus App",
+    title: "CompStudy - Free Study Timer & Pomodoro App",
     description:
-      "Track your study time, join live study rooms, and boost productivity with our free online timer. Pomodoro technique built-in!",
-    images: ["/og-image.png"], // Create this image
-    creator: "@compstudy", // Update with your Twitter handle
+      "Track study time, join live rooms, compete on leaderboards. Free Pomodoro timer for students. Start now, no signup required!",
+    images: ["/opengraph-image"],
+    creator: "@compstudy", // Change this when you create the Twitter account
   },
   robots: {
     index: true,
@@ -155,9 +154,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code", // Add your Google Search Console verification
-    // yandex: "your-yandex-verification-code",
-    // bing: "your-bing-verification-code",
+    // TODO: Add after setting up Google Search Console
+    // google: "YOUR_VERIFICATION_CODE_HERE",
   },
   category: "Education",
 };
@@ -216,15 +214,7 @@ export default function RootLayout({
               url: "https://compstudy.tech",
               description:
                 "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate:
-                    "https://compstudy.app/search?q={search_term_string}",
-                },
-                "query-input": "required name=search_term_string",
-              },
+              // Removed potentialAction - only add if you have actual search functionality
             }),
           }}
         />
@@ -239,30 +229,26 @@ export default function RootLayout({
               name: "CompStudy",
               applicationCategory: "EducationalApplication",
               operatingSystem: "Any",
+              browserRequirements: "Requires JavaScript. Requires HTML5.",
               offers: {
                 "@type": "Offer",
                 price: "0",
                 priceCurrency: "USD",
               },
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.8",
-                ratingCount: "1250",
-                bestRating: "5",
-                worstRating: "1",
-              },
               description:
                 "Free study timer with Pomodoro technique, live study rooms, goal tracking, and productivity analytics for students",
               featureList: [
                 "Pomodoro Timer",
-                "Study Goal Tracking",
+                "Customizable Study Sessions",
                 "Live Study Rooms",
-                "Focus Statistics",
+                "Real-time Leaderboards",
+                "Focus Statistics & Analytics",
                 "Study Streak Counter",
-                "Leaderboards",
                 "Break Reminders",
                 "Session History",
+                "No Registration Required",
               ],
+              screenshot: "https://compstudy.tech/opengraph-image",
             }),
           }}
         />
@@ -277,27 +263,45 @@ export default function RootLayout({
               name: "CompStudy",
               url: "https://compstudy.tech",
               logo: "https://compstudy.tech/logo.png",
-              sameAs: [
-                "https://twitter.com/compstudy",
-                "https://github.com/compstudy",
-              ],
-              contactPoint: {
-                "@type": "ContactPoint",
-                contactType: "Customer Support",
-                email: "support@compstudy.app",
-              },
+              description: "Competitive study timer and productivity platform for students",
+              foundingDate: "2026",
+              // Only add sameAs when you have real social profiles
+              // sameAs: [
+              //   "https://twitter.com/compstudy",
+              //   "https://github.com/compstudy",
+              // ],
             }),
           }}
         />
 
-        {/* Google AdSense - Site Verification */}
+        {/* SEO: Structured Data - SoftwareApplication (Additional) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "CompStudy",
+              applicationCategory: "EducationalApplication",
+              operatingSystem: "Web Browser",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              description: "Free online Pomodoro study timer with live study rooms and leaderboards",
+            }),
+          }}
+        />
+
+        {/* Google AdSense */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9710571190649081"
           crossOrigin="anonymous"
         />
 
-        {/* Umami Analytics - Privacy-focused visitor tracking */}
+        {/* Umami Analytics */}
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
           <Script
             defer
@@ -323,7 +327,6 @@ export default function RootLayout({
       >
         <AuthProvider>
           <RealtimeProvider>
-            {/* Dotted Background Layer */}
             <div
               className="fixed inset-0 z-[-1] pointer-events-none"
               suppressHydrationWarning
@@ -338,12 +341,11 @@ export default function RootLayout({
               ></div>
             </div>
 
-            {/* Navigation */}
             <Navbar />
 
             {children}
 
-            {/* Footer CTA */}
+            {/* Footer */}
             <footer className="py-24 text-center bg-black relative border-t border-white/5">
               <div
                 className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900/10 via-black to-black pointer-events-none"
@@ -354,28 +356,6 @@ export default function RootLayout({
                 className="max-w-2xl mx-auto px-6 relative z-10"
                 suppressHydrationWarning
               >
-                {/* <h2 className="text-3xl md:text-4xl font-medium text-white tracking-tight mb-6">
-                  Ready to rank up?
-                </h2>
-                <p className="text-zinc-500 mb-8 text-sm md:text-base">
-                  Experience the adrenaline of competitive studying. Stop
-                  procrastinating and start competing today.
-                </p> */}
-
-                {/* <form className="flex flex-col sm:flex-row gap-3 justify-center max-w-sm mx-auto">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="bg-zinc-900/50 border border-zinc-800 text-sm text-white px-4 py-3 rounded-md focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-zinc-600 w-full"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-indigo-600 text-white text-sm font-medium px-6 py-3 rounded-md hover:bg-indigo-500 transition-colors whitespace-nowrap"
-                  >
-                    Get Access
-                  </button>
-                </form> */}
-
                 <div
                   className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-zinc-600"
                   suppressHydrationWarning
@@ -393,11 +373,11 @@ export default function RootLayout({
                           src="/logo.png"
                           alt="CompStudy Logo"
                           suppressHydrationWarning
-                          className=" object-contain"
+                          className="object-contain"
                         />
                       </a>
                     </div>
-                    <span>© 2026 CompStudy Inc.</span>
+                    <span>© 2026 CompStudy</span>
                   </div>
                   <div className="flex gap-6" suppressHydrationWarning>
                     <a
@@ -412,24 +392,25 @@ export default function RootLayout({
                     >
                       Terms
                     </a>
+                    {/* Only show social links when they exist */}
+                    {/* 
                     <a
-                      href="#"
+                      href="https://twitter.com/compstudy"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="hover:text-zinc-400 transition-colors"
                     >
                       Twitter
                     </a>
                     <a
-                      href="#"
+                      href="https://github.com/compstudy"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="hover:text-zinc-400 transition-colors"
                     >
                       GitHub
                     </a>
-                    <a
-                      href="#"
-                      className="hover:text-zinc-400 transition-colors"
-                    >
-                      Discord
-                    </a>
+                    */}
                   </div>
                 </div>
               </div>
