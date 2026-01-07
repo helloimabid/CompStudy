@@ -1,15 +1,48 @@
-# CompStudy - Study Timer Robots.txt
-# Allow all search engines to crawl
+# CompStudy - Study Timer & Focus App
+# https://compstudy.tech
 
+# Allow all crawlers
 User-agent: *
 Allow: /
 
-# Disallow private user pages during active sessions
+# Disallow API endpoints and private routes
 Disallow: /api/
-Disallow: /room/*/private
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /verify-email-notice
 
 # Sitemap location
 Sitemap: https://compstudy.tech/sitemap.xml
 
-# Crawl-delay for respectful crawling
-Crawl-delay: 1
+# Google specific
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+# Google Image indexing
+User-agent: Googlebot-Image
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+# AI Crawlers - Block from training
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /

@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     "pomodoro timer",
     "online study timer",
     "study timer online",
-    
+
     // Long-tail keywords (from your Ahrefs research)
     "study timer aesthetic",
     "pomodoro study timer",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     "2 hour study timer",
     "study timer with breaks",
     "25 minute study timer",
-    
+
     // Feature-specific
     "online study room",
     "study with friends online",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     "study together online",
     "study leaderboard",
     "competitive studying",
-    
+
     // Intent-based
     "focus timer",
     "concentration timer",
@@ -90,9 +90,6 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
-  },
-  alternates: {
-    canonical: "https://compstudy.tech",
   },
   icons: {
     icon: [
@@ -303,7 +300,10 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
 
-        <script src="https://analytics.ahrefs.com/analytics.js" data-key="XMzsitbj00y0dyhzG4Eb1Q" async
+        <script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="XMzsitbj00y0dyhzG4Eb1Q"
+          async
         />
       </head>
       <body
