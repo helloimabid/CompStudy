@@ -184,7 +184,11 @@ export default function Navbar() {
         >
           <NavDropdown label="Study" items={studyLinks} pathname={pathname} />
           <NavDropdown label="Social" items={socialLinks} pathname={pathname} />
-          <NavDropdown label="Quick Links" items={quickLinks} pathname={pathname} />
+          <NavDropdown
+            label="Quick Links"
+            items={quickLinks}
+            pathname={pathname}
+          />
           <NavDropdown label="More" items={moreLinks} pathname={pathname} />
         </div>
 
