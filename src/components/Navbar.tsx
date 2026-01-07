@@ -57,7 +57,7 @@ function NavDropdown({ label, items, pathname }: DropdownProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 py-2 min-w-[140px] bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl"
+            className="absolute top-full left-0 mt-2 py-2 min-w-35 bg-[#0a0a0a] border border-white/10 rounded-lg shadow-xl"
           >
             {items.map((item) => (
               <Link
@@ -201,8 +201,11 @@ export default function Navbar() {
           {/* User Search */}
           <div ref={searchRef} className="relative hidden lg:block">
             <button
+              type="button"
               onClick={() => setShowSearch(!showSearch)}
               className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+              title="Search users"
+              aria-label="Search users"
             >
               <Search size={16} />
             </button>
@@ -245,7 +248,7 @@ export default function Navbar() {
                           }}
                           className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
                         >
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                             {profile.username?.[0]?.toUpperCase() || "U"}
                           </div>
                           <div>
@@ -339,8 +342,11 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden text-zinc-400 hover:text-white transition-colors p-2"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -456,7 +462,7 @@ export default function Navbar() {
                           }}
                           className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
                         >
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                             {profile.username?.[0]?.toUpperCase() || "U"}
                           </div>
                           <span className="text-sm text-white">

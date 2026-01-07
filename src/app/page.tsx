@@ -73,7 +73,7 @@ export default function Home() {
       {/* Hero Section */}
       <main className="relative pt-20 md:pt-28 lg:pt-32 pb-12 md:pb-16 lg:pb-20 overflow-hidden">
         {/* Background Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] md:w-[600px] h-[300px] md:h-[400px] bg-indigo-900/20 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-100 md:w-150 h-75 md:h-100 bg-indigo-900/20 blur-[100px] rounded-full pointer-events-none -z-10"></div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 text-center relative z-10">
           {/* Live Badge */}
@@ -85,7 +85,7 @@ export default function Home() {
             <span className="text-gradient">compete together.</span>
           </h1>
 
-          <p className="text-base md:text-lg text-zinc-500 max-w-xl mx-auto mb-8 md:mb-10 leading-relaxed font-light px-4">
+          <p className="text-base md:text-lg text-zinc-400 max-w-xl mx-auto mb-8 md:mb-10 leading-relaxed font-light px-4">
             Turn isolation into motivation. Join real-time study rooms, climb
             the global leaderboards, and visualize your progress against
             thousands of peers instantly.
@@ -117,7 +117,7 @@ export default function Home() {
 
           {/* UI Visualization */}
           <div className="relative max-w-4xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/10 to-transparent blur-2xl -z-10"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-indigo-500/10 to-transparent blur-2xl -z-10"></div>
 
             <div className="glass rounded-xl overflow-hidden shadow-2xl shadow-indigo-900/20 text-left bg-[#0a0a0a]">
               <div className="h-10 border-b border-white/5 flex items-center px-4 justify-between bg-black/40">
@@ -136,15 +136,15 @@ export default function Home() {
                 <div className="md:col-span-2 space-y-8">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-zinc-100 text-lg font-medium tracking-tight">
+                      <h2 className="text-zinc-100 text-lg font-medium tracking-tight">
                         Deep Work: Physics
-                      </h3>
-                      <p className="text-zinc-500 text-xs mt-1">
+                      </h2>
+                      <p className="text-zinc-400 text-xs mt-1">
                         Global Room #882 • High Intensity
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                      <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
                         Strict Mode
                       </span>
                       <div className="relative inline-block w-8 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -154,10 +154,12 @@ export default function Home() {
                           id="toggle"
                           className="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0 border-[#0a0a0a]"
                           defaultChecked
+                          aria-label="Toggle strict mode"
                         />
                         <label
                           htmlFor="toggle"
                           className="toggle-label block overflow-hidden h-4 rounded-full bg-indigo-600 cursor-pointer"
+                          aria-hidden="true"
                         ></label>
                       </div>
                     </div>
@@ -213,7 +215,7 @@ export default function Home() {
 
                   <div className="space-y-3 flex-1 overflow-hidden">
                     <div className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors cursor-default group">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/10">
+                      <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/10">
                         JD
                       </div>
                       <div className="flex-1 min-w-0">
@@ -287,7 +289,7 @@ export default function Home() {
             <h2 className="text-3xl font-medium text-white tracking-tight mb-4">
               Engineered for focus.
             </h2>
-            <p className="text-zinc-500 max-w-xl text-sm md:text-base">
+            <p className="text-zinc-400 max-w-xl text-sm md:text-base">
               Everything you need to reach peak performance, wrapped in a
               competitive ecosystem.
             </p>
@@ -297,7 +299,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
             {/* Card 1: Global Arenas (Large, Span 2) */}
             <div className="bento-card md:col-span-2 relative overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] group">
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 z-10 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/60 z-10 pointer-events-none"></div>
               <div className="p-6 relative z-20 h-full flex flex-col justify-between">
                 <div className="flex justify-between items-start">
                   <div className="w-10 h-10 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center backdrop-blur-md">
@@ -314,7 +316,7 @@ export default function Home() {
                 </div>
 
                 {/* Realistic Mini UI: Room List */}
-                <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 md:opacity-100 md:w-[280px] p-6 pt-16 flex flex-col gap-3 mask-image-b">
+                <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 md:opacity-100 md:w-70 p-6 pt-16 flex flex-col gap-3 mask-image-b">
                   <div className="bg-zinc-900/90 border border-white/10 rounded-lg p-3 shadow-lg transform translate-x-4 group-hover:translate-x-0 transition-transform duration-500">
                     <div className="flex justify-between items-center mb-2">
                       <div className="text-xs font-medium text-white">
@@ -356,7 +358,7 @@ export default function Home() {
                   <h3 className="text-lg font-medium text-zinc-100 mb-2">
                     Global Arenas
                   </h3>
-                  <p className="text-sm text-zinc-500 leading-relaxed max-w-sm">
+                  <p className="text-sm text-zinc-400 leading-relaxed max-w-sm">
                     Join subject-specific rooms. See who's studying in Tokyo
                     while you work in New York.
                   </p>
@@ -394,7 +396,7 @@ export default function Home() {
                   <h3 className="text-lg font-medium text-zinc-100 mb-1">
                     Consistency Tracker
                   </h3>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-zinc-400">
                     Don't break the chain.
                   </p>
                 </div>
@@ -404,7 +406,7 @@ export default function Home() {
             {/* Card 3: Analytics (Wide, Span 2) */}
             <div className="bento-card md:col-span-2 relative overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] group">
               <div className="absolute top-0 right-0 p-6 z-20">
-                <div className="flex items-center gap-2 text-[10px] text-zinc-500 border border-white/5 rounded-full px-2 py-1 bg-zinc-900/50">
+                <div className="flex items-center gap-2 text-[10px] text-zinc-400 border border-white/5 rounded-full px-2 py-1 bg-zinc-900/50">
                   <span className="w-2 h-2 rounded-full bg-indigo-500"></span>{" "}
                   Last 7 Days
                 </div>
@@ -425,14 +427,14 @@ export default function Home() {
                   <div className="w-8 bg-zinc-800/50 h-[20%] rounded-t-sm relative group-hover:bg-zinc-800 transition-colors"></div>
                 </div>
 
-                <div className="relative z-20 pt-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent">
+                <div className="relative z-20 pt-4 bg-linear-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent">
                   <div className="w-10 h-10 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center mb-3">
                     <BarChart2 className="text-indigo-400" width={20} />
                   </div>
                   <h3 className="text-lg font-medium text-zinc-100 mb-1">
                     Deep Focus Analytics
                   </h3>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-zinc-400">
                     Visualize your productivity peaks and optimize your
                     schedule.
                   </p>
@@ -478,7 +480,7 @@ export default function Home() {
               <p className="text-sm font-medium text-zinc-200">
                 Join the movement
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-zinc-400">
                 {stats.activeStudents > 0
                   ? `${stats.activeStudents} studying right now`
                   : "Students from around the world"}
@@ -493,16 +495,16 @@ export default function Home() {
                   ? stats.totalHoursStudied.toLocaleString()
                   : "—"}
               </div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest">
+              <div className="text-xs text-zinc-400 uppercase tracking-widest">
                 Hours Studied
               </div>
             </div>
-            <div className="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+            <div className="h-8 w-px bg-zinc-800 hidden md:block"></div>
             <div className="text-right hidden md:block">
               <div className="text-2xl font-semibold text-white tracking-tight tabular-nums">
                 {stats.activeRooms > 0 ? stats.activeRooms : "—"}
               </div>
-              <div className="text-xs text-zinc-500 uppercase tracking-widest">
+              <div className="text-xs text-zinc-400 uppercase tracking-widest">
                 Active Rooms
               </div>
             </div>

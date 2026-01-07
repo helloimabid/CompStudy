@@ -165,28 +165,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        {/* Favicon links */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#6366f1" />
-
         {/* Zen Dots font from Google Fonts CDN */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -328,7 +306,7 @@ export default function RootLayout({
                 suppressHydrationWarning
               ></div>
               <div
-                className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]"
+                className="absolute inset-0 bg-linear-to-t from-[#050505] via-transparent to-[#050505]"
                 suppressHydrationWarning
               ></div>
             </div>
@@ -340,7 +318,7 @@ export default function RootLayout({
             {/* Footer */}
             <footer className="py-24 text-center bg-black relative border-t border-white/5">
               <div
-                className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900/10 via-black to-black pointer-events-none"
+                className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-indigo-900/10 via-black to-black pointer-events-none"
                 suppressHydrationWarning
               ></div>
 
@@ -349,7 +327,7 @@ export default function RootLayout({
                 suppressHydrationWarning
               >
                 <div
-                  className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-zinc-600"
+                  className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-zinc-400"
                   suppressHydrationWarning
                 >
                   <div
