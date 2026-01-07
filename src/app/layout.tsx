@@ -263,13 +263,14 @@ export default function RootLayout({
               name: "CompStudy",
               url: "https://compstudy.tech",
               logo: "https://compstudy.tech/logo.png",
-              description: "Competitive study timer and productivity platform for students",
+              description:
+                "Competitive study timer and productivity platform for students",
               foundingDate: "2026",
               // Only add sameAs when you have real social profiles
-              // sameAs: [
-              //   "https://twitter.com/compstudy",
-              //   "https://github.com/compstudy",
-              // ],
+              sameAs: [
+                "https://www.facebook.com/profile.php?id=61585855606865",
+                "https://youtube.com/@comp-study?si=NpMuEKv_xzr97txy",
+              ],
             }),
           }}
         />
@@ -289,7 +290,8 @@ export default function RootLayout({
                 price: "0",
                 priceCurrency: "USD",
               },
-              description: "Free online Pomodoro study timer with live study rooms and leaderboards",
+              description:
+                "Free online Pomodoro study timer with live study rooms and leaderboards",
             }),
           }}
         />
@@ -301,18 +303,8 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
 
-        {/* Umami Analytics */}
-        {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
-          <Script
-            defer
-            src={
-              process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-              "https://cloud.umami.is/script.js"
-            }
-            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
-            strategy="afterInteractive"
-          />
-        )}
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="XMzsitbj00y0dyhzG4Eb1Q" async
+        />
       </head>
       <body
         className={clsx(
@@ -381,6 +373,22 @@ export default function RootLayout({
                   </div>
                   <div className="flex gap-6" suppressHydrationWarning>
                     <a
+                      href="https://www.facebook.com/profile.php?id=61585855606865"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-zinc-400 transition-colors"
+                    >
+                      Facebook
+                    </a>
+                    <a
+                      href="https://youtube.com/@comp-study?si=NpMuEKv_xzr97txy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-zinc-400 transition-colors"
+                    >
+                      Youtube
+                    </a>
+                    <a
                       href="/privacy"
                       className="hover:text-zinc-400 transition-colors"
                     >
@@ -392,25 +400,6 @@ export default function RootLayout({
                     >
                       Terms
                     </a>
-                    {/* Only show social links when they exist */}
-                    {/* 
-                    <a
-                      href="https://twitter.com/compstudy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-zinc-400 transition-colors"
-                    >
-                      Twitter
-                    </a>
-                    <a
-                      href="https://github.com/compstudy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-zinc-400 transition-colors"
-                    >
-                      GitHub
-                    </a>
-                    */}
                   </div>
                 </div>
               </div>

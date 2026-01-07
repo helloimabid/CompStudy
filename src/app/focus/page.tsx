@@ -35,12 +35,17 @@ function FocusContent() {
           COLLECTIONS.LIVE_SESSIONS,
           [
             Query.equal("status", "active"),
-            Query.equal("isPublic", true),
             Query.orderDesc("startTime"),
             Query.limit(20),
           ]
         );
-        setPeers(response.documents as unknown as Peer[]);
+
+        // Filter for public sessions (handle both boolean and string types)
+        const publicPeers = response.documents.filter((doc: any) => {
+          return doc.isPublic === true || doc.isPublic === "true";
+        });
+
+        setPeers(publicPeers as unknown as Peer[]);
       } catch (error) {
         console.error("Failed to fetch peers:", error);
       } finally {
@@ -57,17 +62,15 @@ function FocusContent() {
         const event = response.events[0];
         const doc = response.payload as unknown as Peer;
 
-        if (
-          event.includes(".create") &&
-          doc.isPublic &&
-          doc.status === "active"
-        ) {
+        const isPublic = doc.isPublic === true ;
+
+        if (event.includes(".create") && isPublic && doc.status === "active") {
           setPeers((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];
           });
         } else if (event.includes(".update")) {
-          if (doc.status === "active" && doc.isPublic) {
+          if (doc.status === "active" && isPublic) {
             setPeers((prev) => {
               const exists = prev.find((p) => p.$id === doc.$id);
               if (exists) {

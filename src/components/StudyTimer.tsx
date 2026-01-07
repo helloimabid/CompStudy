@@ -295,82 +295,276 @@ export default function StudyTimer({
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  const isRestoringRef = useRef<boolean>(true); // Track if we're restoring from storage
 
   // Restore session state from localStorage on mount
   useEffect(() => {
-    const savedSession = localStorage.getItem("activeStudySession");
-    if (savedSession && user) {
-      try {
-        const parsed = JSON.parse(savedSession);
-        if (parsed.userId === user.$id && parsed.sessionId) {
-          setSessionId(parsed.sessionId);
-          setLiveSessionId(parsed.liveSessionId || null);
-          setIsActive(parsed.isActive);
-          setIsPaused(parsed.isPaused);
-          setSubject(parsed.subject || "");
-          setGoal(parsed.goal || "");
-          setSessionType(parsed.sessionType || "focus");
-          setMode(parsed.mode || "stopwatch");
-          setTargetDuration(parsed.targetDuration || 25 * 60);
-          setPrivacy(parsed.privacy || "public");
+    const restoreSession = async () => {
+      const savedSession = localStorage.getItem("activeStudySession");
+      if (savedSession && user) {
+        try {
+          const parsed = JSON.parse(savedSession);
+          if (parsed.userId === user.$id && parsed.sessionId) {
+            setSessionId(parsed.sessionId);
+            setLiveSessionId(parsed.liveSessionId || null);
+            setIsActive(parsed.isActive);
+            setIsPaused(parsed.isPaused);
+            setSubject(parsed.subject || "");
+            setGoal(parsed.goal || "");
+            setSessionType(parsed.sessionType || "focus");
+            setMode(parsed.mode || "stopwatch");
+            setTargetDuration(parsed.targetDuration || 25 * 60);
+            setPrivacy(parsed.privacy || "public");
 
-          // Restore elapsed time from saved value
-          const savedElapsed = parsed.elapsed || 0;
+            // Restore elapsed time from saved value
+            const savedElapsed = parsed.elapsed || 0;
 
-          // If it was active AND not paused, continue timing from where we left off
-          if (parsed.isActive && !parsed.isPaused) {
-            // Calculate additional time that passed while page was closed
-            const savedTimestamp = parsed.savedAt || Date.now();
-            const additionalTime = Math.floor(
-              (Date.now() - savedTimestamp) / 1000
-            );
-            const totalElapsed = savedElapsed + additionalTime;
+            // If it was active AND not paused, continue timing from where we left off
+            if (parsed.isActive && !parsed.isPaused) {
+              // Calculate additional time that passed while page was closed
+              const savedTimestamp = parsed.savedAt || Date.now();
+              const additionalTime = Math.floor(
+                (Date.now() - savedTimestamp) / 1000
+              );
+              const totalElapsed = savedElapsed + additionalTime;
 
-            setElapsed(totalElapsed);
-            startTimeRef.current = Date.now() - totalElapsed * 1000;
+              setElapsed(totalElapsed);
+              startTimeRef.current = Date.now() - totalElapsed * 1000;
 
-            // Update live session with current elapsed time
-            if (parsed.liveSessionId) {
-              updateLiveSession(parsed.liveSessionId, {
-                status: "active",
-                elapsedTime: totalElapsed,
-              });
-            }
+              // Try to update or recreate live session
+              if (parsed.liveSessionId) {
+                const updateSuccess = await updateLiveSession(
+                  parsed.liveSessionId,
+                  {
+                    status: "active",
+                    elapsedTime: totalElapsed,
+                  }
+                );
 
-            intervalRef.current = setInterval(() => {
-              if (startTimeRef.current) {
-                const now = Date.now();
-                const diff = Math.floor((now - startTimeRef.current) / 1000);
-                setElapsed(diff);
+                // If update failed (document not found), create a new live session
+                if (!updateSuccess && parsed.sessionId) {
+                  console.log(
+                    "Live session not found on reload, creating new one..."
+                  );
+                  const newLiveSessionId = await createLiveSession({
+                    subject: parsed.subject || "Focus Session",
+                    goal: parsed.goal || "",
+                    startTime: new Date(
+                      Date.now() - totalElapsed * 1000
+                    ).toISOString(),
+                    duration:
+                      parsed.mode === "timer"
+                        ? parsed.targetDuration
+                        : undefined,
+                    sessionType: parsed.sessionType || "focus",
+                  });
+                  if (newLiveSessionId) {
+                    setLiveSessionId(newLiveSessionId);
+                    console.log(
+                      "New live session created on reload:"
+                      // newLiveSessionId
+                    );
+                  }
+                }
+              } else if (parsed.sessionId) {
+                // No liveSessionId in localStorage, create one
+                console.log(
+                  "No live session ID found, creating new live session..."
+                );
+                const newLiveSessionId = await createLiveSession({
+                  subject: parsed.subject || "Focus Session",
+                  goal: parsed.goal || "",
+                  startTime: new Date(
+                    Date.now() - totalElapsed * 1000
+                  ).toISOString(),
+                  duration:
+                    parsed.mode === "timer" ? parsed.targetDuration : undefined,
+                  sessionType: parsed.sessionType || "focus",
+                });
+                if (newLiveSessionId) {
+                  setLiveSessionId(newLiveSessionId);
+                  console.log(
+                    "New live session created on reload:"
+                    // newLiveSessionId
+                  );
+                }
               }
-            }, 1000);
-          } else if (parsed.isActive && parsed.isPaused) {
-            // If paused, just restore the elapsed time without starting the timer
-            setElapsed(savedElapsed);
-            startTimeRef.current = Date.now() - savedElapsed * 1000;
 
-            // Update live session to show paused status
-            if (parsed.liveSessionId) {
-              updateLiveSession(parsed.liveSessionId, {
-                status: "paused",
-                elapsedTime: savedElapsed,
-              });
+              // Update study session in database with current elapsed time
+              if (parsed.sessionId) {
+                databases
+                  .updateDocument(
+                    DB_ID,
+                    COLLECTIONS.STUDY_SESSIONS,
+                    parsed.sessionId,
+                    {
+                      duration: totalElapsed,
+                      status: "active",
+                    }
+                  )
+                  .catch((err) =>
+                    console.error(
+                      "Failed to update study session on mount:",
+                      err
+                    )
+                  );
+              }
+
+              intervalRef.current = setInterval(() => {
+                if (startTimeRef.current) {
+                  const now = Date.now();
+                  const diff = Math.floor((now - startTimeRef.current) / 1000);
+                  setElapsed(diff);
+                }
+              }, 1000);
+            } else if (parsed.isActive && parsed.isPaused) {
+              // If paused, just restore the elapsed time without starting the timer
+              setElapsed(savedElapsed);
+              startTimeRef.current = Date.now() - savedElapsed * 1000;
+
+              // Try to update or recreate live session for paused state
+              if (parsed.liveSessionId) {
+                const updateSuccess = await updateLiveSession(
+                  parsed.liveSessionId,
+                  {
+                    status: "paused",
+                    elapsedTime: savedElapsed,
+                  }
+                );
+
+                // If update failed (document not found), create a new live session in paused state
+                if (!updateSuccess && parsed.sessionId) {
+                  console.log(
+                    "Paused live session not found on reload, creating new one..."
+                  );
+                  const newLiveSessionId = await createLiveSession({
+                    subject: parsed.subject || "Focus Session",
+                    goal: parsed.goal || "",
+                    startTime: new Date(
+                      Date.now() - savedElapsed * 1000
+                    ).toISOString(),
+                    duration:
+                      parsed.mode === "timer"
+                        ? parsed.targetDuration
+                        : undefined,
+                    sessionType: parsed.sessionType || "focus",
+                  });
+                  if (newLiveSessionId) {
+                    setLiveSessionId(newLiveSessionId);
+                    // Update it to paused status immediately
+                    await updateLiveSession(newLiveSessionId, {
+                      status: "paused",
+                      elapsedTime: savedElapsed,
+                    });
+                    console.log(
+                      "New paused live session created on reload:"
+                      // newLiveSessionId
+                    );
+                  }
+                }
+              } else if (parsed.sessionId) {
+                // No liveSessionId in localStorage, create one
+                console.log(
+                  "No live session ID found for paused session, creating new one..."
+                );
+                const newLiveSessionId = await createLiveSession({
+                  subject: parsed.subject || "Focus Session",
+                  goal: parsed.goal || "",
+                  startTime: new Date(
+                    Date.now() - savedElapsed * 1000
+                  ).toISOString(),
+                  duration:
+                    parsed.mode === "timer" ? parsed.targetDuration : undefined,
+                  sessionType: parsed.sessionType || "focus",
+                });
+                if (newLiveSessionId) {
+                  setLiveSessionId(newLiveSessionId);
+                  // Update it to paused status immediately
+                  await updateLiveSession(newLiveSessionId, {
+                    status: "paused",
+                    elapsedTime: savedElapsed,
+                  });
+                  console.log(
+                    "New paused live session created on reload:"
+                    // newLiveSessionId
+                  );
+                }
+              }
+
+              // Update study session in database
+              if (parsed.sessionId) {
+                databases
+                  .updateDocument(
+                    DB_ID,
+                    COLLECTIONS.STUDY_SESSIONS,
+                    parsed.sessionId,
+                    {
+                      duration: savedElapsed,
+                      status: "active",
+                    }
+                  )
+                  .catch((err) =>
+                    console.error(
+                      "Failed to update paused session on mount:",
+                      err
+                    )
+                  );
+              }
+            } else {
+              // Not active, just restore elapsed
+              setElapsed(savedElapsed);
             }
-          } else {
-            // Not active, just restore elapsed
-            setElapsed(savedElapsed);
           }
+        } catch (error) {
+          console.error("Failed to restore session:", error);
+          localStorage.removeItem("activeStudySession");
         }
-      } catch (error) {
-        console.error("Failed to restore session:", error);
-        localStorage.removeItem("activeStudySession");
       }
-    }
+
+      // Mark restoration as complete after a short delay
+      setTimeout(() => {
+        isRestoringRef.current = false;
+      }, 500);
+    };
+
+    restoreSession();
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [user]);
+
+  // Handle page visibility changes - update database when user returns to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isActive && sessionId && startTimeRef.current) {
+        // Calculate current elapsed time
+        const now = Date.now();
+        const currentElapsed = Math.floor((now - startTimeRef.current) / 1000);
+
+        // Update both databases immediately when tab becomes visible
+        if (liveSessionId) {
+          updateLiveSession(liveSessionId, {
+            status: isPaused ? "paused" : "active",
+            elapsedTime: currentElapsed,
+          });
+        }
+
+        databases
+          .updateDocument(DB_ID, COLLECTIONS.STUDY_SESSIONS, sessionId, {
+            duration: currentElapsed,
+            status: "active",
+          })
+          .catch((err) =>
+            console.error("Failed to update session on visibility change:", err)
+          );
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isActive, isPaused, sessionId, liveSessionId]);
 
   // Save session state to localStorage whenever it changes
   useEffect(() => {
@@ -420,9 +614,19 @@ export default function StudyTimer({
     duration?: number;
     sessionType: SessionType;
   }) => {
-    if (!user) return null;
+    if (!user) {
+      console.error("Cannot create live session: user is not defined");
+      return null;
+    }
 
     try {
+      // console.log("Creating live session with data:", {
+      //   userId: user.$id,
+      //   subject: sessionData.subject,
+      //   sessionType: sessionData.sessionType,
+      //   isPublic: privacy === "public",
+      // });
+
       const liveSession = await databases.createDocument(
         DB_ID,
         COLLECTIONS.LIVE_SESSIONS,
@@ -430,8 +634,8 @@ export default function StudyTimer({
         {
           userId: user.$id,
           username: user.name || "Anonymous",
-          subject: sessionData.subject,
-          goal: sessionData.goal,
+          subject: sessionData.subject || "General Study",
+          goal: sessionData.goal || "",
           startTime: sessionData.startTime,
           lastUpdateTime: new Date().toISOString(),
           status: "active",
@@ -439,7 +643,7 @@ export default function StudyTimer({
           duration: sessionData.duration || null,
           elapsedTime: 0,
           isPublic: privacy === "public",
-          profilePicture: profilePicture || null,
+          profilePicture: profilePicture?.profilePicture || null,
           streak: profileStats.streak || 0,
           totalHours: profileStats.totalHours || 0,
         },
@@ -451,9 +655,15 @@ export default function StudyTimer({
           Permission.delete(Role.user(user.$id)),
         ]
       );
+      // console.log("Live session created successfully:", liveSession.$id);
       return liveSession.$id;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create live session:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        type: error.type,
+      });
       return null;
     }
   };
@@ -465,15 +675,47 @@ export default function StudyTimer({
       elapsedTime?: number;
     }
   ) => {
-    if (!liveId) return;
+    if (!liveId) {
+      console.warn("Cannot update live session: liveId is null or empty");
+      return false;
+    }
 
     try {
       await databases.updateDocument(DB_ID, COLLECTIONS.LIVE_SESSIONS, liveId, {
         ...updates,
         lastUpdateTime: new Date().toISOString(),
       });
-    } catch (error) {
+      return true;
+    } catch (error: any) {
       console.error("Failed to update live session:", error);
+
+      // If document not found (404), try to recreate it
+      if (error.code === 404 || error.message?.includes("not be found")) {
+        // console.log("Live session not found, attempting to recreate...");
+
+        // Clear the old invalid ID
+        setLiveSessionId(null);
+
+        // Try to recreate the live session if we have session data
+        if (sessionId && user && subject) {
+          const newLiveSessionId = await createLiveSession({
+            subject: subject || "Focus Session",
+            goal: goal || "",
+            startTime: new Date(
+              Date.now() - (updates.elapsedTime || 0) * 1000
+            ).toISOString(),
+            duration: mode === "timer" ? targetDuration : undefined,
+            sessionType: sessionType,
+          });
+
+          if (newLiveSessionId) {
+            // console.log("Live session recreated:", newLiveSessionId);
+            setLiveSessionId(newLiveSessionId);
+            return true;
+          }
+        }
+      }
+      return false;
     }
   };
 
@@ -680,8 +922,11 @@ export default function StudyTimer({
         duration: mode === "timer" ? targetDuration : 0,
         subject: subjectToUse,
         curriculumId: curriculumId || null,
-        goal: sessionGoals.length > 0 ? JSON.stringify(sessionGoals) : goal,
+        goal:
+          sessionGoals.length > 0 ? JSON.stringify(sessionGoals) : goal || "",
         type: sessionTypeToUse,
+        timerMode: mode,
+        plannedDuration: mode === "timer" ? targetDuration : 0,
       };
 
       let session;
@@ -721,6 +966,19 @@ export default function StudyTimer({
         duration: mode === "timer" ? targetDuration : undefined,
         sessionType: sessionTypeToUse,
       });
+
+      if (!newLiveSessionId) {
+        console.error(
+          "Failed to create live session - session will continue but won't be visible to others"
+        );
+        // Show a warning to the user that their session won't be public
+        if (privacy === "public") {
+          alert(
+            "Warning: Your session is running locally but may not be visible to others. Check your internet connection."
+          );
+        }
+      }
+
       setLiveSessionId(newLiveSessionId);
 
       // Clear any existing interval just in case
@@ -732,12 +990,31 @@ export default function StudyTimer({
           const diff = Math.floor((now - startTimeRef.current) / 1000);
           setElapsed(diff);
 
-          // Update live session every 30 seconds
-          if (diff % 30 === 0 && newLiveSessionId) {
-            updateLiveSession(newLiveSessionId, {
-              elapsedTime: diff,
-              status: "active",
-            });
+          // Update both live_sessions and study_sessions every 30 seconds
+          if (diff % 30 === 0) {
+            // Update live session if it exists
+            if (newLiveSessionId) {
+              updateLiveSession(newLiveSessionId, {
+                elapsedTime: diff,
+                status: "active",
+              });
+            }
+
+            // Also update study_sessions
+            if (session?.$id) {
+              databases
+                .updateDocument(
+                  DB_ID,
+                  COLLECTIONS.STUDY_SESSIONS,
+                  session.$id,
+                  {
+                    duration: diff,
+                  }
+                )
+                .catch((err) =>
+                  console.error("Failed to update study session:", err)
+                );
+            }
           }
         }
       }, 1000);
@@ -968,7 +1245,7 @@ export default function StudyTimer({
           isPublic: false,
         };
 
-        console.log("Saving block:", docData);
+        // console.log("Saving block:", docData);
 
         await databases.createDocument(
           DB_ID,
@@ -986,7 +1263,7 @@ export default function StudyTimer({
         currentTime = new Date(currentTime.getTime() + block.duration * 60000);
       }
 
-      console.log("All blocks saved successfully");
+      // console.log("All blocks saved successfully");
       setShowDesigner(false);
       await fetchSchedule();
     } catch (error: any) {
@@ -1042,34 +1319,19 @@ export default function StudyTimer({
     const nextSession = getNextScheduledSession();
 
     if (nextSession) {
-      // Start the next scheduled session
+      // Only auto-start if there's a scheduled session
       setTimeout(() => startSession(nextSession.$id), 500);
-    } else if (sessionType === "focus" && autoStartBreak) {
-      setTimeout(
-        () =>
-          startSession(undefined, {
-            type: "break",
-            duration: defaultBreakDuration,
-            subject: "Break Time",
-          }),
-        500
-      );
-    } else if (sessionType === "break" && autoStartFocus) {
-      setTimeout(
-        () =>
-          startSession(undefined, {
-            type: "focus",
-            duration: defaultFocusDuration,
-            subject: "Focus Session",
-          }),
-        500
-      );
     }
+    // Removed auto-start for focus/break sessions
+    // Users should manually start new sessions unless they have a schedule
   };
 
   // --- Effects ---
 
   useEffect(() => {
+    // Don't auto-complete during initial restoration from localStorage
+    if (isRestoringRef.current) return;
+
     if (isActive && mode === "timer" && elapsed >= targetDuration) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       handleTimerComplete();
@@ -1083,7 +1345,7 @@ export default function StudyTimer({
     // Request Full Screen on Strict Mode activation
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((e) => {
-        console.log("Full screen request denied", e);
+        // console.log("Full screen request denied", e);
       });
     }
 

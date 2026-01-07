@@ -104,12 +104,17 @@ export default function LiveSessionsPage() {
           COLLECTIONS.LIVE_SESSIONS,
           [
             Query.equal("status", "active"),
-            Query.equal("isPublic", true),
             Query.orderDesc("startTime"),
             Query.limit(50),
           ]
         );
-        setSessions(response.documents as unknown as StudySession[]);
+
+        // Filter for public sessions (handle both boolean and string types)
+        const publicSessions = response.documents.filter((doc: any) => {
+          return doc.isPublic === true || doc.isPublic === "true";
+        });
+
+        setSessions(publicSessions as unknown as StudySession[]);
       } catch (error) {
         console.error("Failed to fetch live sessions:", error);
       } finally {
@@ -126,17 +131,16 @@ export default function LiveSessionsPage() {
         const event = response.events[0];
         const doc = response.payload as unknown as StudySession;
 
-        if (
-          event.includes(".create") &&
-          doc.isPublic &&
-          doc.status === "active"
-        ) {
+        const isPublic =
+          doc.isPublic === true || (doc.isPublic as unknown) === "true";
+
+        if (event.includes(".create") && isPublic && doc.status === "active") {
           setSessions((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];
           });
         } else if (event.includes(".update")) {
-          if (doc.status === "active" && doc.isPublic) {
+          if (doc.status === "active" && isPublic) {
             setSessions((prev) => {
               const exists = prev.find((p) => p.$id === doc.$id);
               if (exists) {
@@ -408,11 +412,9 @@ export default function LiveSessionsPage() {
                       {/* User Info */}
                       <div className="flex items-center gap-3 mb-4">
                         <div className="relative">
-                          {profilePictures[session.userId]?.profilePicture ? (
+                          {session.profilePicture ? (
                             <img
-                              src={
-                                profilePictures[session.userId].profilePicture
-                              }
+                              src={session.profilePicture}
                               alt={session.username || "Student"}
                               className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500/30"
                             />
@@ -855,9 +857,9 @@ function SessionDetailView({
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            {profilePictures[session.userId]?.profilePicture ? (
+            {session?.profilePicture ? (
               <img
-                src={profilePictures[session.userId].profilePicture}
+                src={session.profilePicture}
                 alt={session.username || "Student"}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-500/30"
               />

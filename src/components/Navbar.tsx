@@ -150,6 +150,15 @@ export default function Navbar() {
     { href: "/support", label: "☕ Support" },
   ];
 
+  const quickLinks = [
+    { href: "/pomodoro-timer", label: "Pomodoro Timer" },
+    { href: "/timer", label: "Timer" },
+    { href: "/stopwatch", label: "Stopwatch" },
+    { href: "/25-minute-timer", label: "25 Min Timer" },
+    { href: "/study-timer", label: "Study Timer" },
+    { href: "/pomofocus", label: "PomoFocus" },
+  ];
+
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md">
       <div
@@ -175,6 +184,7 @@ export default function Navbar() {
         >
           <NavDropdown label="Study" items={studyLinks} pathname={pathname} />
           <NavDropdown label="Social" items={socialLinks} pathname={pathname} />
+          <NavDropdown label="Quick Links" items={quickLinks} pathname={pathname} />
           <NavDropdown label="More" items={moreLinks} pathname={pathname} />
         </div>
 
