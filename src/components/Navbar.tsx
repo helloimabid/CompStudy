@@ -177,7 +177,7 @@ export default function Navbar() {
           suppressHydrationWarning
         >
           <Image
-            src="/logo.png"
+            src="/logo.webp"
             alt="CompStudy Logo"
             width={128}
             height={128}

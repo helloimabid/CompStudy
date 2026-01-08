@@ -166,13 +166,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
-        {/* Zen Dots font from Google Fonts CDN */}
+        {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        <link
+          rel="preconnect"
+          href="https://sgp.cloud.appwrite.io"
+          crossOrigin="anonymous"
+        />
+        {/* Zen Dots font from Google Fonts CDN */}
         <link
           href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap"
           rel="stylesheet"
@@ -238,7 +244,7 @@ export default function RootLayout({
               "@type": "Organization",
               name: "CompStudy",
               url: "https://compstudy.tech",
-              logo: "https://compstudy.tech/logo.png",
+              logo: "https://compstudy.tech/logo.webp",
               description:
                 "Competitive study timer and productivity platform for students",
               foundingDate: "2026",
@@ -341,7 +347,7 @@ export default function RootLayout({
                     >
                       <a href="/" className="">
                         <Image
-                          src="/logo.png"
+                          src="/logo.webp"
                           alt="CompStudy Logo"
                           width={64}
                           height={32}

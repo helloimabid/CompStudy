@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Optimize Appwrite storage image URL with resize and format conversion
+ * Uses /preview endpoint which supports image transformations
  * @param url - Original Appwrite storage URL
  * @param width - Desired width (will be 2x for retina)
  * @param height - Desired height (will be 2x for retina)
@@ -14,7 +15,9 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function optimizeImageUrl(url: string, width: number, height: number): string {
   if (!url) return url
-  const separator = url.includes('?') ? '&' : '?'
+  // Replace /view with /preview to enable image transformations
+  const previewUrl = url.replace('/view', '/preview')
+  const separator = previewUrl.includes('?') ? '&' : '?'
   // Use 2x dimensions for retina displays
-  return `${url}${separator}width=${width * 2}&height=${height * 2}&output=webp`
+  return `${previewUrl}${separator}width=${width * 2}&height=${height * 2}&output=webp&quality=80`
 }
