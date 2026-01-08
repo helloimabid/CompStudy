@@ -57,6 +57,17 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
       console.error("Firebase configuration is incomplete. Missing required environment variables.");
       return null;
     }
+
+    // Ensure service worker is registered first
+    if ("serviceWorker" in navigator) {
+      try {
+        await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        console.log("Service Worker registered successfully");
+      } catch (swError) {
+        console.error("Service Worker registration failed:", swError);
+        return null;
+      }
+    }
     
     const permission = await Notification.requestPermission();
     

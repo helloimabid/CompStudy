@@ -20,6 +20,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Suppress errors for proper service worker operation
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  self.clients.claim();
+});
+
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log(
