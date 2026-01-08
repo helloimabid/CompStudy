@@ -41,6 +41,8 @@ yarn-error.log*
 next-env.d.ts
 # local scripts
 scripts/
+
+# worker
 worker/
 
 email-templates/
