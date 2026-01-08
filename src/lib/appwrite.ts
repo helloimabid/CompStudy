@@ -35,5 +35,6 @@ export const COLLECTIONS = {
     CONTACT_SUBMISSIONS: 'contact_submissions',
     VISITORS: 'visitors',
     NEWSLETTER_SUBSCRIBERS: 'newsletter_subscribers',
-    BLOG_POSTS: 'blog_posts'
+    BLOG_POSTS: 'blog_posts',
+    FCM_TOKENS: 'fcm_tokens',
 };

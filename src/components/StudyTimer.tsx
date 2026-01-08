@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { databases, DB_ID, COLLECTIONS, client } from "@/lib/appwrite";
 import { useAuth } from "@/context/AuthContext";
 import { ID, Permission, Role, Query } from "appwrite";
@@ -86,6 +87,12 @@ export default function StudyTimer({
   const [strictMode, setStrictMode] = useState(false);
   const [defaultFocusDuration, setDefaultFocusDuration] = useState(25 * 60); // 25 minutes
   const [defaultBreakDuration, setDefaultBreakDuration] = useState(5 * 60); // 5 minutes
+  const [showStrictModeWarning, setShowStrictModeWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null
+  );
+
+  const router = useRouter();
 
   // Session Details State
   const [subject, setSubject] = useState("");
@@ -1362,11 +1369,98 @@ export default function StudyTimer({
       }
     };
 
+    // Prevent exiting fullscreen in strict mode
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && strictMode && isActive && !isPaused) {
+        // User tried to exit fullscreen, re-request it
+        setTimeout(() => {
+          document.documentElement.requestFullscreen().catch(() => {
+            // If fullscreen fails, pause the session
+            pauseSession();
+            const audio = new Audio(
+              "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+            );
+            audio.play().catch(() => {});
+            alert("Strict Mode: Fullscreen is required! Session Paused.");
+          });
+        }, 100);
+      }
+    };
+
+    // Prevent browser navigation (back/forward/close)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue =
+        "You have an active focus session. Are you sure you want to leave?";
+      return e.returnValue;
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [strictMode, isActive, isPaused]);
+
+  // Intercept link clicks when strict mode is active
+  useEffect(() => {
+    if (!strictMode || !isActive || isPaused) return;
+
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+
+      if (anchor && anchor.href) {
+        const url = new URL(anchor.href, window.location.origin);
+
+        // Check if it's an internal navigation (same origin)
+        if (
+          url.origin === window.location.origin &&
+          url.pathname !== window.location.pathname
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingNavigation(anchor.href);
+          setShowStrictModeWarning(true);
+        }
+      }
+    };
+
+    // Capture phase to intercept before React Router
+    document.addEventListener("click", handleLinkClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleLinkClick, true);
+    };
+  }, [strictMode, isActive, isPaused]);
+
+  // Handle strict mode navigation confirmation
+  const handleStrictModeLeave = async () => {
+    // Pause the session
+    pauseSession();
+    setShowStrictModeWarning(false);
+
+    // Play warning sound
+    const audio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+    );
+    audio.play().catch(() => {});
+
+    // Navigate to the pending URL
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleStrictModeStay = () => {
+    setShowStrictModeWarning(false);
+    setPendingNavigation(null);
+  };
 
   useEffect(() => {
     fetchSchedule();
@@ -1499,6 +1593,63 @@ export default function StudyTimer({
 
   return (
     <>
+      {/* Strict Mode Navigation Warning Dialog */}
+      <AnimatePresence>
+        {showStrictModeWarning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-zinc-900 border border-red-500/30 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-red-500/10"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    Strict Mode Active
+                  </h3>
+                  <p className="text-sm text-red-400">
+                    Focus session in progress
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-zinc-400 mb-6">
+                You're trying to navigate away during a focus session. Leaving
+                will pause your timer and may affect your streak.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleStrictModeStay}
+                  className="flex-1 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
+                >
+                  Stay Focused
+                </button>
+                <button
+                  onClick={handleStrictModeLeave}
+                  className="flex-1 px-4 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium transition-colors border border-zinc-700"
+                >
+                  Leave Anyway
+                </button>
+              </div>
+
+              <p className="text-xs text-zinc-500 mt-4 text-center">
+                Tip: Complete your focus session for better productivity
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Fullscreen Mode Overlay */}
       <AnimatePresence>
         {isFullScreen && (
@@ -1508,7 +1659,8 @@ export default function StudyTimer({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-[#050505] flex items-center justify-center"
           >
-            <div className="w-full h-full flex flex-col items-center justify-center p-8 relative">
+            {/* Landscape layout for mobile/tablet, vertical for desktop */}
+            <div className="w-full h-full flex landscape:flex-row flex-col items-center justify-center landscape:justify-evenly p-4 sm:p-6 md:p-8 relative overflow-hidden">
               {/* Background Effects */}
               {visualMode !== "minimal" && (
                 <>
@@ -1529,17 +1681,32 @@ export default function StudyTimer({
                 </>
               )}
 
-              {/* Exit Button */}
-              <button
-                onClick={() => setIsFullScreen(false)}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 p-2 sm:p-3 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors z-10"
-              >
-                <Minimize2 size={20} className="sm:w-6 sm:h-6" />
-              </button>
+              {/* Exit Button - Hidden in Strict Mode */}
+              {!(strictMode && isActive && !isPaused) && (
+                <button
+                  onClick={() => setIsFullScreen(false)}
+                  title="Exit fullscreen"
+                  className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 p-2 sm:p-3 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors z-10"
+                >
+                  <Minimize2 size={20} className="sm:w-6 sm:h-6" />
+                </button>
+              )}
 
-              {/* Goals Panel - Fullscreen */}
+              {/* Strict Mode Indicator */}
+              {strictMode && isActive && !isPaused && (
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 z-10">
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-xs text-red-400 font-medium">
+                      Strict Mode
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Goals Panel - Fullscreen (Desktop) */}
               {sessionGoals.length > 0 && isActive && (
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden lg:block">
                   <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-4 w-64">
                     <div className="flex items-center gap-2 mb-3 text-zinc-400">
                       <ListTodo size={16} />
@@ -1589,134 +1756,174 @@ export default function StudyTimer({
                 </div>
               )}
 
-              {/* Session Info */}
-              <div className="text-center mb-6 md:mb-8 z-10 px-4">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3">
-                  {subject || "Focus Session"}
-                </h1>
-                <p className="text-zinc-500 text-sm sm:text-base md:text-lg">
-                  {sessionType === "break" ? "Break Time" : "Session Time"}
-                </p>
-              </div>
-
-              {/* Progress Bar */}
-              {mode === "timer" && (
-                <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl h-1.5 md:h-2 bg-zinc-800/50 rounded-full mb-8 md:mb-12 overflow-hidden z-10 px-4">
-                  <div
-                    className={clsx(
-                      "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_20px_currentColor]",
-                      sessionType === "break"
-                        ? "bg-green-500 text-green-500"
-                        : clsx(currentTheme.bg, currentTheme.text)
-                    )}
-                    style={{ width: `${progress}%` }}
-                  ></div>
+              {/* Goals Indicator - Mobile/Tablet */}
+              {sessionGoals.length > 0 && isActive && (
+                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 lg:hidden">
+                  <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
+                    <ListTodo size={14} className="text-zinc-400" />
+                    <span className="text-xs text-zinc-300">
+                      {sessionGoals.filter((g) => g.completed).length}/
+                      {sessionGoals.length}
+                    </span>
+                  </div>
                 </div>
               )}
 
-              {/* Timer Display */}
-              <div className="z-10 mb-8 md:mb-12">
-                {timerStyle === "grid" && (
-                  <div className="scale-90 sm:scale-110 md:scale-125">
-                    <GridTimerDisplay
-                      time={
-                        mode === "timer"
-                          ? formatTime(remaining)
-                          : formatTime(elapsed)
-                      }
-                      themeColor={themeColor}
-                      isBreak={sessionType === "break"}
-                    />
+              {/* Main Content Container - Horizontal on landscape, vertical on portrait */}
+              <div className="flex flex-col landscape:flex-row items-center justify-center landscape:justify-evenly landscape:gap-8 w-full h-full landscape:px-8 z-10">
+                {/* Left Section: Session Info (landscape) / Top Section (portrait) */}
+                <div className="flex flex-col items-center landscape:items-start landscape:flex-1 landscape:max-w-xs">
+                  {/* Session Info */}
+                  <div className="text-center landscape:text-left mb-4 landscape:mb-0 z-10 px-4 landscape:px-0">
+                    <h1 className="text-xl landscape:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-1 landscape:mb-2 md:mb-3 line-clamp-2">
+                      {subject || "Focus Session"}
+                    </h1>
+                    <p className="text-zinc-500 text-xs landscape:text-sm sm:text-base md:text-lg">
+                      {sessionType === "break" ? "Break Time" : "Session Time"}
+                    </p>
                   </div>
-                )}
-                {timerStyle === "digital" && (
-                  <div className="scale-110 sm:scale-125 md:scale-150">
-                    <DigitalTimerDisplay
-                      time={
-                        mode === "timer"
-                          ? formatTime(remaining)
-                          : formatTime(elapsed)
-                      }
-                      size="lg"
-                      isBreak={sessionType === "break"}
-                      themeColor={themeColor}
-                      timerFont={timerFont}
-                    />
-                  </div>
-                )}
-                {timerStyle === "circular" && (
-                  <div className="scale-90 sm:scale-110 md:scale-125">
-                    <CircularTimerDisplay
-                      time={
-                        mode === "timer"
-                          ? formatTime(remaining)
-                          : formatTime(elapsed)
-                      }
-                      progress={progress}
-                      size="lg"
-                      isBreak={sessionType === "break"}
-                      themeColor={themeColor}
-                      timerFont={timerFont}
-                    />
-                  </div>
-                )}
-                {timerStyle === "minimal" && (
-                  <div className="scale-125 sm:scale-150 md:scale-[2]">
-                    <MinimalTimerDisplay
-                      time={
-                        mode === "timer"
-                          ? formatTime(remaining)
-                          : formatTime(elapsed)
-                      }
-                      size="lg"
-                      isBreak={sessionType === "break"}
-                      themeColor={themeColor}
-                      timerFont={timerFont}
-                    />
-                  </div>
-                )}
-              </div>
 
-              {/* Controls */}
-              <div className="flex items-center gap-8 z-10">
-                {!isActive ? (
-                  <button
-                    onClick={() => startSession()}
-                    className={clsx(
-                      "px-12 py-6 rounded-full font-bold text-xl flex items-center gap-3 transition-all shadow-2xl hover:scale-105 active:scale-95",
-                      currentTheme.bg,
-                      "text-white"
+                  {/* Progress Bar - Only in portrait or larger screens */}
+                  {mode === "timer" && (
+                    <div className="w-full max-w-[200px] landscape:max-w-full sm:max-w-sm md:max-w-lg lg:max-w-2xl h-1 sm:h-1.5 md:h-2 bg-zinc-800/50 rounded-full mb-4 landscape:mt-4 landscape:mb-0 overflow-hidden z-10">
+                      <div
+                        className={clsx(
+                          "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_20px_currentColor]",
+                          sessionType === "break"
+                            ? "bg-green-500 text-green-500"
+                            : clsx(currentTheme.bg, currentTheme.text)
+                        )}
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Center Section: Timer Display */}
+                <div className="z-10 landscape:flex-shrink-0 mb-4 landscape:mb-0">
+                  {timerStyle === "grid" && (
+                    <div className="scale-[0.5] landscape:scale-[0.6] xs:scale-[0.6] sm:scale-75 md:scale-90 lg:scale-110">
+                      <GridTimerDisplay
+                        time={
+                          mode === "timer"
+                            ? formatTime(remaining)
+                            : formatTime(elapsed)
+                        }
+                        themeColor={themeColor}
+                        isBreak={sessionType === "break"}
+                      />
+                    </div>
+                  )}
+                  {timerStyle === "digital" && (
+                    <div className="scale-[0.6] landscape:scale-75 xs:scale-75 sm:scale-90 md:scale-110 lg:scale-125">
+                      <DigitalTimerDisplay
+                        time={
+                          mode === "timer"
+                            ? formatTime(remaining)
+                            : formatTime(elapsed)
+                        }
+                        size="lg"
+                        isBreak={sessionType === "break"}
+                        themeColor={themeColor}
+                        timerFont={timerFont}
+                      />
+                    </div>
+                  )}
+                  {timerStyle === "circular" && (
+                    <div className="scale-[0.5] landscape:scale-[0.6] xs:scale-[0.6] sm:scale-75 md:scale-90 lg:scale-110">
+                      <CircularTimerDisplay
+                        time={
+                          mode === "timer"
+                            ? formatTime(remaining)
+                            : formatTime(elapsed)
+                        }
+                        progress={progress}
+                        size="lg"
+                        isBreak={sessionType === "break"}
+                        themeColor={themeColor}
+                        timerFont={timerFont}
+                      />
+                    </div>
+                  )}
+                  {timerStyle === "minimal" && (
+                    <div className="scale-75 landscape:scale-90 xs:scale-90 sm:scale-110 md:scale-125 lg:scale-150">
+                      <MinimalTimerDisplay
+                        time={
+                          mode === "timer"
+                            ? formatTime(remaining)
+                            : formatTime(elapsed)
+                        }
+                        size="lg"
+                        isBreak={sessionType === "break"}
+                        themeColor={themeColor}
+                        timerFont={timerFont}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Section: Controls (landscape) / Bottom Section (portrait) */}
+                <div className="flex flex-col items-center landscape:items-end landscape:flex-1 landscape:max-w-xs">
+                  {/* Controls */}
+                  <div className="flex items-center gap-3 landscape:gap-4 sm:gap-6 md:gap-8 z-10">
+                    {!isActive ? (
+                      <button
+                        onClick={() => startSession()}
+                        className={clsx(
+                          "px-4 py-2 landscape:px-5 landscape:py-3 sm:px-8 sm:py-4 md:px-12 md:py-6 rounded-full font-bold text-sm landscape:text-base sm:text-lg md:text-xl flex items-center gap-2 sm:gap-3 transition-all shadow-2xl hover:scale-105 active:scale-95",
+                          currentTheme.bg,
+                          "text-white"
+                        )}
+                      >
+                        <Play
+                          size={16}
+                          className="landscape:w-5 landscape:h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
+                          fill="currentColor"
+                        />
+                        Start Focus
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={
+                            isPaused ? () => startSession() : pauseSession
+                          }
+                          className="w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-all hover:scale-110 shadow-xl"
+                        >
+                          {isPaused ? (
+                            <Play
+                              size={20}
+                              className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+                              fill="currentColor"
+                            />
+                          ) : (
+                            <Pause
+                              size={20}
+                              className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+                              fill="currentColor"
+                            />
+                          )}
+                        </button>
+                        <button
+                          onClick={stopSession}
+                          className="w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border-2 border-red-500/20 flex items-center justify-center transition-all hover:scale-110 shadow-xl"
+                        >
+                          <Square
+                            size={20}
+                            className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+                            fill="currentColor"
+                          />
+                        </button>
+                      </>
                     )}
-                  >
-                    <Play size={28} fill="currentColor" />
-                    Start Focus
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={isPaused ? () => startSession() : pauseSession}
-                      className="w-20 h-20 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-all hover:scale-110 shadow-xl"
-                    >
-                      {isPaused ? (
-                        <Play size={32} fill="currentColor" />
-                      ) : (
-                        <Pause size={32} fill="currentColor" />
-                      )}
-                    </button>
-                    <button
-                      onClick={stopSession}
-                      className="w-20 h-20 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border-2 border-red-500/20 flex items-center justify-center transition-all hover:scale-110 shadow-xl"
-                    >
-                      <Square size={32} fill="currentColor" />
-                    </button>
-                  </>
-                )}
+                  </div>
+                </div>
               </div>
 
               {/* Next Session Info */}
               {isActive && nextScheduledSession && (
-                <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
-                  <p className="text-zinc-500 text-xs sm:text-sm">
+                <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                  <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
                     Next:{" "}
                     {nextScheduledSession.subject ||
                       (nextScheduledSession.type === "break"
@@ -1730,8 +1937,8 @@ export default function StudyTimer({
                 !nextScheduledSession &&
                 autoStartBreak &&
                 sessionType === "focus" && (
-                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
-                    <p className="text-zinc-500 text-xs sm:text-sm">
+                  <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
                       Next: Break ({formatDurationDisplay(defaultBreakDuration)}
                       )
                     </p>
@@ -1741,8 +1948,8 @@ export default function StudyTimer({
                 !nextScheduledSession &&
                 autoStartFocus &&
                 sessionType === "break" && (
-                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 text-center z-10 px-4">
-                    <p className="text-zinc-500 text-xs sm:text-sm">
+                  <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
                       Next: Focus Session (
                       {formatDurationDisplay(defaultFocusDuration)})
                     </p>
@@ -1954,6 +2161,7 @@ export default function StudyTimer({
                       setTargetDuration(Math.max(60, targetDuration - 5 * 60))
                     }
                     className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                    title="Decrease duration by 5 minutes"
                   >
                     -
                   </button>
@@ -1963,6 +2171,7 @@ export default function StudyTimer({
                   <button
                     onClick={() => setTargetDuration(targetDuration + 5 * 60)}
                     className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                    title="Increase duration by 5 minutes"
                   >
                     +
                   </button>

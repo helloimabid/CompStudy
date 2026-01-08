@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
+import NotificationBell from "./NotificationBell";
 
 interface DropdownProps {
   label: string;
@@ -214,6 +215,9 @@ export default function Navbar() {
             >
               <Search size={16} />
             </button>
+
+            {/* Notification Bell */}
+            {user && <NotificationBell />}
             <AnimatePresence>
               {showSearch && (
                 <motion.div
