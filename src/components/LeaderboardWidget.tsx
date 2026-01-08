@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { Trophy } from "lucide-react";
+import { optimizeImageUrl } from "@/lib/utils";
 
 interface Profile {
   $id: string;
@@ -84,8 +85,11 @@ export default function LeaderboardWidget() {
                 >
                   {user.profilePicture ? (
                     <img
-                      src={user.profilePicture}
+                      src={optimizeImageUrl(user.profilePicture, 20, 20)}
                       alt={user.username}
+                      width={20}
+                      height={20}
+                      loading="lazy"
                       className="w-5 h-5 rounded-full object-cover"
                     />
                   ) : (

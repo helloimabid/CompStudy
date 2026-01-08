@@ -9,6 +9,7 @@ import {
 import "./globals.css";
 import clsx from "clsx";
 import Script from "next/script";
+import Image from "next/image";
 import { AuthProvider } from "@/context/AuthContext";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
@@ -339,10 +340,11 @@ export default function RootLayout({
                       suppressHydrationWarning
                     >
                       <a href="/" className="">
-                        <img
+                        <Image
                           src="/logo.png"
                           alt="CompStudy Logo"
-                          suppressHydrationWarning
+                          width={64}
+                          height={32}
                           className="object-contain"
                         />
                       </a>

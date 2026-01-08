@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/RealtimeContext";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { Menu, X, ChevronDown, Search, User } from "lucide-react";
@@ -175,11 +176,13 @@ export default function Navbar() {
           className="flex items-center gap-2"
           suppressHydrationWarning
         >
-          <img
+          <Image
             src="/logo.png"
             alt="CompStudy Logo"
+            width={128}
+            height={128}
+            priority
             className="w-24 md:w-32 h-24 md:h-32 object-contain"
-            suppressHydrationWarning
           />
         </Link>
 
