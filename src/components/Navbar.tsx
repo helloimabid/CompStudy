@@ -140,7 +140,6 @@ export default function Navbar() {
   ];
 
   const socialLinks = [
-    { href: "/community", label: "Community" },
     { href: "/leaderboards", label: "Leaderboards" },
     { href: "/analytics", label: "Analytics" },
   ];

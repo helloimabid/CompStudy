@@ -526,11 +526,11 @@ export default function FAQPage() {
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link
-                    href="/community"
+                    href="/live"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-white/10 text-zinc-300 text-sm font-medium hover:bg-white/5 transition-all"
                   >
                     <Sparkles className="w-4 h-4" />
-                    Join Community
+                    Join Live Rooms
                   </Link>
                 </div>
               </div>

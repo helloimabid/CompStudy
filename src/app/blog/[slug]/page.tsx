@@ -253,7 +253,7 @@ export default async function BlogArticlePage({
                   {post.viewCount} views
                 </span>
               )}
-              <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <button title="share" className="p-2 rounded-lg hover:bg-white/5 transition-colors">
                 <Share2 className="w-4 h-4 text-zinc-500" />
               </button>
             </div>

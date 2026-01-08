@@ -470,28 +470,6 @@ function DashboardContent() {
 
             <motion.div
               variants={item}
-              onClick={() => router.push("/community")}
-              className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/30 rounded-3xl p-6 relative overflow-hidden cursor-pointer group hover:border-pink-500/50 transition-all"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="text-pink-400" size={24} />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Community
-                </h3>
-                <p className="text-sm text-zinc-400 mb-4">
-                  Connect with others
-                </p>
-                <div className="flex items-center text-pink-400 text-sm font-medium">
-                  Join <ArrowRight className="ml-2 w-4 h-4" />
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              variants={item}
               onClick={() => router.push("/live")}
               className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-3xl p-6 relative overflow-hidden cursor-pointer group hover:border-green-500/50 transition-all"
             >

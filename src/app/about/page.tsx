@@ -58,7 +58,7 @@ const milestones = [
     event: "Founded",
     detail: "Started with a simple Pomodoro timer",
   },
-  { year: "2025", event: "Community", detail: "Launched live study rooms" },
+  { year: "2025", event: "Live Rooms", detail: "Launched live study rooms" },
   { year: "2026", event: "Global", detail: "Serving students worldwide" },
 ];
 
