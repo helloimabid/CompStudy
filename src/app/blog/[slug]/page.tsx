@@ -18,8 +18,6 @@ import {
 } from "@/lib/blog";
 import EmailSubscription from "@/components/EmailSubscription";
 
-export const runtime = "edge";
-
 // Category colors
 const categoryColors: Record<string, { bg: string; text: string }> = {
   Productivity: { bg: "bg-indigo-500/10", text: "text-indigo-400" },
@@ -255,7 +253,7 @@ export default async function BlogArticlePage({
                   {post.viewCount} views
                 </span>
               )}
-              <button title="Share" className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
                 <Share2 className="w-4 h-4 text-zinc-500" />
               </button>
             </div>
