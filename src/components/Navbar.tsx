@@ -147,6 +147,9 @@ export default function Navbar() {
 
   const moreLinks = [
     { href: "/features", label: "Features" },
+    { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
+    { href: "/faq", label: "FAQ" },
     { href: "/contact", label: "Contact" },
     { href: "/support", label: "☕ Support" },
   ];

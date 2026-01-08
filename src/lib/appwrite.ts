@@ -14,6 +14,7 @@ export { client };
 export const DB_ID = 'compstudy-db';
 export const BUCKET_ID = 'profile-pictures';
 export const POST_IMAGES_BUCKET_ID = 'post-images';
+export const BLOG_IMAGES_BUCKET_ID = 'blog-images';
 
 export const COLLECTIONS = {
     PROFILES: 'profiles',
@@ -34,5 +35,7 @@ export const COLLECTIONS = {
     PUBLIC_CURRICULUM: 'public_curriculum',
     CURRICULUM_RATINGS: 'curriculum_ratings',
     CONTACT_SUBMISSIONS: 'contact_submissions',
-    VISITORS: 'visitors'
+    VISITORS: 'visitors',
+    NEWSLETTER_SUBSCRIBERS: 'newsletter_subscribers',
+    BLOG_POSTS: 'blog_posts'
 };
