@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/lib/blog'
+import { getAllSEOPages } from '@/lib/seo-pages'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://compstudy.tech'
@@ -110,73 +111,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    // Timer & Productivity Tool Pages (SEO Keywords)
-    {
-      url: `${baseUrl}/pomodoro-timer`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/pomodoro-timer-online`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/aesthetic-pomodoro-timer`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/pomodoro`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pomofocus`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/timer`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/25-minute-timer`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/study-timer`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/stopwatch`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.75,
-    },
-    {
-      url: `${baseUrl}/stop-watch`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.75,
-    },
-    {
-      url: `${baseUrl}/online-stopwatch`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.75,
-    },
     // Auth & Legal Pages
     {
       url: `${baseUrl}/login`,
@@ -198,6 +132,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Dynamic SEO pages (timer, stopwatch, pomodoro pages)
+  let seoPages: MetadataRoute.Sitemap = []
+  try {
+    const pages = await getAllSEOPages()
+    seoPages = pages.map((page) => ({
+      url: `${baseUrl}/tools/${page.slug}`,
+      lastModified: new Date(page.updatedAt || page.createdAt),
+      changeFrequency: 'weekly' as const,
+      priority: page.priority,
+    }))
+  } catch (error) {
+    console.error('Failed to fetch SEO pages for sitemap:', error)
+  }
+
   // Dynamic blog post pages
   let blogPages: MetadataRoute.Sitemap = []
   try {
@@ -212,5 +160,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Failed to fetch blog posts for sitemap:', error)
   }
 
-  return [...staticPages, ...blogPages]
+  return [...staticPages, ...seoPages, ...blogPages]
 }

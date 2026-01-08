@@ -40,6 +40,30 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Redirects for SEO pages (old URLs to new /tools/ URLs)
+  async redirects() {
+    // List of SEO page slugs that moved to /tools/
+    const seoSlugs = [
+      'pomodoro-timer',
+      'pomodoro-timer-online',
+      'aesthetic-pomodoro-timer',
+      'pomodoro',
+      'pomofocus',
+      'timer',
+      '25-minute-timer',
+      'study-timer',
+      'stopwatch',
+      'stop-watch',
+      'online-stopwatch',
+    ];
+
+    return seoSlugs.map((slug) => ({
+      source: `/${slug}`,
+      destination: `/tools/${slug}`,
+      permanent: true, // 301 redirect for SEO
+    }));
+  },
+
   // Improve SEO with trailing slash consistency
   trailingSlash: false,
   
