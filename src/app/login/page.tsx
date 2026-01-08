@@ -103,7 +103,11 @@ export default function LoginPage() {
   // Handle native app Google auth (from Expo mobile app)
   useEffect(() => {
     const handleNativeGoogleAuth = async (event: Event) => {
-      const customEvent = event as CustomEvent<{ idToken: string; email: string; name: string }>;
+      const customEvent = event as CustomEvent<{
+        idToken: string;
+        email: string;
+        name: string;
+      }>;
       const { idToken, email, name } = customEvent.detail;
 
       try {
@@ -135,7 +139,11 @@ export default function LoginPage() {
         const data = JSON.parse(nativeAuth);
         localStorage.removeItem("nativeGoogleAuth");
         // Create a fake event to reuse the handler
-        const fakeEvent = { detail: data } as CustomEvent<{ idToken: string; email: string; name: string }>;
+        const fakeEvent = { detail: data } as CustomEvent<{
+          idToken: string;
+          email: string;
+          name: string;
+        }>;
         handleNativeGoogleAuth(fakeEvent);
       } catch (e) {
         console.error("Failed to parse native auth data:", e);
