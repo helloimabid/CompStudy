@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { account } from "@/lib/appwrite";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -98,6 +99,57 @@ export default function LoginPage() {
     setForgotPasswordSuccess(false);
     setError("");
   };
+
+  // Handle native app Google auth (from Expo mobile app)
+  useEffect(() => {
+    const handleNativeGoogleAuth = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ idToken: string; email: string; name: string }>;
+      const { idToken, email, name } = customEvent.detail;
+
+      try {
+        const response = await fetch("/api/auth/google-native", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken, email, name }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Use the token to create a client-side session
+          await account.createSession(data.userId, data.secret);
+          window.location.href = "/dashboard";
+        } else {
+          setError(data.error || "Native Google auth failed");
+        }
+      } catch (error) {
+        console.error("Native auth failed:", error);
+        setError("Failed to authenticate with Google");
+      }
+    };
+
+    // Check for pending native auth on page load (from localStorage)
+    const nativeAuth = localStorage.getItem("nativeGoogleAuth");
+    if (nativeAuth) {
+      try {
+        const data = JSON.parse(nativeAuth);
+        localStorage.removeItem("nativeGoogleAuth");
+        // Create a fake event to reuse the handler
+        const fakeEvent = { detail: data } as CustomEvent<{ idToken: string; email: string; name: string }>;
+        handleNativeGoogleAuth(fakeEvent);
+      } catch (e) {
+        console.error("Failed to parse native auth data:", e);
+        localStorage.removeItem("nativeGoogleAuth");
+      }
+    }
+
+    // Listen for native Google auth events
+    window.addEventListener("nativeGoogleAuth", handleNativeGoogleAuth);
+
+    return () => {
+      window.removeEventListener("nativeGoogleAuth", handleNativeGoogleAuth);
+    };
+  }, []);
 
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
