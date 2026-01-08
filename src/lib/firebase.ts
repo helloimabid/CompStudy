@@ -1,36 +1,62 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
+import { FirebaseApp } from "firebase/app";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
+};
+
+// Validate Firebase config
+const isFirebaseConfigValid = () => {
+  return (
+    firebaseConfig.projectId &&
+    firebaseConfig.apiKey &&
+    firebaseConfig.appId
+  );
 };
 
 // Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+let app: FirebaseApp | null = null;
+if (isFirebaseConfigValid() && getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else if (getApps().length > 0) {
+  app = getApps()[0];
+}
 
 let messaging: Messaging | null = null;
 
 // Get messaging instance (only in browser)
 export const getMessagingInstance = () => {
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    if (!messaging) {
-      messaging = getMessaging(app);
-    }
-    return messaging;
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    return null;
   }
-  return null;
+  
+  if (!app) {
+    console.error("Firebase app not initialized. Check your environment variables.");
+    return null;
+  }
+  
+  if (!messaging) {
+    messaging = getMessaging(app);
+  }
+  return messaging;
 };
 
 // Request notification permission and get FCM token
 export const requestNotificationPermission = async (): Promise<string | null> => {
   try {
     if (typeof window === "undefined") return null;
+    
+    if (!isFirebaseConfigValid()) {
+      console.error("Firebase configuration is incomplete. Missing required environment variables.");
+      return null;
+    }
     
     const permission = await Notification.requestPermission();
     
@@ -40,7 +66,10 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     }
 
     const messagingInstance = getMessagingInstance();
-    if (!messagingInstance) return null;
+    if (!messagingInstance) {
+      console.error("Failed to get Firebase messaging instance");
+      return null;
+    }
 
     // Get FCM token
     const token = await getToken(messagingInstance, {
