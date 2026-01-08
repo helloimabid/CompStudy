@@ -7,12 +7,9 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import clsx from "clsx";
 
 export default function NotificationBell() {
-  const {
-    isSupported,
-    permissionStatus,
-    enableNotifications,
-  } = usePushNotifications();
-  
+  const { isSupported, permissionStatus, enableNotifications } =
+    usePushNotifications();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
