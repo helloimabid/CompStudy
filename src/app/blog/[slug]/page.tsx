@@ -18,6 +18,8 @@ import {
 } from "@/lib/blog";
 import EmailSubscription from "@/components/EmailSubscription";
 
+export const runtime = "edge";
+
 // Category colors
 const categoryColors: Record<string, { bg: string; text: string }> = {
   Productivity: { bg: "bg-indigo-500/10", text: "text-indigo-400" },

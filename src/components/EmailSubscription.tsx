@@ -39,14 +39,15 @@ export default function EmailSubscription({
     setStatus("loading");
 
     try {
-      // Store subscription in Appwrite database
-      // This creates a subscriber record that can be used with Appwrite Messaging
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Save directly to Appwrite database
       await databases.createDocument(
         DB_ID,
         COLLECTIONS.NEWSLETTER_SUBSCRIBERS,
         ID.unique(),
         {
-          email: email.toLowerCase().trim(),
+          email: normalizedEmail,
           topic: topic,
           subscribedAt: new Date().toISOString(),
           status: "active",
@@ -54,7 +55,7 @@ export default function EmailSubscription({
       );
 
       setStatus("success");
-      setMessage("You're subscribed! Check your inbox for a confirmation.");
+      setMessage("You're subscribed! Thank you for joining us.");
       setEmail("");
     } catch (error: any) {
       console.error("Subscription error:", error);
