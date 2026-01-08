@@ -23,6 +23,7 @@ import {
   Layout,
   CheckSquare,
   ListTodo,
+  Shield,
 } from "lucide-react";
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1969,54 +1970,63 @@ export default function StudyTimer({
               )}
 
               {/* Strict Mode Toggle */}
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900/80 rounded-lg px-3 py-1.5 border border-white/5">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-zinc-900/80 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 border border-white/5">
                 <button
                   onClick={() => setStrictMode(!strictMode)}
                   className={clsx(
-                    "w-8 h-4 rounded-full transition-colors relative",
+                    "w-7 sm:w-8 h-3.5 sm:h-4 rounded-full transition-colors relative",
                     strictMode ? "bg-indigo-600" : "bg-zinc-700"
                   )}
                   disabled={isActive}
+                  title="Strict Mode - Pauses when you leave the tab"
                 >
                   <div
                     className={clsx(
-                      "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all",
-                      strictMode ? "left-4" : "left-0.5"
+                      "absolute top-0.5 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-white transition-all",
+                      strictMode ? "left-3.5 sm:left-4" : "left-0.5"
                     )}
                   ></div>
                 </button>
-                <span className="text-xs font-medium text-zinc-400">
-                  Strict
+                <span className="text-[10px] sm:text-xs font-medium text-zinc-400 flex items-center gap-0.5">
+                  <Shield size={12} className="sm:hidden" />
+                  <span className="hidden sm:inline">Strict</span>
                 </span>
               </div>
 
               {/* Public/Private Toggle */}
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900/80 rounded-lg px-3 py-1.5 border border-white/5">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-zinc-900/80 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 border border-white/5">
                 <button
                   onClick={() =>
                     setPrivacy(privacy === "public" ? "private" : "public")
                   }
                   className={clsx(
-                    "w-8 h-4 rounded-full transition-colors relative",
+                    "w-7 sm:w-8 h-3.5 sm:h-4 rounded-full transition-colors relative",
                     privacy === "public" ? "bg-green-600" : "bg-zinc-700"
                   )}
                   disabled={isActive}
+                  title={
+                    privacy === "public"
+                      ? "Session is visible to others"
+                      : "Session is private"
+                  }
                 >
                   <div
                     className={clsx(
-                      "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all",
-                      privacy === "public" ? "left-4" : "left-0.5"
+                      "absolute top-0.5 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-white transition-all",
+                      privacy === "public" ? "left-3.5 sm:left-4" : "left-0.5"
                     )}
                   ></div>
                 </button>
-                <span className="text-xs font-medium text-zinc-400 flex items-center gap-1">
+                <span className="text-[10px] sm:text-xs font-medium text-zinc-400 flex items-center gap-0.5">
                   {privacy === "public" ? (
                     <>
-                      <Globe size={10} /> Live
+                      <Globe size={10} />
+                      <span className="hidden sm:inline">Live</span>
                     </>
                   ) : (
                     <>
-                      <Lock size={10} /> Private
+                      <Lock size={10} />
+                      <span className="hidden sm:inline">Private</span>
                     </>
                   )}
                 </span>
