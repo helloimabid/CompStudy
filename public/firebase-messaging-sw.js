@@ -2,17 +2,17 @@
 // This file MUST be in the public folder
 
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"
 );
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-messaging-compat.js"
 );
 
 firebase.initializeApp({
   apiKey: "AIzaSyCUL9CJXpFP4P0WOwpwFefPejrDdZ14_II",
   authDomain: "starter-b22ff.firebaseapp.com",
   projectId: "starter-b22ff",
-  storageBucket: "starter-b22ff.firebasestorage.app",
+  storageBucket: "starter-b22ff.appspot.com",
   messagingSenderId: "639564716189",
   appId: "1:639564716189:web:a976ae69f5fa7db2dd5c74",
   measurementId: "G-SDZY08GKPS",
