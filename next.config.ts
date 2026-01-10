@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* SEO Optimizations */
+  /* SEO Optimizations */  
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

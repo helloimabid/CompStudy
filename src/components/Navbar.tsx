@@ -149,7 +149,7 @@ export default function Navbar() {
     { href: "/features", label: "Features" },
     { href: "/about", label: "About" },
     { href: "/blog", label: "Blog" },
-    { href: "/download", label: "📱 Download App" },
+    { href: "https://app.compstudy.tech", label: "📱 Download App" },
     { href: "/faq", label: "FAQ" },
     { href: "/contact", label: "Contact" },
     { href: "/support", label: "☕ Support" },
