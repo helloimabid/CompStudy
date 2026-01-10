@@ -13,6 +13,7 @@ import Image from "next/image";
 import { AuthProvider } from "@/context/AuthContext";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -321,6 +322,7 @@ export default function RootLayout({
             <Navbar />
 
             {children}
+            <PushNotificationManager />
 
             {/* Footer */}
             <footer className="py-24 text-center bg-black relative border-t border-white/5">

@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage } from 'appwrite';
+import { Client, Account, Databases, Storage, Messaging } from 'appwrite';
 
 const client = new Client();
 
@@ -9,6 +9,7 @@ client
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
+export const messaging = new Messaging(client);
 export { client };
 
 export const DB_ID = 'compstudy-db';

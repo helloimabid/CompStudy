@@ -5,7 +5,7 @@ import { ArrowRight, Flame, Globe, BarChart2, Trophy } from "lucide-react";
 import LiveBadge from "@/components/LiveBadge";
 import LeaderboardWidget from "@/components/LeaderboardWidget";
 import AdSense from "@/components/AdSense";
-import { UpgradeBanner } from "@/components/UpgradeBanner";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { Metadata } from "next";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
@@ -79,10 +79,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 text-center relative z-10">
           {/* Live Badge */}
           <LiveBadge />
-          
-          {/* Announcement Banner */}
-          <div className="mb-6">
-            <UpgradeBanner />
+
+          <div className="mt-4 flex justify-center">
+            <AnnouncementBanner />
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium text-white tracking-tight mb-4 md:mb-6 leading-[1.1]">

@@ -6,12 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
-import { Menu, X, ChevronDown, Search, User } from "lucide-react";
+import { Menu, X, ChevronDown, Search, User, Bell } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query } from "appwrite";
-import NotificationBell from "./NotificationBell";
+import NotificationDropdown from "./NotificationDropdown";
 
 interface DropdownProps {
   label: string;
@@ -216,74 +216,6 @@ export default function Navbar() {
             >
               <Search size={16} />
             </button>
-
-            {/* Notification Bell */}
-            {user && <NotificationBell />}
-            <AnimatePresence>
-              {showSearch && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 mt-2 w-72 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
-                >
-                  <div className="p-3 border-b border-white/5">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
-                      <Search size={14} className="text-zinc-500" />
-                      <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchQuery}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {searching ? (
-                      <div className="p-4 text-center text-zinc-500 text-sm">
-                        Searching...
-                      </div>
-                    ) : searchResults.length > 0 ? (
-                      searchResults.map((profile) => (
-                        <Link
-                          key={profile.$id}
-                          href={`/profile/${profile.userId}`}
-                          onClick={() => {
-                            setShowSearch(false);
-                            setSearchQuery("");
-                            setSearchResults([]);
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                            {profile.username?.[0]?.toUpperCase() || "U"}
-                          </div>
-                          <div>
-                            <p className="text-sm text-white font-medium">
-                              {profile.username}
-                            </p>
-                            <p className="text-xs text-zinc-500">
-                              {profile.totalHours?.toFixed(1) || 0}h studied
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : searchQuery.length >= 2 ? (
-                      <div className="p-4 text-center text-zinc-500 text-sm">
-                        No users found
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center text-zinc-500 text-sm">
-                        Type to search users
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           <div
@@ -315,6 +247,8 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center gap-3">
             <>
+              {user && <NotificationDropdown />}
+
               {user ? (
                 <>
                   <Link
