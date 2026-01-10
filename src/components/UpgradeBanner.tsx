@@ -64,7 +64,7 @@ export function UpgradeBanner({ className }: UpgradeBannerProps) {
           Query.equal('isActive', true),
           Query.or([
             Query.isNull('startDate'),
-            Query.lessThanOrEqual('startDate', now)
+            Query.lessThanEqual('startDate', now)
           ]),
           Query.or([
             Query.isNull('endDate'),
@@ -76,7 +76,7 @@ export function UpgradeBanner({ className }: UpgradeBannerProps) {
       );
 
       if (response.documents.length > 0) {
-        setAnnouncement(response.documents[0] as Announcement);
+        setAnnouncement(response.documents[0] as unknown as Announcement);
       }
     } catch (error) {
       console.error('Failed to fetch announcement:', error);
@@ -103,12 +103,12 @@ export function UpgradeBanner({ className }: UpgradeBannerProps) {
       opacity: 1,
       rotate: 360,
       transition: {
-        x: { duration: 0.3, ease: "easeOut" },
-        y: { duration: 0.3, ease: "easeOut" },
+        x: { duration: 0.3, ease: "easeOut" as const },
+        y: { duration: 0.3, ease: "easeOut" as const },
         opacity: { duration: 0.3 },
         rotate: {
           duration: 1,
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 10,
         },
