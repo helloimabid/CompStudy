@@ -37,4 +37,6 @@ export const COLLECTIONS = {
     NEWSLETTER_SUBSCRIBERS: 'newsletter_subscribers',
     BLOG_POSTS: 'blog_posts',
     FCM_TOKENS: 'fcm_tokens',
+    ANNOUNCEMENTS: 'announcements',
+    APP_LINKS: 'app_links',
 };
