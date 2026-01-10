@@ -90,7 +90,7 @@ export function useFCM() {
         // Register token with Appwrite
         // Note: You need to set up the FCM Provider in Appwrite Console and get the Provider ID.
         // Assuming 'fcm' is the provider ID or passed via env.
-        const providerId = process.env.NEXT_PUBLIC_APPWRITE_FCM_PROVIDER_ID || 'fcm'; 
+        const providerId = process.env.NEXT_PUBLIC_APPWRITE_FCM_PROVIDER_ID || 'expo'; 
         
         try {
             // Check if we already have a target for this token?
