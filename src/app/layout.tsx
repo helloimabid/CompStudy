@@ -47,6 +47,9 @@ const electrolize = Electrolize({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://compstudy.tech"),
+  alternates: {
+    canonical: "https://compstudy.tech",
+  },
   title: {
     default: "CompStudy - Free Online Study Timer & Pomodoro Focus App",
     template: "%s | CompStudy",
@@ -332,11 +335,57 @@ export default function RootLayout({
               ></div>
 
               <div
-                className="max-w-2xl mx-auto px-6 relative z-10"
+                className="max-w-7xl mx-auto px-6 relative z-10"
                 suppressHydrationWarning
               >
+                {/* Footer Links Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16 text-left">
+                  <div>
+                    <h3 className="text-zinc-200 font-semibold mb-4 text-sm">Study Tools</h3>
+                    <ul className="space-y-2 text-xs text-zinc-400">
+                      <li><a href="/pomodoro-timer" className="hover:text-zinc-200 transition-colors">Pomodoro Timer</a></li>
+                      <li><a href="/study-timer" className="hover:text-zinc-200 transition-colors">Study Timer</a></li>
+                      <li><a href="/timer" className="hover:text-zinc-200 transition-colors">Timer</a></li>
+                      <li><a href="/25-minute-timer" className="hover:text-zinc-200 transition-colors">25 Minute Timer</a></li>
+                      <li><a href="/stopwatch" className="hover:text-zinc-200 transition-colors">Stopwatch</a></li>
+                      <li><a href="/online-stopwatch" className="hover:text-zinc-200 transition-colors">Online Stopwatch</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-zinc-200 font-semibold mb-4 text-sm">Features</h3>
+                    <ul className="space-y-2 text-xs text-zinc-400">
+                      <li><a href="/pomodoro-timer-online" className="hover:text-zinc-200 transition-colors">Pomodoro Timer Online</a></li>
+                      <li><a href="/aesthetic-pomodoro-timer" className="hover:text-zinc-200 transition-colors">Aesthetic Pomodoro</a></li>
+                      <li><a href="/pomodoro" className="hover:text-zinc-200 transition-colors">Pomodoro</a></li>
+                      <li><a href="/pomofocus" className="hover:text-zinc-200 transition-colors">PomoFocus</a></li>
+                      <li><a href="/features" className="hover:text-zinc-200 transition-colors">All Features</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-zinc-200 font-semibold mb-4 text-sm">App Pages</h3>
+                    <ul className="space-y-2 text-xs text-zinc-400">
+                      <li><a href="/dashboard" className="hover:text-zinc-200 transition-colors">Dashboard</a></li>
+                      <li><a href="/leaderboards" className="hover:text-zinc-200 transition-colors">Leaderboards</a></li>
+                      <li><a href="/analytics" className="hover:text-zinc-200 transition-colors">Analytics</a></li>
+                      <li><a href="/curriculum" className="hover:text-zinc-200 transition-colors">My Curriculum</a></li>
+                      <li><a href="/public-curriculum" className="hover:text-zinc-200 transition-colors">Browse Curricula</a></li>
+                      <li><a href="/create-room" className="hover:text-zinc-200 transition-colors">Create Room</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-zinc-200 font-semibold mb-4 text-sm">About</h3>
+                    <ul className="space-y-2 text-xs text-zinc-400">
+                      <li><a href="/about" className="hover:text-zinc-200 transition-colors">About Us</a></li>
+                      <li><a href="/blog" className="hover:text-zinc-200 transition-colors">Blog</a></li>
+                      <li><a href="/faq" className="hover:text-zinc-200 transition-colors">FAQ</a></li>
+                      <li><a href="/contact" className="hover:text-zinc-200 transition-colors">Contact</a></li>
+                      <li><a href="/support" className="hover:text-zinc-200 transition-colors">Support</a></li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div
-                  className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-zinc-400"
+                  className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-zinc-400"
                   suppressHydrationWarning
                 >
                   <div

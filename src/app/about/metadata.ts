@@ -17,4 +17,7 @@ export const metadata: Metadata = {
       "Learn about CompStudy's mission to revolutionize online studying and help students achieve their academic goals.",
     type: "website",
   },
+  alternates: {
+    canonical: "https://compstudy.tech/about",
+  },
 };

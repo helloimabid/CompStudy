@@ -20,4 +20,7 @@ export const metadata: Metadata = {
       "Discover proven study techniques, productivity tips, and academic success strategies.",
     type: "website",
   },
+  alternates: {
+    canonical: "https://compstudy.tech/blog",
+  },
 };

@@ -17,4 +17,7 @@ export const metadata: Metadata = {
       "Find answers to common questions about CompStudy's study tools and features.",
     type: "website",
   },
+  alternates: {
+    canonical: "https://compstudy.tech/faq",
+  },
 };
