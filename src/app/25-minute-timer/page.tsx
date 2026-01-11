@@ -1,10 +1,17 @@
 "use client";
 
-import { Metadata } from "next";
+import Head from "next/head";
 import StudyTimer from "@/components/StudyTimer";
 
 export default function TwentyFiveMinuteTimerPage() {
   return (
+    <>
+    <Head>
+      <title>25 Minute Timer - Perfect Pomodoro Focus Session</title>
+      <meta name="description" content="Set your timer for 25 minutes and focus. The ideal duration for deep work based on the Pomodoro Technique." />
+      <link rel="canonical" href="https://compstudy.tech/25-minute-timer" />
+      <meta name="keywords" content="25 minute timer, 25 min timer, pomodoro 25 minutes, study timer 25 minutes" />
+    </Head>
     <div className="min-h-screen bg-[#050505] pt-14">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">
@@ -19,5 +26,6 @@ export default function TwentyFiveMinuteTimerPage() {
         <StudyTimer />
       </div>
     </div>
+    </>
   );
 }

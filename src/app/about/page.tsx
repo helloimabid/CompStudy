@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import EmailSubscription from "@/components/EmailSubscription";
+import Head from "next/head";
 
 const values = [
   {
@@ -64,6 +65,13 @@ const milestones = [
 
 export default function AboutPage() {
   return (
+    <>
+    <Head>
+      <title>About CompStudy - Our Mission & Values</title>
+      <meta name="description" content="Learn about CompStudy's mission to make education accessible and effective for students worldwide." />
+      <link rel="canonical" href="https://compstudy.tech/about" />
+      <meta name="keywords" content="about compstudy, compstudy mission, compstudy values, study app about" />
+    </Head>
     <main className="min-h-screen bg-[#050505]">
       {/* Hero Section - Asymmetric Bento */}
       <section className="relative pt-32 pb-24 overflow-hidden">
@@ -457,5 +465,6 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }
