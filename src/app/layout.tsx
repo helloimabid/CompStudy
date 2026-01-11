@@ -345,6 +345,7 @@ export default function RootLayout({
                       <li><a href="/timer" className="hover:text-zinc-200 transition-colors">Timer</a></li>
                       <li><a href="/25-minute-timer" className="hover:text-zinc-200 transition-colors">25 Minute Timer</a></li>
                       <li><a href="/stopwatch" className="hover:text-zinc-200 transition-colors">Stopwatch</a></li>
+                      <li><a href="/stop-watch" className="hover:text-zinc-200 transition-colors">Stop Watch</a></li>
                       <li><a href="/online-stopwatch" className="hover:text-zinc-200 transition-colors">Online Stopwatch</a></li>
                     </ul>
                   </div>
