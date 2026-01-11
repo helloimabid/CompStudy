@@ -46,6 +46,5 @@ scripts/
 worker/
 
 email-templates/
-# public/ads.txt
-compstudy_08-jan-2026_duplicate-pages-without_2026-01-08_14-41-04.csv
-compstudy_08-jan-2026_orphan-page-(has-no-inc_2026-01-08_14-42-19.csv
+
+.gitignore

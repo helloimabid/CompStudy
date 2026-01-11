@@ -47,9 +47,6 @@ const electrolize = Electrolize({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://compstudy.tech"),
-  alternates: {
-    canonical: "https://compstudy.tech",
-  },
   title: {
     default: "CompStudy - Free Online Study Timer & Pomodoro Focus App",
     template: "%s | CompStudy",

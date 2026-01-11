@@ -50,6 +50,9 @@ export async function generateMetadata({
     title: post.metaTitle || `${post.title} | CompStudy Blog`,
     description: post.metaDescription || post.excerpt,
     keywords: post.tags,
+    alternates: {
+      canonical: `https://compstudy.tech/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,

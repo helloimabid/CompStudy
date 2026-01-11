@@ -2,6 +2,6 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: "https://compstudy.tech",
+    canonical: "https://compstudy.tech/",
   },
 };
