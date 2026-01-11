@@ -15,13 +15,19 @@ import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 
-const inter = Inter({ subsets: ["latin"] });
+// Use 'optional' for critical fonts to prevent CLS
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: "optional", // Prevents layout shift
+  adjustFontFallback: true,
+});
 
-// Timer fonts
+// Timer fonts - use 'swap' for these as they're not immediately visible
 const orbitron = Orbitron({
   subsets: ["latin"],
   variable: "--font-orbitron",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const quantico = Quantico({
@@ -29,6 +35,7 @@ const quantico = Quantico({
   subsets: ["latin"],
   variable: "--font-quantico",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const audiowide = Audiowide({
@@ -36,6 +43,7 @@ const audiowide = Audiowide({
   subsets: ["latin"],
   variable: "--font-audiowide",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const electrolize = Electrolize({
@@ -43,6 +51,7 @@ const electrolize = Electrolize({
   subsets: ["latin"],
   variable: "--font-electrolize",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -179,9 +188,9 @@ export default function RootLayout({
           href="https://sgp.cloud.appwrite.io"
           crossOrigin="anonymous"
         />
-        {/* Zen Dots font from Google Fonts CDN */}
+        {/* Zen Dots font with display=optional to prevent CLS */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=optional"
           rel="stylesheet"
         />
 

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* SEO Optimizations */  
+  /* SEO & Performance Optimizations */  
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -37,6 +37,26 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Cache static assets aggressively
+      {
+        source: '/(.*).(jpg|jpeg|png|gif|svg|webp|avif|ico|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache CSS and JS with revalidation
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
 
@@ -45,6 +65,13 @@ const nextConfig: NextConfig = {
   
   // Enable compression
   compress: true,
+
+  // Production optimizations
+  swcMinify: true,
+  poweredByHeader: false,
+
+  // Optimize output
+  output: 'standalone',
 };
 
 export default nextConfig;
