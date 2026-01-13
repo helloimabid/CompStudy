@@ -178,6 +178,7 @@ export default function RootLayout({
       <head>
         {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <meta name="google-adsense-account" content="ca-pub-9710571190649081" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
