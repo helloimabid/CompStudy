@@ -271,7 +271,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         if (existing.documents.length > 0) {
           const currentUserId = existing.documents[0].userId;
           const newUserId = user?.$id || null;
-          
+
           // Only update if userId actually changed
           if (currentUserId !== newUserId) {
             await databases.updateDocument(
