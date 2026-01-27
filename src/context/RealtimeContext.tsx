@@ -258,6 +258,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       const visitorId = getVisitorId();
       if (!visitorId) return;
 
+      // Small delay to ensure visitor document is created first
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       try {
         const existing = await databases.listDocuments(
           DB_ID,
@@ -266,24 +269,29 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         );
 
         if (existing.documents.length > 0) {
-          await databases.updateDocument(
-            DB_ID,
-            COLLECTIONS.VISITORS,
-            existing.documents[0].$id,
-            {
-              userId: user?.$id || null,
-            },
-          );
+          const currentUserId = existing.documents[0].userId;
+          const newUserId = user?.$id || null;
+          
+          // Only update if userId actually changed
+          if (currentUserId !== newUserId) {
+            await databases.updateDocument(
+              DB_ID,
+              COLLECTIONS.VISITORS,
+              existing.documents[0].$id,
+              {
+                userId: newUserId,
+              },
+            );
+            console.log("Updated visitor userId to:", newUserId);
+          }
         }
       } catch (error) {
         console.error("Failed to update visitor userId:", error);
       }
     };
 
-    // Only update if we have a visitorId (visitor already registered)
-    if (getVisitorId()) {
-      updateVisitorUserId();
-    }
+    // Run the update
+    updateVisitorUserId();
   }, [user?.$id]); // Run when user changes
 
   return (
