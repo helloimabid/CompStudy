@@ -89,7 +89,7 @@ export default function StudyTimer({
   const [defaultBreakDuration, setDefaultBreakDuration] = useState(5 * 60); // 5 minutes
   const [showStrictModeWarning, setShowStrictModeWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(
-    null
+    null,
   );
 
   const router = useRouter();
@@ -119,7 +119,7 @@ export default function StudyTimer({
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.CURRICULUM,
-        [Query.equal("userId", user.$id)]
+        [Query.equal("userId", user.$id)],
       );
       setCurriculums(response.documents);
     } catch (error) {
@@ -133,7 +133,7 @@ export default function StudyTimer({
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.SUBJECTS,
-        [Query.equal("userId", user.$id)]
+        [Query.equal("userId", user.$id)],
       );
       setSubjects(response.documents);
     } catch (error) {
@@ -147,7 +147,7 @@ export default function StudyTimer({
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.TOPICS,
-        [Query.equal("userId", user.$id)]
+        [Query.equal("userId", user.$id)],
       );
       setTopics(response.documents);
     } catch (error) {
@@ -161,7 +161,7 @@ export default function StudyTimer({
   const [activePeers, setActivePeers] = useState(0);
   const [peers, setPeers] = useState<any[]>([]);
   const [profilePicture, setProfilePicture] = useState<Profile | undefined>(
-    undefined
+    undefined,
   );
   const [profileStats, setProfileStats] = useState<{
     streak: number;
@@ -220,7 +220,7 @@ export default function StudyTimer({
         defaultBreakDuration,
         mode,
         targetDuration,
-      })
+      }),
     );
   }, [
     themeColor,
@@ -247,7 +247,7 @@ export default function StudyTimer({
             Query.equal("status", "active"),
             Query.orderDesc("startTime"),
             Query.limit(5),
-          ]
+          ],
         );
         setPeers(result.documents);
         setActivePeers(result.total);
@@ -263,7 +263,7 @@ export default function StudyTimer({
       () => {
         // Refetch on any change to study sessions to keep count accurate
         fetchActivePeers();
-      }
+      },
     );
 
     return () => {
@@ -279,7 +279,7 @@ export default function StudyTimer({
         const profiles = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.PROFILES,
-          [Query.equal("userId", user.$id)]
+          [Query.equal("userId", user.$id)],
         );
 
         if (profiles.documents.length > 0) {
@@ -332,7 +332,7 @@ export default function StudyTimer({
               // Calculate additional time that passed while page was closed
               const savedTimestamp = parsed.savedAt || Date.now();
               const additionalTime = Math.floor(
-                (Date.now() - savedTimestamp) / 1000
+                (Date.now() - savedTimestamp) / 1000,
               );
               const totalElapsed = savedElapsed + additionalTime;
 
@@ -346,19 +346,19 @@ export default function StudyTimer({
                   {
                     status: "active",
                     elapsedTime: totalElapsed,
-                  }
+                  },
                 );
 
                 // If update failed (document not found), create a new live session
                 if (!updateSuccess && parsed.sessionId) {
                   console.log(
-                    "Live session not found on reload, creating new one..."
+                    "Live session not found on reload, creating new one...",
                   );
                   const newLiveSessionId = await createLiveSession({
                     subject: parsed.subject || "Focus Session",
                     goal: parsed.goal || "",
                     startTime: new Date(
-                      Date.now() - totalElapsed * 1000
+                      Date.now() - totalElapsed * 1000,
                     ).toISOString(),
                     duration:
                       parsed.mode === "timer"
@@ -369,7 +369,7 @@ export default function StudyTimer({
                   if (newLiveSessionId) {
                     setLiveSessionId(newLiveSessionId);
                     console.log(
-                      "New live session created on reload:"
+                      "New live session created on reload:",
                       // newLiveSessionId
                     );
                   }
@@ -377,13 +377,13 @@ export default function StudyTimer({
               } else if (parsed.sessionId) {
                 // No liveSessionId in localStorage, create one
                 console.log(
-                  "No live session ID found, creating new live session..."
+                  "No live session ID found, creating new live session...",
                 );
                 const newLiveSessionId = await createLiveSession({
                   subject: parsed.subject || "Focus Session",
                   goal: parsed.goal || "",
                   startTime: new Date(
-                    Date.now() - totalElapsed * 1000
+                    Date.now() - totalElapsed * 1000,
                   ).toISOString(),
                   duration:
                     parsed.mode === "timer" ? parsed.targetDuration : undefined,
@@ -392,7 +392,7 @@ export default function StudyTimer({
                 if (newLiveSessionId) {
                   setLiveSessionId(newLiveSessionId);
                   console.log(
-                    "New live session created on reload:"
+                    "New live session created on reload:",
                     // newLiveSessionId
                   );
                 }
@@ -408,13 +408,13 @@ export default function StudyTimer({
                     {
                       duration: totalElapsed,
                       status: "active",
-                    }
+                    },
                   )
                   .catch((err) =>
                     console.error(
                       "Failed to update study session on mount:",
-                      err
-                    )
+                      err,
+                    ),
                   );
               }
 
@@ -437,19 +437,19 @@ export default function StudyTimer({
                   {
                     status: "paused",
                     elapsedTime: savedElapsed,
-                  }
+                  },
                 );
 
                 // If update failed (document not found), create a new live session in paused state
                 if (!updateSuccess && parsed.sessionId) {
                   console.log(
-                    "Paused live session not found on reload, creating new one..."
+                    "Paused live session not found on reload, creating new one...",
                   );
                   const newLiveSessionId = await createLiveSession({
                     subject: parsed.subject || "Focus Session",
                     goal: parsed.goal || "",
                     startTime: new Date(
-                      Date.now() - savedElapsed * 1000
+                      Date.now() - savedElapsed * 1000,
                     ).toISOString(),
                     duration:
                       parsed.mode === "timer"
@@ -465,7 +465,7 @@ export default function StudyTimer({
                       elapsedTime: savedElapsed,
                     });
                     console.log(
-                      "New paused live session created on reload:"
+                      "New paused live session created on reload:",
                       // newLiveSessionId
                     );
                   }
@@ -473,13 +473,13 @@ export default function StudyTimer({
               } else if (parsed.sessionId) {
                 // No liveSessionId in localStorage, create one
                 console.log(
-                  "No live session ID found for paused session, creating new one..."
+                  "No live session ID found for paused session, creating new one...",
                 );
                 const newLiveSessionId = await createLiveSession({
                   subject: parsed.subject || "Focus Session",
                   goal: parsed.goal || "",
                   startTime: new Date(
-                    Date.now() - savedElapsed * 1000
+                    Date.now() - savedElapsed * 1000,
                   ).toISOString(),
                   duration:
                     parsed.mode === "timer" ? parsed.targetDuration : undefined,
@@ -493,7 +493,7 @@ export default function StudyTimer({
                     elapsedTime: savedElapsed,
                   });
                   console.log(
-                    "New paused live session created on reload:"
+                    "New paused live session created on reload:",
                     // newLiveSessionId
                   );
                 }
@@ -509,13 +509,13 @@ export default function StudyTimer({
                     {
                       duration: savedElapsed,
                       status: "active",
-                    }
+                    },
                   )
                   .catch((err) =>
                     console.error(
                       "Failed to update paused session on mount:",
-                      err
-                    )
+                      err,
+                    ),
                   );
               }
             } else {
@@ -564,7 +564,10 @@ export default function StudyTimer({
             status: "active",
           })
           .catch((err) =>
-            console.error("Failed to update session on visibility change:", err)
+            console.error(
+              "Failed to update session on visibility change:",
+              err,
+            ),
           );
       }
     };
@@ -593,7 +596,7 @@ export default function StudyTimer({
           targetDuration,
           privacy,
           savedAt: Date.now(), // Timestamp when this was saved
-        })
+        }),
       );
     } else {
       localStorage.removeItem("activeStudySession");
@@ -657,11 +660,11 @@ export default function StudyTimer({
         },
         [
           Permission.read(
-            privacy === "public" ? Role.any() : Role.user(user.$id)
+            privacy === "public" ? Role.any() : Role.user(user.$id),
           ),
           Permission.update(Role.user(user.$id)),
           Permission.delete(Role.user(user.$id)),
-        ]
+        ],
       );
       // console.log("Live session created successfully:", liveSession.$id);
       return liveSession.$id;
@@ -681,7 +684,7 @@ export default function StudyTimer({
     updates: {
       status?: "active" | "paused" | "completed";
       elapsedTime?: number;
-    }
+    },
   ) => {
     if (!liveId) {
       console.warn("Cannot update live session: liveId is null or empty");
@@ -710,7 +713,7 @@ export default function StudyTimer({
             subject: subject || "Focus Session",
             goal: goal || "",
             startTime: new Date(
-              Date.now() - (updates.elapsedTime || 0) * 1000
+              Date.now() - (updates.elapsedTime || 0) * 1000,
             ).toISOString(),
             duration: mode === "timer" ? targetDuration : undefined,
             sessionType: sessionType,
@@ -775,7 +778,9 @@ export default function StudyTimer({
   // Toggle goal completion
   const toggleGoalCompletion = (goalId: string) => {
     setSessionGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, completed: !g.completed } : g))
+      prev.map((g) =>
+        g.id === goalId ? { ...g, completed: !g.completed } : g,
+      ),
     );
   };
 
@@ -794,7 +799,7 @@ export default function StudyTimer({
       const profiles = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.PROFILES,
-        [Query.equal("userId", user.$id)]
+        [Query.equal("userId", user.$id)],
       );
 
       if (profiles.documents.length > 0) {
@@ -825,7 +830,7 @@ export default function StudyTimer({
           Query.equal("status", "scheduled"),
           Query.greaterThanEqual("scheduledAt", today.toISOString()),
           Query.orderAsc("scheduledAt"),
-        ]
+        ],
       );
       setSchedule(response.documents as any);
     } catch (error) {
@@ -837,7 +842,7 @@ export default function StudyTimer({
 
   const startSession = async (
     scheduledSessionId?: string,
-    overrides?: { type?: SessionType; duration?: number; subject?: string }
+    overrides?: { type?: SessionType; duration?: number; subject?: string },
   ) => {
     if (!user) return;
 
@@ -943,7 +948,7 @@ export default function StudyTimer({
           DB_ID,
           COLLECTIONS.STUDY_SESSIONS,
           scheduledSessionId,
-          docData
+          docData,
         );
       } else {
         session = await databases.createDocument(
@@ -953,11 +958,11 @@ export default function StudyTimer({
           docData,
           [
             Permission.read(
-              privacy === "public" ? Role.any() : Role.user(user.$id)
+              privacy === "public" ? Role.any() : Role.user(user.$id),
             ),
             Permission.update(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
-          ]
+          ],
         );
       }
 
@@ -977,12 +982,12 @@ export default function StudyTimer({
 
       if (!newLiveSessionId) {
         console.error(
-          "Failed to create live session - session will continue but won't be visible to others"
+          "Failed to create live session - session will continue but won't be visible to others",
         );
         // Show a warning to the user that their session won't be public
         if (privacy === "public") {
           alert(
-            "Warning: Your session is running locally but may not be visible to others. Check your internet connection."
+            "Warning: Your session is running locally but may not be visible to others. Check your internet connection.",
           );
         }
       }
@@ -1017,10 +1022,10 @@ export default function StudyTimer({
                   session.$id,
                   {
                     duration: diff,
-                  }
+                  },
                 )
                 .catch((err) =>
-                  console.error("Failed to update study session:", err)
+                  console.error("Failed to update study session:", err),
                 );
             }
           }
@@ -1130,7 +1135,7 @@ export default function StudyTimer({
           status: "completed",
           endTime: new Date().toISOString(),
           duration: elapsed,
-        }
+        },
       );
 
       // Update Profile Stats
@@ -1138,7 +1143,7 @@ export default function StudyTimer({
         const profiles = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.PROFILES,
-          [Query.equal("userId", user.$id)]
+          [Query.equal("userId", user.$id)],
         );
 
         if (profiles.documents.length > 0) {
@@ -1162,7 +1167,7 @@ export default function StudyTimer({
             lastStudyDate.setHours(0, 0, 0, 0);
             const daysSinceLastStudy = Math.floor(
               (today.getTime() - lastStudyDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24),
             );
 
             if (daysSinceLastStudy === 0) {
@@ -1188,7 +1193,7 @@ export default function StudyTimer({
               xp: (profile.xp || 0) + xpGained,
               streak: newStreak,
               lastStudyDate: new Date().toISOString(),
-            }
+            },
           );
 
           if (onSessionComplete) {
@@ -1212,7 +1217,7 @@ export default function StudyTimer({
 
   const handleSaveDesigner = async (
     blocks: SessionBlock[],
-    startTimeStr: string
+    startTimeStr: string,
   ) => {
     if (!user) {
       console.error("No user logged in");
@@ -1264,7 +1269,7 @@ export default function StudyTimer({
             Permission.read(Role.user(user.$id)),
             Permission.update(Role.user(user.$id)),
             Permission.delete(Role.user(user.$id)),
-          ]
+          ],
         );
 
         // Advance time for the next block
@@ -1290,7 +1295,7 @@ export default function StudyTimer({
     // Set up the session with first block's details
     setSubject(
       firstBlock.subject ||
-        (firstBlock.type === "break" ? "Break" : "Focus Session")
+        (firstBlock.type === "break" ? "Break" : "Focus Session"),
     );
     setGoal(firstBlock.goal || "");
     setSessionType(firstBlock.type);
@@ -1316,7 +1321,7 @@ export default function StudyTimer({
     if (soundEnabled) {
       // Simple beep or custom sound
       const audio = new Audio(
-        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
       );
       audio.play().catch((e) => console.error("Audio play failed", e));
     }
@@ -1362,7 +1367,7 @@ export default function StudyTimer({
         pauseSession();
         // You could add a toast notification here
         const audio = new Audio(
-          "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+          "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
         );
         audio.play().catch(() => {});
         alert("Strict Mode: Distraction Detected! Session Paused.");
@@ -1378,7 +1383,7 @@ export default function StudyTimer({
             // If fullscreen fails, pause the session
             pauseSession();
             const audio = new Audio(
-              "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+              "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
             );
             audio.play().catch(() => {});
             alert("Strict Mode: Fullscreen is required! Session Paused.");
@@ -1446,7 +1451,7 @@ export default function StudyTimer({
 
     // Play warning sound
     const audio = new Audio(
-      "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+      "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
     );
     audio.play().catch(() => {});
 
@@ -1481,7 +1486,7 @@ export default function StudyTimer({
             Query.equal("status", "active"),
             Query.orderDesc("startTime"),
             Query.limit(1),
-          ]
+          ],
         );
 
         if (sessions.documents.length > 0) {
@@ -1512,7 +1517,7 @@ export default function StudyTimer({
             if (startTimeRef.current) {
               const currentNow = Date.now();
               setElapsed(
-                Math.floor((currentNow - startTimeRef.current) / 1000)
+                Math.floor((currentNow - startTimeRef.current) / 1000),
               );
             }
           }, 1000);
@@ -1659,22 +1664,22 @@ export default function StudyTimer({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-[#050505] flex items-center justify-center"
           >
-            {/* Landscape layout for mobile/tablet, vertical for desktop */}
-            <div className="w-full h-full flex landscape:flex-row flex-col items-center justify-center landscape:justify-evenly p-4 sm:p-6 md:p-8 relative overflow-hidden">
+            {/* Centered layout with proper spacing */}
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
               {/* Background Effects */}
               {visualMode !== "minimal" && (
                 <>
                   <div
                     className={clsx(
                       "absolute inset-0 animate-pulse pointer-events-none transition-colors duration-1000",
-                      currentTheme.glow
+                      currentTheme.glow,
                     )}
                   ></div>
                   <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)] pointer-events-none"></div>
                   {visualMode === "cyber" && (
                     <div
                       className={clsx(
-                        "absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none"
+                        "absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none",
                       )}
                     ></div>
                   )}
@@ -1721,7 +1726,7 @@ export default function StudyTimer({
                           onClick={() => toggleGoalCompletion(goal.id)}
                           className={clsx(
                             "flex items-center gap-2 w-full text-left transition-all group",
-                            goal.completed ? "opacity-60" : "opacity-100"
+                            goal.completed ? "opacity-60" : "opacity-100",
                           )}
                         >
                           {goal.completed ? (
@@ -1740,7 +1745,7 @@ export default function StudyTimer({
                               "text-sm transition-all",
                               goal.completed
                                 ? "text-zinc-500 line-through"
-                                : "text-zinc-300 group-hover:text-white"
+                                : "text-zinc-300 group-hover:text-white",
                             )}
                           >
                             {goal.text}
@@ -1758,7 +1763,7 @@ export default function StudyTimer({
 
               {/* Goals Indicator - Mobile/Tablet */}
               {sessionGoals.length > 0 && isActive && (
-                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 lg:hidden">
+                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-10 lg:hidden">
                   <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
                     <ListTodo size={14} className="text-zinc-400" />
                     <span className="text-xs text-zinc-300">
@@ -1769,40 +1774,37 @@ export default function StudyTimer({
                 </div>
               )}
 
-              {/* Main Content Container - Horizontal on landscape, vertical on portrait */}
-              <div className="flex flex-col landscape:flex-row items-center justify-center landscape:justify-evenly landscape:gap-8 w-full h-full landscape:px-8 z-10">
-                {/* Left Section: Session Info (landscape) / Top Section (portrait) */}
-                <div className="flex flex-col items-center landscape:items-start landscape:flex-1 landscape:max-w-xs">
-                  {/* Session Info */}
-                  <div className="text-center landscape:text-left mb-4 landscape:mb-0 z-10 px-4 landscape:px-0">
-                    <h1 className="text-xl landscape:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-1 landscape:mb-2 md:mb-3 line-clamp-2">
-                      {subject || "Focus Session"}
-                    </h1>
-                    <p className="text-zinc-500 text-xs landscape:text-sm sm:text-base md:text-lg">
-                      {sessionType === "break" ? "Break Time" : "Session Time"}
-                    </p>
-                  </div>
-
-                  {/* Progress Bar - Only in portrait or larger screens */}
-                  {mode === "timer" && (
-                    <div className="w-full max-w-[200px] landscape:max-w-full sm:max-w-sm md:max-w-lg lg:max-w-2xl h-1 sm:h-1.5 md:h-2 bg-zinc-800/50 rounded-full mb-4 landscape:mt-4 landscape:mb-0 overflow-hidden z-10">
-                      <div
-                        className={clsx(
-                          "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_20px_currentColor]",
-                          sessionType === "break"
-                            ? "bg-green-500 text-green-500"
-                            : clsx(currentTheme.bg, currentTheme.text)
-                        )}
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                  )}
+              {/* Main Content Container - Vertically stacked and centered */}
+              <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 md:gap-10 lg:gap-12 w-full z-10">
+                {/* Session Info */}
+                <div className="text-center z-10 px-4">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 md:mb-3 line-clamp-2">
+                    {subject || "Focus Session"}
+                  </h1>
+                  <p className="text-zinc-500 text-sm sm:text-base md:text-lg">
+                    {sessionType === "break" ? "Break Time" : "Session Time"}
+                  </p>
                 </div>
 
-                {/* Center Section: Timer Display */}
-                <div className="z-10 landscape:flex-shrink-0 mb-4 landscape:mb-0">
+                {/* Progress Bar */}
+                {mode === "timer" && (
+                  <div className="w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-2xl h-1.5 sm:h-2 bg-zinc-800/50 rounded-full overflow-hidden z-10">
+                    <div
+                      className={clsx(
+                        "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_20px_currentColor]",
+                        sessionType === "break"
+                          ? "bg-green-500 text-green-500"
+                          : clsx(currentTheme.bg, currentTheme.text),
+                      )}
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                )}
+
+                {/* Timer Display - Centered */}
+                <div className="z-10">
                   {timerStyle === "grid" && (
-                    <div className="scale-[0.5] landscape:scale-[0.6] xs:scale-[0.6] sm:scale-75 md:scale-90 lg:scale-110">
+                    <div className="scale-[0.65] xs:scale-75 sm:scale-90 md:scale-100 lg:scale-110 xl:scale-125">
                       <GridTimerDisplay
                         time={
                           mode === "timer"
@@ -1815,7 +1817,7 @@ export default function StudyTimer({
                     </div>
                   )}
                   {timerStyle === "digital" && (
-                    <div className="scale-[0.6] landscape:scale-75 xs:scale-75 sm:scale-90 md:scale-110 lg:scale-125">
+                    <div className="scale-75 xs:scale-90 sm:scale-100 md:scale-110 lg:scale-125 xl:scale-150">
                       <DigitalTimerDisplay
                         time={
                           mode === "timer"
@@ -1830,7 +1832,7 @@ export default function StudyTimer({
                     </div>
                   )}
                   {timerStyle === "circular" && (
-                    <div className="scale-[0.5] landscape:scale-[0.6] xs:scale-[0.6] sm:scale-75 md:scale-90 lg:scale-110">
+                    <div className="scale-[0.65] xs:scale-75 sm:scale-90 md:scale-100 lg:scale-110 xl:scale-125">
                       <CircularTimerDisplay
                         time={
                           mode === "timer"
@@ -1846,7 +1848,7 @@ export default function StudyTimer({
                     </div>
                   )}
                   {timerStyle === "minimal" && (
-                    <div className="scale-75 landscape:scale-90 xs:scale-90 sm:scale-110 md:scale-125 lg:scale-150">
+                    <div className="scale-90 xs:scale-100 sm:scale-110 md:scale-125 lg:scale-150 xl:scale-[1.75]">
                       <MinimalTimerDisplay
                         time={
                           mode === "timer"
@@ -1862,68 +1864,63 @@ export default function StudyTimer({
                   )}
                 </div>
 
-                {/* Right Section: Controls (landscape) / Bottom Section (portrait) */}
-                <div className="flex flex-col items-center landscape:items-end landscape:flex-1 landscape:max-w-xs">
-                  {/* Controls */}
-                  <div className="flex items-center gap-3 landscape:gap-4 sm:gap-6 md:gap-8 z-10">
-                    {!isActive ? (
+                {/* Controls */}
+                <div className="flex items-center gap-4 sm:gap-6 md:gap-8 z-10">
+                  {!isActive ? (
+                    <button
+                      onClick={() => startSession()}
+                      className={clsx(
+                        "px-6 py-3 sm:px-8 sm:py-4 md:px-10 md:py-5 rounded-full font-bold text-base sm:text-lg md:text-xl flex items-center gap-2 sm:gap-3 transition-all shadow-2xl hover:scale-105 active:scale-95",
+                        currentTheme.bg,
+                        "text-white",
+                      )}
+                    >
+                      <Play
+                        size={18}
+                        className="sm:w-6 sm:h-6 md:w-7 md:h-7"
+                        fill="currentColor"
+                      />
+                      Start Focus
+                    </button>
+                  ) : (
+                    <>
                       <button
-                        onClick={() => startSession()}
-                        className={clsx(
-                          "px-4 py-2 landscape:px-5 landscape:py-3 sm:px-8 sm:py-4 md:px-12 md:py-6 rounded-full font-bold text-sm landscape:text-base sm:text-lg md:text-xl flex items-center gap-2 sm:gap-3 transition-all shadow-2xl hover:scale-105 active:scale-95",
-                          currentTheme.bg,
-                          "text-white"
-                        )}
+                        onClick={isPaused ? () => startSession() : pauseSession}
+                        className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-all hover:scale-110 shadow-xl"
                       >
-                        <Play
-                          size={16}
-                          className="landscape:w-5 landscape:h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
-                          fill="currentColor"
-                        />
-                        Start Focus
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          onClick={
-                            isPaused ? () => startSession() : pauseSession
-                          }
-                          className="w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-all hover:scale-110 shadow-xl"
-                        >
-                          {isPaused ? (
-                            <Play
-                              size={20}
-                              className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
-                              fill="currentColor"
-                            />
-                          ) : (
-                            <Pause
-                              size={20}
-                              className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
-                              fill="currentColor"
-                            />
-                          )}
-                        </button>
-                        <button
-                          onClick={stopSession}
-                          className="w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border-2 border-red-500/20 flex items-center justify-center transition-all hover:scale-110 shadow-xl"
-                        >
-                          <Square
-                            size={20}
-                            className="landscape:w-6 landscape:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
+                        {isPaused ? (
+                          <Play
+                            size={22}
+                            className="sm:w-7 sm:h-7 md:w-8 md:h-8"
                             fill="currentColor"
                           />
-                        </button>
-                      </>
-                    )}
-                  </div>
+                        ) : (
+                          <Pause
+                            size={22}
+                            className="sm:w-7 sm:h-7 md:w-8 md:h-8"
+                            fill="currentColor"
+                          />
+                        )}
+                      </button>
+                      <button
+                        onClick={stopSession}
+                        className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border-2 border-red-500/20 flex items-center justify-center transition-all hover:scale-110 shadow-xl"
+                      >
+                        <Square
+                          size={22}
+                          className="sm:w-7 sm:h-7 md:w-8 md:h-8"
+                          fill="currentColor"
+                        />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* Next Session Info */}
               {isActive && nextScheduledSession && (
-                <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
-                  <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
+                <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                  <p className="text-zinc-500 text-xs sm:text-sm">
                     Next:{" "}
                     {nextScheduledSession.subject ||
                       (nextScheduledSession.type === "break"
@@ -1937,8 +1934,8 @@ export default function StudyTimer({
                 !nextScheduledSession &&
                 autoStartBreak &&
                 sessionType === "focus" && (
-                  <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
-                    <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
+                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-xs sm:text-sm">
                       Next: Break ({formatDurationDisplay(defaultBreakDuration)}
                       )
                     </p>
@@ -1948,8 +1945,8 @@ export default function StudyTimer({
                 !nextScheduledSession &&
                 autoStartFocus &&
                 sessionType === "break" && (
-                  <div className="absolute bottom-4 landscape:bottom-2 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
-                    <p className="text-zinc-500 text-[10px] landscape:text-xs sm:text-sm">
+                  <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 text-center z-10 px-4">
+                    <p className="text-zinc-500 text-xs sm:text-sm">
                       Next: Focus Session (
                       {formatDurationDisplay(defaultFocusDuration)})
                     </p>
@@ -1967,7 +1964,7 @@ export default function StudyTimer({
           <div
             className={clsx(
               "flex-1 bg-[#0a0a0a] border rounded-2xl p-4 sm:p-5 flex flex-col relative overflow-hidden transition-all duration-500 min-h-0",
-              isActive ? currentTheme.border : "border-white/5"
+              isActive ? currentTheme.border : "border-white/5",
             )}
           >
             {/* Background Glow & Grid */}
@@ -1976,7 +1973,7 @@ export default function StudyTimer({
                 <div
                   className={clsx(
                     "absolute inset-0 animate-pulse pointer-events-none transition-colors duration-1000",
-                    currentTheme.glow
+                    currentTheme.glow,
                   )}
                 ></div>
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)] pointer-events-none"></div>
@@ -1985,7 +1982,7 @@ export default function StudyTimer({
                   <>
                     <div
                       className={clsx(
-                        "absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none"
+                        "absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[20%] w-full animate-[scan_4s_linear_infinite] pointer-events-none",
                       )}
                     ></div>
                     <div className="absolute inset-0 crt-overlay z-0 pointer-events-none opacity-30"></div>
@@ -2018,7 +2015,7 @@ export default function StudyTimer({
                             setCurriculumId(id);
                             if (id) {
                               const selected = curriculums.find(
-                                (c) => c.$id === id
+                                (c) => c.$id === id,
                               );
                               if (selected) setSubject(selected.name);
                             }
@@ -2095,7 +2092,7 @@ export default function StudyTimer({
                     "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                     mode === "timer"
                       ? clsx(currentTheme.bg, "text-white shadow-sm")
-                      : "text-zinc-400 hover:text-white"
+                      : "text-zinc-400 hover:text-white",
                   )}
                 >
                   <Clock size={12} />
@@ -2108,7 +2105,7 @@ export default function StudyTimer({
                     "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                     mode === "stopwatch"
                       ? clsx(currentTheme.bg, "text-white shadow-sm")
-                      : "text-zinc-400 hover:text-white"
+                      : "text-zinc-400 hover:text-white",
                   )}
                 >
                   <RotateCcw size={12} />
@@ -2129,7 +2126,7 @@ export default function StudyTimer({
                     "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                     sessionType === "focus"
                       ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-zinc-400 hover:text-white"
+                      : "text-zinc-400 hover:text-white",
                   )}
                 >
                   <Target size={12} />
@@ -2146,7 +2143,7 @@ export default function StudyTimer({
                     "px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5",
                     sessionType === "break"
                       ? "bg-green-600 text-white shadow-sm"
-                      : "text-zinc-400 hover:text-white"
+                      : "text-zinc-400 hover:text-white",
                   )}
                 >
                   ☕ Break
@@ -2184,7 +2181,7 @@ export default function StudyTimer({
                   onClick={() => setStrictMode(!strictMode)}
                   className={clsx(
                     "w-7 sm:w-8 h-3.5 sm:h-4 rounded-full transition-colors relative",
-                    strictMode ? "bg-indigo-600" : "bg-zinc-700"
+                    strictMode ? "bg-indigo-600" : "bg-zinc-700",
                   )}
                   disabled={isActive}
                   title="Strict Mode - Pauses when you leave the tab"
@@ -2192,7 +2189,7 @@ export default function StudyTimer({
                   <div
                     className={clsx(
                       "absolute top-0.5 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-white transition-all",
-                      strictMode ? "left-3.5 sm:left-4" : "left-0.5"
+                      strictMode ? "left-3.5 sm:left-4" : "left-0.5",
                     )}
                   ></div>
                 </button>
@@ -2210,7 +2207,7 @@ export default function StudyTimer({
                   }
                   className={clsx(
                     "w-7 sm:w-8 h-3.5 sm:h-4 rounded-full transition-colors relative",
-                    privacy === "public" ? "bg-green-600" : "bg-zinc-700"
+                    privacy === "public" ? "bg-green-600" : "bg-zinc-700",
                   )}
                   disabled={isActive}
                   title={
@@ -2222,7 +2219,7 @@ export default function StudyTimer({
                   <div
                     className={clsx(
                       "absolute top-0.5 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-white transition-all",
-                      privacy === "public" ? "left-3.5 sm:left-4" : "left-0.5"
+                      privacy === "public" ? "left-3.5 sm:left-4" : "left-0.5",
                     )}
                   ></div>
                 </button>
@@ -2250,7 +2247,7 @@ export default function StudyTimer({
                     "h-full rounded-full transition-all duration-1000 ease-linear shadow-[0_0_10px_currentColor]",
                     sessionType === "break"
                       ? "bg-green-500 text-green-500"
-                      : clsx(currentTheme.bg, currentTheme.text)
+                      : clsx(currentTheme.bg, currentTheme.text),
                   )}
                   style={{ width: `${progress}%` }}
                 ></div>
@@ -2331,7 +2328,7 @@ export default function StudyTimer({
                       "px-6 py-2.5 sm:px-8 sm:py-3 rounded-full font-medium text-sm sm:text-base flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95",
                       currentTheme.bg,
                       "text-white",
-                      `shadow-${themeColor}-500/20`
+                      `shadow-${themeColor}-500/20`,
                     )}
                   >
                     <Play
@@ -2398,7 +2395,7 @@ export default function StudyTimer({
                           onClick={() => toggleGoalCompletion(goal.id)}
                           className={clsx(
                             "flex items-center gap-2 w-full text-left transition-all group py-0.5",
-                            goal.completed ? "opacity-60" : "opacity-100"
+                            goal.completed ? "opacity-60" : "opacity-100",
                           )}
                         >
                           {goal.completed ? (
@@ -2417,7 +2414,7 @@ export default function StudyTimer({
                               "text-xs sm:text-sm transition-all",
                               goal.completed
                                 ? "text-zinc-500 line-through"
-                                : "text-zinc-300 group-hover:text-white"
+                                : "text-zinc-300 group-hover:text-white",
                             )}
                           >
                             {goal.text}
@@ -2449,7 +2446,7 @@ export default function StudyTimer({
               <p
                 className={clsx(
                   "text-xl sm:text-2xl font-bold",
-                  currentTheme.text
+                  currentTheme.text,
                 )}
               >
                 {profileStats.xp.toLocaleString()}
@@ -2509,7 +2506,7 @@ export default function StudyTimer({
               await databases.deleteDocument(
                 DB_ID,
                 COLLECTIONS.STUDY_SESSIONS,
-                id
+                id,
               );
               fetchSchedule();
             } catch (error) {
