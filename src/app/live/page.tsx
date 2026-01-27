@@ -42,6 +42,7 @@ interface StudySession {
   subject: string;
   goal: string;
   startTime: string;
+  lastUpdateTime: string;
   status: "active" | "paused" | "completed";
   sessionType: "focus" | "break";
   duration?: number; // target duration in seconds (for timer mode)
@@ -95,6 +96,30 @@ export default function LiveSessionsPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Helper to check if a session is stale (timer ended or no recent updates)
+  const isSessionStale = (session: StudySession): boolean => {
+    const now = Date.now();
+    const lastUpdate = new Date(session.lastUpdateTime).getTime();
+    const startTime = new Date(session.startTime).getTime();
+    
+    // If session has a duration (timer mode), check if it should have ended
+    if (session.duration && session.duration > 0) {
+      const expectedEndTime = startTime + (session.duration * 1000);
+      // Add 60 second grace period for network delays
+      if (now > expectedEndTime + 60000) {
+        return true; // Timer should have ended
+      }
+    }
+    
+    // If no updates in 5 minutes for any session, consider it stale
+    const fiveMinutesAgo = now - (5 * 60 * 1000);
+    if (lastUpdate < fiveMinutesAgo) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Fetch live sessions from Appwrite
   useEffect(() => {
     const fetchSessions = async () => {
@@ -109,9 +134,11 @@ export default function LiveSessionsPage() {
           ]
         );
 
-        // Filter for public sessions (handle both boolean and string types)
+        // Filter for public sessions and exclude stale sessions
         const publicSessions = response.documents.filter((doc: any) => {
-          return doc.isPublic === true || doc.isPublic === "true";
+          const isPublic = doc.isPublic === true || doc.isPublic === "true";
+          const stale = isSessionStale(doc as StudySession);
+          return isPublic && !stale;
         });
 
         setSessions(publicSessions as unknown as StudySession[]);
@@ -124,6 +151,11 @@ export default function LiveSessionsPage() {
 
     fetchSessions();
 
+    // Periodic cleanup of stale sessions from local state
+    const cleanupInterval = setInterval(() => {
+      setSessions((prev) => prev.filter((session) => !isSessionStale(session)));
+    }, 30000); // Every 30 seconds
+
     // Subscribe to real-time updates
     const unsubscribe = client.subscribe(
       `databases.${DB_ID}.collections.${COLLECTIONS.LIVE_SESSIONS}.documents`,
@@ -133,14 +165,15 @@ export default function LiveSessionsPage() {
 
         const isPublic =
           doc.isPublic === true || (doc.isPublic as unknown) === "true";
+        const stale = isSessionStale(doc);
 
-        if (event.includes(".create") && isPublic && doc.status === "active") {
+        if (event.includes(".create") && isPublic && doc.status === "active" && !stale) {
           setSessions((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];
           });
         } else if (event.includes(".update")) {
-          if (doc.status === "active" && isPublic) {
+          if (doc.status === "active" && isPublic && !stale) {
             setSessions((prev) => {
               const exists = prev.find((p) => p.$id === doc.$id);
               if (exists) {
@@ -150,7 +183,7 @@ export default function LiveSessionsPage() {
               }
             });
           } else {
-            // Remove if no longer active or public
+            // Remove if no longer active, public, or if stale
             setSessions((prev) => prev.filter((p) => p.$id !== doc.$id));
           }
         } else if (event.includes(".delete")) {
@@ -161,6 +194,7 @@ export default function LiveSessionsPage() {
 
     return () => {
       unsubscribe();
+      clearInterval(cleanupInterval);
     };
   }, []);
 

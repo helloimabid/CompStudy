@@ -9,6 +9,7 @@ import {
 } from "react";
 import { client, databases, DB_ID, COLLECTIONS } from "@/lib/appwrite";
 import { Query, ID, Permission, Role } from "appwrite";
+import { useAuth } from "@/context/AuthContext";
 
 interface RealtimeContextType {
   activeLearners: number;
@@ -37,6 +38,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [activeVisitors, setActiveVisitors] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [visitorDocId, setVisitorDocId] = useState<string | null>(null);
+  
+  // Get the current user from AuthContext
+  const { user } = useAuth();
 
   useEffect(() => {
     let isMounted = true;
@@ -103,6 +107,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             lastHeartbeat: new Date().toISOString(),
             page:
               typeof window !== "undefined" ? window.location.pathname : "/",
+            userId: user?.$id || null,
           });
           setVisitorDocId(docId);
         } else {
@@ -116,6 +121,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               lastHeartbeat: new Date().toISOString(),
               page:
                 typeof window !== "undefined" ? window.location.pathname : "/",
+              userId: user?.$id || null,
             },
             [
               Permission.read(Role.any()),
@@ -150,6 +156,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               lastHeartbeat: new Date().toISOString(),
               page:
                 typeof window !== "undefined" ? window.location.pathname : "/",
+              userId: user?.$id || null,
             }
           );
         } else {
@@ -243,7 +250,41 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           .catch(() => {});
       }
     };
-  }, []);
+  }, []); // Only run on mount/unmount
+
+  // Separate effect to update userId when user logs in/out
+  useEffect(() => {
+    const updateVisitorUserId = async () => {
+      const visitorId = getVisitorId();
+      if (!visitorId) return;
+
+      try {
+        const existing = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.VISITORS,
+          [Query.equal("visitorId", visitorId), Query.limit(1)]
+        );
+
+        if (existing.documents.length > 0) {
+          await databases.updateDocument(
+            DB_ID,
+            COLLECTIONS.VISITORS,
+            existing.documents[0].$id,
+            {
+              userId: user?.$id || null,
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Failed to update visitor userId:", error);
+      }
+    };
+
+    // Only update if we have a visitorId (visitor already registered)
+    if (getVisitorId()) {
+      updateVisitorUserId();
+    }
+  }, [user?.$id]); // Run when user changes
 
   return (
     <RealtimeContext.Provider
