@@ -18,7 +18,7 @@ interface RealtimeContextType {
 }
 
 const RealtimeContext = createContext<RealtimeContextType | undefined>(
-  undefined
+  undefined,
 );
 
 // Generate a unique visitor ID and store in sessionStorage
@@ -38,7 +38,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [activeVisitors, setActiveVisitors] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [visitorDocId, setVisitorDocId] = useState<string | null>(null);
-  
+
   // Get the current user from AuthContext
   const { user } = useAuth();
 
@@ -53,7 +53,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const response = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.STUDY_SESSIONS,
-          [Query.equal("status", "active")]
+          [Query.equal("status", "active")],
         );
 
         if (isMounted) {
@@ -68,12 +68,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       try {
         // Get visitors with heartbeat in the last 2 minutes
         const twoMinutesAgo = new Date(
-          Date.now() - 2 * 60 * 1000
+          Date.now() - 2 * 60 * 1000,
         ).toISOString();
         const response = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.VISITORS,
-          [Query.greaterThan("lastHeartbeat", twoMinutesAgo)]
+          [Query.greaterThan("lastHeartbeat", twoMinutesAgo)],
         );
 
         if (isMounted) {
@@ -97,7 +97,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const existing = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.VISITORS,
-          [Query.equal("visitorId", visitorId), Query.limit(1)]
+          [Query.equal("visitorId", visitorId), Query.limit(1)],
         );
 
         if (existing.documents.length > 0) {
@@ -127,7 +127,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               Permission.read(Role.any()),
               Permission.update(Role.any()),
               Permission.delete(Role.any()),
-            ]
+            ],
           );
           setVisitorDocId(doc.$id);
         }
@@ -144,7 +144,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const existing = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.VISITORS,
-          [Query.equal("visitorId", visitorId), Query.limit(1)]
+          [Query.equal("visitorId", visitorId), Query.limit(1)],
         );
 
         if (existing.documents.length > 0) {
@@ -157,7 +157,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               page:
                 typeof window !== "undefined" ? window.location.pathname : "/",
               userId: user?.$id || null,
-            }
+            },
           );
         } else {
           await registerVisitor();
@@ -171,12 +171,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       try {
         // Delete visitors with heartbeat older than 3 minutes
         const threeMinutesAgo = new Date(
-          Date.now() - 3 * 60 * 1000
+          Date.now() - 3 * 60 * 1000,
         ).toISOString();
         const stale = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.VISITORS,
-          [Query.lessThan("lastHeartbeat", threeMinutesAgo), Query.limit(50)]
+          [Query.lessThan("lastHeartbeat", threeMinutesAgo), Query.limit(50)],
         );
 
         for (const doc of stale.documents) {
@@ -198,7 +198,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       `databases.${DB_ID}.collections.${COLLECTIONS.STUDY_SESSIONS}.documents`,
       () => {
         fetchActiveSessions();
-      }
+      },
     );
 
     // Subscribe to realtime updates for visitors
@@ -206,7 +206,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       `databases.${DB_ID}.collections.${COLLECTIONS.VISITORS}.documents`,
       () => {
         fetchActiveVisitors();
-      }
+      },
     );
 
     // Send heartbeat every 30 seconds
@@ -242,7 +242,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
                 .deleteDocument(
                   DB_ID,
                   COLLECTIONS.VISITORS,
-                  res.documents[0].$id
+                  res.documents[0].$id,
                 )
                 .catch(() => {});
             }
@@ -262,7 +262,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const existing = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.VISITORS,
-          [Query.equal("visitorId", visitorId), Query.limit(1)]
+          [Query.equal("visitorId", visitorId), Query.limit(1)],
         );
 
         if (existing.documents.length > 0) {
@@ -272,7 +272,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             existing.documents[0].$id,
             {
               userId: user?.$id || null,
-            }
+            },
           );
         }
       } catch (error) {

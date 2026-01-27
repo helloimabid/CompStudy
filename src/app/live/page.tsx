@@ -80,7 +80,7 @@ export default function LiveSessionsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedSession, setSelectedSession] = useState<StudySession | null>(
-    null
+    null,
   );
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [activeTab, setActiveTab] = useState<"sessions" | "rooms">("sessions");
@@ -101,22 +101,22 @@ export default function LiveSessionsPage() {
     const now = Date.now();
     const lastUpdate = new Date(session.lastUpdateTime).getTime();
     const startTime = new Date(session.startTime).getTime();
-    
+
     // If session has a duration (timer mode), check if it should have ended
     if (session.duration && session.duration > 0) {
-      const expectedEndTime = startTime + (session.duration * 1000);
+      const expectedEndTime = startTime + session.duration * 1000;
       // Add 60 second grace period for network delays
       if (now > expectedEndTime + 60000) {
         return true; // Timer should have ended
       }
     }
-    
+
     // If no updates in 5 minutes for any session, consider it stale
-    const fiveMinutesAgo = now - (5 * 60 * 1000);
+    const fiveMinutesAgo = now - 5 * 60 * 1000;
     if (lastUpdate < fiveMinutesAgo) {
       return true;
     }
-    
+
     return false;
   };
 
@@ -131,7 +131,7 @@ export default function LiveSessionsPage() {
             Query.equal("status", "active"),
             Query.orderDesc("startTime"),
             Query.limit(50),
-          ]
+          ],
         );
 
         // Filter for public sessions and exclude stale sessions
@@ -167,7 +167,12 @@ export default function LiveSessionsPage() {
           doc.isPublic === true || (doc.isPublic as unknown) === "true";
         const stale = isSessionStale(doc);
 
-        if (event.includes(".create") && isPublic && doc.status === "active" && !stale) {
+        if (
+          event.includes(".create") &&
+          isPublic &&
+          doc.status === "active" &&
+          !stale
+        ) {
           setSessions((prev) => {
             const filtered = prev.filter((p) => p.userId !== doc.userId);
             return [doc, ...filtered];
@@ -189,7 +194,7 @@ export default function LiveSessionsPage() {
         } else if (event.includes(".delete")) {
           setSessions((prev) => prev.filter((p) => p.$id !== doc.$id));
         }
-      }
+      },
     );
 
     return () => {
@@ -210,14 +215,14 @@ export default function LiveSessionsPage() {
             Query.greaterThan("activeUsers", 0),
             Query.orderDesc("activeUsers"),
             Query.limit(20),
-          ]
+          ],
         );
 
         const roomDocs = response.documents as unknown as LiveRoom[];
 
         // Filter out private rooms (only show public ones)
         const publicRooms = roomDocs.filter(
-          (r) => !r.visibility || r.visibility === "public"
+          (r) => !r.visibility || r.visibility === "public",
         );
 
         // Fetch profiles for room creators
@@ -226,7 +231,7 @@ export default function LiveSessionsPage() {
           const profiles = await databases.listDocuments(
             DB_ID,
             COLLECTIONS.PROFILES,
-            [Query.equal("userId", creatorIds)]
+            [Query.equal("userId", creatorIds)],
           );
 
           const userMap = new Map();
@@ -350,8 +355,8 @@ export default function LiveSessionsPage() {
                 {Math.round(
                   sessions.reduce(
                     (acc, s) => acc + getDuration(s.startTime),
-                    0
-                  ) / 60
+                    0,
+                  ) / 60,
                 )}
               </span>{" "}
               total min
@@ -368,7 +373,7 @@ export default function LiveSessionsPage() {
                 "px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                 activeTab === "sessions"
                   ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white",
               )}
             >
               <User size={16} />
@@ -380,7 +385,7 @@ export default function LiveSessionsPage() {
                 "px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                 activeTab === "rooms"
                   ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white",
               )}
             >
               <DoorOpen size={16} />
@@ -415,7 +420,7 @@ export default function LiveSessionsPage() {
                   const progress = getProgress(session);
                   const goals = parseGoals(session.goal);
                   const completedGoals = goals.filter(
-                    (g) => g.completed
+                    (g) => g.completed,
                   ).length;
 
                   return (
@@ -429,7 +434,7 @@ export default function LiveSessionsPage() {
                         "bg-[#0a0a0a] border rounded-2xl p-5 transition-all cursor-pointer group relative overflow-hidden",
                         session.sessionType === "break"
                           ? "border-green-500/20 hover:border-green-500/40"
-                          : "border-indigo-500/20 hover:border-indigo-500/40"
+                          : "border-indigo-500/20 hover:border-indigo-500/40",
                       )}
                     >
                       {/* Live Indicator */}
@@ -462,7 +467,7 @@ export default function LiveSessionsPage() {
                               "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white",
                               session.sessionType === "break"
                                 ? "bg-green-500"
-                                : "bg-indigo-500"
+                                : "bg-indigo-500",
                             )}
                           >
                             {session.sessionType === "break" ? (
@@ -504,7 +509,7 @@ export default function LiveSessionsPage() {
                                 "text-xs font-medium uppercase tracking-wider",
                                 session.sessionType === "break"
                                   ? "text-green-400"
-                                  : "text-indigo-400"
+                                  : "text-indigo-400",
                               )}
                             >
                               {session.sessionType === "break"
@@ -534,7 +539,7 @@ export default function LiveSessionsPage() {
                               "text-2xl font-mono font-bold tracking-wider mt-1",
                               session.sessionType === "break"
                                 ? "text-green-400"
-                                : "text-indigo-400"
+                                : "text-indigo-400",
                             )}
                           >
                             {formatTime(elapsed)}
@@ -547,7 +552,7 @@ export default function LiveSessionsPage() {
                                   "h-full rounded-full transition-all duration-1000",
                                   session.sessionType === "break"
                                     ? "bg-green-500"
-                                    : "bg-indigo-500"
+                                    : "bg-indigo-500",
                                 )}
                                 style={{ width: `${progress}%` }}
                               />
@@ -574,7 +579,7 @@ export default function LiveSessionsPage() {
                                     "flex items-center gap-2 text-xs",
                                     goal.completed
                                       ? "text-zinc-500 line-through"
-                                      : "text-zinc-300"
+                                      : "text-zinc-300",
                                   )}
                                 >
                                   {goal.completed ? (
@@ -709,15 +714,15 @@ export default function LiveSessionsPage() {
                               room.timerState === "running"
                                 ? "bg-green-500/10 text-green-400"
                                 : room.timerState === "paused"
-                                ? "bg-amber-500/10 text-amber-400"
-                                : "bg-zinc-500/10 text-zinc-400"
+                                  ? "bg-amber-500/10 text-amber-400"
+                                  : "bg-zinc-500/10 text-zinc-400",
                             )}
                           >
                             {room.timerState === "running"
                               ? "🟢 In Session"
                               : room.timerState === "paused"
-                              ? "⏸️ Paused"
-                              : "⏹️ Idle"}
+                                ? "⏸️ Paused"
+                                : "⏹️ Idle"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
@@ -739,15 +744,15 @@ export default function LiveSessionsPage() {
                             room.mode === "pomodoro"
                               ? "bg-indigo-500/10 text-indigo-400"
                               : room.mode === "short-break"
-                              ? "bg-green-500/10 text-green-400"
-                              : "bg-blue-500/10 text-blue-400"
+                                ? "bg-green-500/10 text-green-400"
+                                : "bg-blue-500/10 text-blue-400",
                           )}
                         >
                           {room.mode === "pomodoro"
                             ? "🍅 Pomodoro"
                             : room.mode === "short-break"
-                            ? "☕ Short Break"
-                            : "🌴 Long Break"}
+                              ? "☕ Short Break"
+                              : "🌴 Long Break"}
                         </span>
                       </div>
                     </div>
@@ -832,7 +837,7 @@ function SessionDetailView({
   profilePictures: Record<string, Profile>;
 }) {
   const elapsed = Math.floor(
-    (currentTime - new Date(session.startTime).getTime()) / 1000
+    (currentTime - new Date(session.startTime).getTime()) / 1000,
   );
   const progress =
     session.duration && session.duration > 0
@@ -879,7 +884,7 @@ function SessionDetailView({
           "p-6 border-b border-white/5 relative",
           session.sessionType === "break"
             ? "bg-gradient-to-br from-green-500/10 to-transparent"
-            : "bg-gradient-to-br from-indigo-500/10 to-transparent"
+            : "bg-gradient-to-br from-indigo-500/10 to-transparent",
         )}
       >
         <button
@@ -907,7 +912,7 @@ function SessionDetailView({
                 "absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white",
                 session.sessionType === "break"
                   ? "bg-green-500"
-                  : "bg-indigo-500"
+                  : "bg-indigo-500",
               )}
             >
               {session.sessionType === "break" ? (
@@ -958,7 +963,7 @@ function SessionDetailView({
               "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider mb-3",
               session.sessionType === "break"
                 ? "bg-green-500/10 text-green-400"
-                : "bg-indigo-500/10 text-indigo-400"
+                : "bg-indigo-500/10 text-indigo-400",
             )}
           >
             {session.sessionType === "break" ? (
@@ -982,7 +987,7 @@ function SessionDetailView({
             "rounded-2xl p-6 text-center",
             session.sessionType === "break"
               ? "bg-green-500/5 border border-green-500/20"
-              : "bg-indigo-500/5 border border-indigo-500/20"
+              : "bg-indigo-500/5 border border-indigo-500/20",
           )}
         >
           <div className="text-zinc-500 text-sm mb-2">
@@ -993,7 +998,7 @@ function SessionDetailView({
               "text-5xl md:text-6xl font-mono font-bold tracking-wider",
               session.sessionType === "break"
                 ? "text-green-400"
-                : "text-indigo-400"
+                : "text-indigo-400",
             )}
           >
             {session.duration ? formatTime(remaining) : formatTime(elapsed)}
@@ -1008,7 +1013,7 @@ function SessionDetailView({
                     "h-full rounded-full transition-all duration-1000",
                     session.sessionType === "break"
                       ? "bg-green-500"
-                      : "bg-indigo-500"
+                      : "bg-indigo-500",
                   )}
                   style={{ width: `${progress}%` }}
                 />
@@ -1044,7 +1049,7 @@ function SessionDetailView({
                   "text-sm font-medium",
                   completedGoals === goals.length
                     ? "text-green-400"
-                    : "text-zinc-400"
+                    : "text-zinc-400",
                 )}
               >
                 {completedGoals}/{goals.length} completed
@@ -1058,7 +1063,7 @@ function SessionDetailView({
                     "flex items-center gap-3 p-3 rounded-lg transition-all",
                     goal.completed
                       ? "bg-green-500/5 border border-green-500/20"
-                      : "bg-zinc-900/50 border border-white/5"
+                      : "bg-zinc-900/50 border border-white/5",
                   )}
                 >
                   {goal.completed ? (
@@ -1074,7 +1079,7 @@ function SessionDetailView({
                       "text-sm",
                       goal.completed
                         ? "text-zinc-500 line-through"
-                        : "text-white"
+                        : "text-white",
                     )}
                   >
                     {goal.text}
@@ -1117,10 +1122,10 @@ function SessionDetailView({
             {session.sessionType === "break"
               ? "Taking a well-deserved break! 🌟"
               : elapsed < 600
-              ? "Just getting started! Keep it up! 💪"
-              : elapsed < 1800
-              ? "Great focus! Halfway through a Pomodoro! 🔥"
-              : "Amazing dedication! True focus champion! 🏆"}
+                ? "Just getting started! Keep it up! 💪"
+                : elapsed < 1800
+                  ? "Great focus! Halfway through a Pomodoro! 🔥"
+                  : "Amazing dedication! True focus champion! 🏆"}
           </p>
         </div>
       </div>
