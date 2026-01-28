@@ -689,8 +689,8 @@ function SpacedRepetitionContent() {
                   No Topics Yet
                 </h3>
                 <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-                  Add topics from your curriculum to start building your personalized review
-                  schedule
+                  Add topics from your curriculum to start building your
+                  personalized review schedule
                 </p>
                 <button
                   onClick={() => setViewMode("add")}
@@ -716,7 +716,8 @@ function SpacedRepetitionContent() {
                 {/* Progress */}
                 <div className="bg-black/20 p-6 flex items-center justify-between border-b border-white/5">
                   <span className="text-sm text-zinc-400 font-medium">
-                    Card {currentReviewIndex + 1} <span className="text-zinc-600">/</span> {dueItems.length}
+                    Card {currentReviewIndex + 1}{" "}
+                    <span className="text-zinc-600">/</span> {dueItems.length}
                   </span>
                   <div className="w-32 bg-white/10 rounded-full h-2">
                     <div
@@ -731,7 +732,8 @@ function SpacedRepetitionContent() {
                 {/* Card Content */}
                 <div className="p-8 md:p-10 text-center">
                   <p className="text-xs font-bold tracking-wider text-indigo-400 uppercase mb-3 bg-indigo-500/10 inline-block px-3 py-1 rounded-full border border-indigo-500/20">
-                    {dueItems[currentReviewIndex].curriculumName} • {dueItems[currentReviewIndex].subjectName}
+                    {dueItems[currentReviewIndex].curriculumName} •{" "}
+                    {dueItems[currentReviewIndex].subjectName}
                   </p>
                   <h2 className="text-3xl font-bold text-white mb-8 leading-tight">
                     {dueItems[currentReviewIndex].topicName}
@@ -822,27 +824,32 @@ function SpacedRepetitionContent() {
                               {
                                 quality: ReviewQuality.BLACKOUT,
                                 label: "Forget",
-                                color: "bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30",
+                                color:
+                                  "bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30",
                               },
                               {
                                 quality: ReviewQuality.HARD,
                                 label: "Hard",
-                                color: "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30",
+                                color:
+                                  "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30",
                               },
                               {
                                 quality: ReviewQuality.DIFFICULT,
                                 label: "Difficult",
-                                color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/30",
+                                color:
+                                  "bg-yellow-500/20 text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/30",
                               },
                               {
                                 quality: ReviewQuality.GOOD,
                                 label: "Good",
-                                color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30",
+                                color:
+                                  "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30",
                               },
                               {
                                 quality: ReviewQuality.PERFECT,
                                 label: "Easy",
-                                color: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/30",
+                                color:
+                                  "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/30",
                               },
                             ].map((option) => {
                               const preview = calculateNextReview(
@@ -857,7 +864,9 @@ function SpacedRepetitionContent() {
                                   onClick={() => submitReview(option.quality)}
                                   className={`${option.color} border p-4 rounded-xl font-medium transition-all transform hover:-translate-y-1 hover:shadow-lg`}
                                 >
-                                  <span className="block mb-1">{option.label}</span>
+                                  <span className="block mb-1">
+                                    {option.label}
+                                  </span>
                                   <span className="text-xs opacity-60 font-mono block">
                                     {formatInterval(preview.newInterval)}
                                   </span>
@@ -924,7 +933,9 @@ function SpacedRepetitionContent() {
                     onChange={(e) => setSelectedCurriculum(e.target.value)}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   >
-                    <option value="" className="bg-zinc-900">Choose a curriculum...</option>
+                    <option value="" className="bg-zinc-900">
+                      Choose a curriculum...
+                    </option>
                     {curriculums.map((c) => (
                       <option key={c.$id} value={c.$id} className="bg-zinc-900">
                         {c.name}
@@ -932,14 +943,26 @@ function SpacedRepetitionContent() {
                     ))}
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
                   </div>
                 </div>
               </div>
 
               {/* Subject Select */}
               {selectedCurriculum && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -952,15 +975,33 @@ function SpacedRepetitionContent() {
                       onChange={(e) => setSelectedSubject(e.target.value)}
                       className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     >
-                      <option value="" className="bg-zinc-900">Choose a subject...</option>
+                      <option value="" className="bg-zinc-900">
+                        Choose a subject...
+                      </option>
                       {subjects.map((s) => (
-                        <option key={s.$id} value={s.$id} className="bg-zinc-900">
+                        <option
+                          key={s.$id}
+                          value={s.$id}
+                          className="bg-zinc-900"
+                        >
                           {s.name}
                         </option>
                       ))}
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        ></path>
+                      </svg>
                     </div>
                   </div>
                 </motion.div>
@@ -968,7 +1009,7 @@ function SpacedRepetitionContent() {
 
               {/* Topics List */}
               {selectedSubject && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -993,7 +1034,9 @@ function SpacedRepetitionContent() {
                             className="flex items-center justify-between bg-white/5 rounded-xl p-4 border border-white/5 hover:bg-white/10 transition-colors"
                           >
                             <div>
-                              <p className="text-white font-medium">{topic.name}</p>
+                              <p className="text-white font-medium">
+                                {topic.name}
+                              </p>
                               {topic.description && (
                                 <p className="text-sm text-zinc-400">
                                   {topic.description}

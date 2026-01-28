@@ -229,7 +229,9 @@ export default function SpacedRepetitionSettings({
         <div className="space-y-6">
           {/* Review Mode Selection */}
           <div className="space-y-3">
-            <label className="block text-zinc-400 font-medium mb-2">Review Mode</label>
+            <label className="block text-zinc-400 font-medium mb-2">
+              Review Mode
+            </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 type="button"
@@ -238,11 +240,18 @@ export default function SpacedRepetitionSettings({
                   "p-5 rounded-2xl border text-left transition-all relative overflow-hidden group",
                   reviewMode === "custom"
                     ? "border-indigo-500 bg-indigo-500/10"
-                    : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+                    : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20",
                 )}
               >
                 <div className="flex items-center gap-3 mb-2 relative z-10">
-                  <div className={clsx("p-2 rounded-lg transition-colors", reviewMode === "custom" ? "bg-indigo-500/20" : "bg-white/5")}>
+                  <div
+                    className={clsx(
+                      "p-2 rounded-lg transition-colors",
+                      reviewMode === "custom"
+                        ? "bg-indigo-500/20"
+                        : "bg-white/5",
+                    )}
+                  >
                     <Calendar className="w-5 h-5 text-indigo-400" />
                   </div>
                   <span className="text-white font-medium text-lg">
@@ -262,14 +271,21 @@ export default function SpacedRepetitionSettings({
                   "p-5 rounded-2xl border text-left transition-all relative overflow-hidden group",
                   reviewMode === "sm2"
                     ? "border-yellow-500 bg-yellow-500/10"
-                    : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+                    : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20",
                 )}
               >
                 <div className="flex items-center gap-3 mb-2 relative z-10">
-                  <div className={clsx("p-2 rounded-lg transition-colors", reviewMode === "sm2" ? "bg-yellow-500/20" : "bg-white/5")}>
+                  <div
+                    className={clsx(
+                      "p-2 rounded-lg transition-colors",
+                      reviewMode === "sm2" ? "bg-yellow-500/20" : "bg-white/5",
+                    )}
+                  >
                     <Zap className="w-5 h-5 text-yellow-400" />
                   </div>
-                  <span className="text-white font-medium text-lg">SM-2 Algorithm</span>
+                  <span className="text-white font-medium text-lg">
+                    SM-2 Algorithm
+                  </span>
                 </div>
                 <p className="text-sm text-zinc-400 relative z-10 pl-[52px]">
                   Adaptive intervals based on your performance. More efficient
@@ -281,7 +297,7 @@ export default function SpacedRepetitionSettings({
 
           {/* Pattern Selection (for custom mode) */}
           {reviewMode === "custom" && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4 pt-4 border-t border-white/5"
@@ -305,7 +321,7 @@ export default function SpacedRepetitionSettings({
                         "p-4 rounded-xl border text-left transition-all",
                         selectedPatternId === pattern.id
                           ? "border-indigo-500 bg-indigo-500/10"
-                          : "border-white/10 bg-white/5 hover:bg-white/10"
+                          : "border-white/10 bg-white/5 hover:bg-white/10",
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -350,7 +366,9 @@ export default function SpacedRepetitionSettings({
                   </p>
                   {customIntervalsInput && (
                     <div className="flex items-center gap-2 flex-wrap mt-2 bg-black/20 p-3 rounded-lg border border-white/5">
-                      <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Preview:</span>
+                      <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">
+                        Preview:
+                      </span>
                       {parseCustomIntervals(customIntervalsInput).map(
                         (day, i, arr) => (
                           <span key={i} className="text-xs flex items-center">
@@ -427,83 +445,103 @@ export default function SpacedRepetitionSettings({
           </div>
 
           <AnimatePresence>
-          {emailRemindersEnabled && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-6 overflow-hidden"
-            >
-              {/* Reminder Time */}
-              <div className="flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg text-zinc-400 group-hover:text-white transition-colors">
-                    <Clock className="w-5 h-5" />
+            {emailRemindersEnabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-6 overflow-hidden"
+              >
+                {/* Reminder Time */}
+                <div className="flex items-center justify-between group">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/5 rounded-lg text-zinc-400 group-hover:text-white transition-colors">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">Reminder Time</p>
+                      <p className="text-sm text-zinc-500">
+                        Daily notification time
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-medium">Reminder Time</p>
-                    <p className="text-sm text-zinc-500">
-                      Daily notification time
-                    </p>
-                  </div>
-                </div>
-                <input
-                  type="time"
-                  value={reminderTime}
-                  onChange={(e) => setReminderTime(e.target.value)}
-                  aria-label="Reminder time"
-                  className="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              {/* Timezone */}
-              <div className="space-y-2">
-                <label className="block text-zinc-400 font-medium">Timezone</label>
-                <div className="relative">
-                  <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    aria-label="Select timezone"
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  >
-                    {timezones.map((tz) => (
-                      <option key={tz.value} value={tz.value} className="bg-zinc-900 text-white">
-                        {tz.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Weekend Reminders */}
-              <div className="flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg text-zinc-400 group-hover:text-white transition-colors">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">Weekend Reminders</p>
-                    <p className="text-sm text-zinc-500">
-                      Include Saturday & Sunday
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
                   <input
-                    type="checkbox"
-                    checked={weekendReminders}
-                    onChange={(e) => setWeekendReminders(e.target.checked)}
-                    className="sr-only peer"
-                    aria-label="Enable weekend reminders"
+                    type="time"
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    aria-label="Reminder time"
+                    className="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   />
-                  <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                </label>
-              </div>
-            </motion.div>
-          )}
+                </div>
+
+                {/* Timezone */}
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 font-medium">
+                    Timezone
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      aria-label="Select timezone"
+                      className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    >
+                      {timezones.map((tz) => (
+                        <option
+                          key={tz.value}
+                          value={tz.value}
+                          className="bg-zinc-900 text-white"
+                        >
+                          {tz.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        ></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Weekend Reminders */}
+                <div className="flex items-center justify-between group">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/5 rounded-lg text-zinc-400 group-hover:text-white transition-colors">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">
+                        Weekend Reminders
+                      </p>
+                      <p className="text-sm text-zinc-500">
+                        Include Saturday & Sunday
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={weekendReminders}
+                      onChange={(e) => setWeekendReminders(e.target.checked)}
+                      className="sr-only peer"
+                      aria-label="Enable weekend reminders"
+                    />
+                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           {/* Max Daily Reviews */}
@@ -545,21 +583,21 @@ export default function SpacedRepetitionSettings({
 
       {/* Message */}
       <AnimatePresence>
-      {message && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className={clsx(
-            "p-4 rounded-xl text-sm flex items-center justify-center font-medium shadow-lg backdrop-blur-sm",
-            message.type === "success"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20",
-          )}
-        >
-          {message.text}
-        </motion.div>
-      )}
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={clsx(
+              "p-4 rounded-xl text-sm flex items-center justify-center font-medium shadow-lg backdrop-blur-sm",
+              message.type === "success"
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-red-500/10 text-red-400 border border-red-500/20",
+            )}
+          >
+            {message.text}
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Save Button */}
@@ -570,7 +608,7 @@ export default function SpacedRepetitionSettings({
           "w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-semibold transition-all shadow-xl hover:shadow-indigo-500/20 transform hover:-translate-y-0.5 active:translate-y-0",
           saving
             ? "bg-zinc-700 cursor-not-allowed text-zinc-400"
-            : "bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-[1.02]"
+            : "bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-[1.02]",
         )}
       >
         {saving ? (
