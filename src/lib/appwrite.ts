@@ -40,4 +40,6 @@ export const COLLECTIONS = {
     FCM_TOKENS: 'fcm_tokens',
     ANNOUNCEMENTS: 'announcements',
     APP_LINKS: 'app_links',
+    SPACED_REPETITION: 'spaced_repetition',
+    USER_SR_SETTINGS: 'user_sr_settings',
 };

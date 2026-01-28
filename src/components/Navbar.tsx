@@ -43,7 +43,7 @@ function NavDropdown({ label, items, pathname }: DropdownProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
           "flex items-center gap-1 transition-colors",
-          isActive ? "text-zinc-200" : "hover:text-zinc-200"
+          isActive ? "text-zinc-200" : "hover:text-zinc-200",
         )}
       >
         {label}
@@ -70,7 +70,7 @@ function NavDropdown({ label, items, pathname }: DropdownProps) {
                   "block px-4 py-2 text-xs transition-colors",
                   pathname === item.href
                     ? "text-zinc-200 bg-white/5"
-                    : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                    : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5",
                 )}
               >
                 {item.label}
@@ -122,7 +122,7 @@ export default function Navbar() {
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.PROFILES,
-        [Query.search("username", query), Query.limit(5)]
+        [Query.search("username", query), Query.limit(5)],
       );
       setSearchResults(response.documents);
     } catch (error) {
@@ -138,6 +138,7 @@ export default function Navbar() {
     { href: "/live", label: "Live Rooms" },
     { href: "/curriculum", label: "My Curriculum" },
     { href: "/public-curriculum", label: "Browse Curricula" },
+    { href: "/spaced-repetition", label: "Spaced Repetition" },
   ];
 
   const socialLinks = [
@@ -326,7 +327,7 @@ export default function Navbar() {
                         "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
                         pathname === item.href
                           ? "text-zinc-200 bg-white/5"
-                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5",
                       )}
                     >
                       {item.label}
@@ -350,7 +351,7 @@ export default function Navbar() {
                         "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
                         pathname === item.href
                           ? "text-zinc-200 bg-white/5"
-                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5",
                       )}
                     >
                       {item.label}
@@ -374,7 +375,7 @@ export default function Navbar() {
                         "block text-sm font-medium transition-colors py-2 px-3 rounded-lg",
                         pathname === item.href
                           ? "text-zinc-200 bg-white/5"
-                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5",
                       )}
                     >
                       {item.label}
