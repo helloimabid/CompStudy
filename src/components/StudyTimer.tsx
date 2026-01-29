@@ -631,12 +631,31 @@ export default function StudyTimer({
     }
 
     try {
-      // console.log("Creating live session with data:", {
-      //   userId: user.$id,
-      //   subject: sessionData.subject,
-      //   sessionType: sessionData.sessionType,
-      //   isPublic: privacy === "public",
-      // });
+      // Check for existing active live sessions and clean them up
+      const existingLiveSessions = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.LIVE_SESSIONS,
+        [
+          Query.equal("userId", user.$id),
+          Query.or([
+            Query.equal("status", "active"),
+            Query.equal("status", "paused"),
+          ]),
+        ],
+      );
+
+      // Delete any existing active/paused live sessions to prevent duplicates
+      for (const existingSession of existingLiveSessions.documents) {
+        try {
+          await databases.deleteDocument(
+            DB_ID,
+            COLLECTIONS.LIVE_SESSIONS,
+            existingSession.$id,
+          );
+        } catch (deleteError) {
+          console.warn("Failed to delete existing live session:", deleteError);
+        }
+      }
 
       const liveSession = await databases.createDocument(
         DB_ID,
@@ -845,6 +864,75 @@ export default function StudyTimer({
     overrides?: { type?: SessionType; duration?: number; subject?: string },
   ) => {
     if (!user) return;
+
+    // Check if user already has an active session (prevent duplicate sessions)
+    if (isActive && sessionId && !overrides) {
+      alert("You already have an active study session. Please end or pause it before starting a new one.");
+      return;
+    }
+
+    // Also check in database for any active sessions (in case of state mismatch)
+    try {
+      const existingSessions = await databases.listDocuments(
+        DB_ID,
+        COLLECTIONS.STUDY_SESSIONS,
+        [
+          Query.equal("userId", user.$id),
+          Query.equal("status", "active"),
+          Query.limit(1),
+        ],
+      );
+
+      if (existingSessions.documents.length > 0 && !sessionId) {
+        // There's an active session in DB but not tracked locally
+        const existingSession = existingSessions.documents[0];
+        const confirmResume = window.confirm(
+          "You have an existing active session. Would you like to resume it instead of starting a new one?"
+        );
+        
+        if (confirmResume) {
+          // Resume the existing session
+          const startTime = new Date(existingSession.startTime).getTime();
+          const now = Date.now();
+          const diffInSeconds = Math.floor((now - startTime) / 1000);
+
+          setSessionId(existingSession.$id);
+          setPrivacy(existingSession.isPublic ? "public" : "private");
+          setSubject(existingSession.subject || "");
+          setGoal(existingSession.goal || "");
+          setSessionType(existingSession.type || "focus");
+
+          if (existingSession.duration > 0) {
+            setMode("timer");
+            setTargetDuration(existingSession.duration);
+          }
+
+          setElapsed(diffInSeconds);
+          setIsActive(true);
+          startTimeRef.current = startTime;
+
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          intervalRef.current = setInterval(() => {
+            if (startTimeRef.current) {
+              const currentNow = Date.now();
+              setElapsed(Math.floor((currentNow - startTimeRef.current) / 1000));
+            }
+          }, 1000);
+          return;
+        } else {
+          // User wants to start fresh - end the old session first
+          await databases.updateDocument(
+            DB_ID,
+            COLLECTIONS.STUDY_SESSIONS,
+            existingSession.$id,
+            { status: "completed", endTime: new Date().toISOString() }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error checking for existing sessions:", error);
+      // Continue with session creation if check fails
+    }
 
     // Resume if paused
     if (isPaused && isActive && !overrides) {
