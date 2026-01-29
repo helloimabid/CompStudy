@@ -14,6 +14,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { Analytics } from "@vercel/analytics/next";
 
 // Use 'optional' for critical fonts to prevent CLS
 const inter = Inter({ 
@@ -333,6 +334,7 @@ export default function RootLayout({
 
             {children}
             <PushNotificationManager />
+            <Analytics />
 
             {/* Footer */}
             <footer className="py-24 text-center bg-black relative border-t border-white/5">
