@@ -5,7 +5,7 @@ import {
   SpacedRepetitionItem as SRItem 
 } from "@/lib/spaced-repetition";
 
-export const runtime = 'edge';
+
 
 // This endpoint is designed to be called by a cron job (e.g., Appwrite Functions, Vercel Cron, etc.)
 // It sends email reminders to users who have topics due for review

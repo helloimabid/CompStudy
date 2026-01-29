@@ -5,7 +5,7 @@ import {
   SpacedRepetitionItem 
 } from "@/lib/spaced-repetition";
 
-export const runtime = 'edge';
+
 
 // Alternative endpoint that uses Brevo HTTP API (Edge Runtime compatible)
 // Use this if Appwrite Messaging is not configured

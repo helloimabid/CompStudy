@@ -6,7 +6,7 @@ const client = new Client()
     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1')
     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '')
     .setKey(process.env.APPWRITE_API_KEY || ''); // Server-side API key
-export const runtime = 'edge';
+
 const users = new Users(client);
 
 interface GoogleTokenPayload {

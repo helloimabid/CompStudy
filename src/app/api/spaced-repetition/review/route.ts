@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Client, Databases, Query, ID } from "node-appwrite";
 import { calculateNextReview, ReviewQuality } from "@/lib/spaced-repetition";
 
-export const runtime = 'edge';
+
 
 const DB_ID = "compstudy-db";
 const SPACED_REPETITION_COLLECTION = "spaced_repetition";
