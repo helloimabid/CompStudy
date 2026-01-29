@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Client, Databases, Users, Query } from "node-appwrite";
-import nodemailer from "nodemailer";
 import { 
   generateReminderEmailContent, 
   SpacedRepetitionItem 
 } from "@/lib/spaced-repetition";
 
-// Alternative endpoint that uses SMTP directly (nodemailer)
+export const runtime = 'edge';
+
+// Alternative endpoint that uses Brevo HTTP API (Edge Runtime compatible)
 // Use this if Appwrite Messaging is not configured
 
 const DB_ID = "compstudy-db";
 const SPACED_REPETITION_COLLECTION = "spaced_repetition";
 const USER_SR_SETTINGS_COLLECTION = "user_sr_settings";
 const PROFILES_COLLECTION = "profiles";
+
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
 interface UserSRSettings {
   $id: string;
@@ -31,6 +34,44 @@ interface Profile {
   username: string;
 }
 
+// Send email using Brevo HTTP API
+async function sendEmailWithBrevo(
+  to: string,
+  subject: string,
+  htmlContent: string,
+  textContent: string
+): Promise<void> {
+  const apiKey = process.env.BREVO_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("BREVO_API_KEY is not configured");
+  }
+
+  const response = await fetch(BREVO_API_URL, {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.SMTP_FROM_NAME || "CompStudy",
+        email: process.env.SMTP_FROM_EMAIL || "support@compstudy.tech",
+      },
+      to: [{ email: to }],
+      subject,
+      htmlContent,
+      textContent,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Brevo API error: ${response.status} - ${errorData}`);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Verify the request is authorized
@@ -40,17 +81,6 @@ export async function POST(request: NextRequest) {
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Initialize SMTP transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
 
     // Initialize Appwrite Admin client
     const client = new Client();
@@ -160,15 +190,9 @@ export async function POST(request: NextRequest) {
           upcomingItems
         );
 
-        // Send email via SMTP
+        // Send email via Brevo HTTP API
         try {
-          await transporter.sendMail({
-            from: `"${process.env.SMTP_FROM_NAME || 'CompStudy'}" <${process.env.SMTP_FROM_EMAIL}>`,
-            to: userEmail,
-            subject,
-            text,
-            html,
-          });
+          await sendEmailWithBrevo(userEmail, subject, html, text);
 
           // Mark items as reminder sent
           for (const item of dueItems) {
@@ -196,7 +220,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Sent ${sentCount} reminders via SMTP, ${failedCount} skipped/failed`,
+      message: `Sent ${sentCount} reminders via Brevo, ${failedCount} skipped/failed`,
       results,
       processedAt: now.toISOString(),
     });
@@ -212,7 +236,8 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: "ok",
-    message: "SMTP-based spaced repetition reminder endpoint. Use POST to trigger reminders.",
+    message: "Brevo-based spaced repetition reminder endpoint. Use POST to trigger reminders.",
     timestamp: new Date().toISOString(),
   });
+}
 }
