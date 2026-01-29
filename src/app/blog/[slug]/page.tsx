@@ -103,7 +103,7 @@ function ArticleContent({ content }: { content: string }) {
               <span dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
             </li>
           ))}
-        </ul>
+        </ul>,
       );
       listItems = [];
     }
@@ -114,7 +114,7 @@ function ArticleContent({ content }: { content: string }) {
     return text
       .replace(
         /\*\*(.*?)\*\*/g,
-        '<strong class="text-white font-medium">$1</strong>'
+        '<strong class="text-white font-medium">$1</strong>',
       )
       .replace(/\*(.*?)\*/g, "<em>$1</em>");
   };
@@ -128,14 +128,14 @@ function ArticleContent({ content }: { content: string }) {
       elements.push(
         <h2 key={index} className="text-xl font-medium text-white mt-10 mb-4">
           {trimmed.replace("## ", "")}
-        </h2>
+        </h2>,
       );
     } else if (trimmed.startsWith("### ")) {
       flushList();
       elements.push(
         <h3 key={index} className="text-lg font-medium text-white mt-8 mb-3">
           {trimmed.replace("### ", "")}
-        </h3>
+        </h3>,
       );
     } else if (trimmed.startsWith("# ")) {
       flushList();
@@ -155,7 +155,7 @@ function ArticleContent({ content }: { content: string }) {
           key={index}
           className="text-zinc-400 leading-relaxed mb-4"
           dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }}
-        />
+        />,
       );
     }
   });
@@ -256,7 +256,10 @@ export default async function BlogArticlePage({
                   {post.viewCount} views
                 </span>
               )}
-              <button title="share" className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+              <button
+                title="share"
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
                 <Share2 className="w-4 h-4 text-zinc-500" />
               </button>
             </div>
