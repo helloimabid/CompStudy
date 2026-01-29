@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
 interface Profile {
   $id: string;
