@@ -867,7 +867,9 @@ export default function StudyTimer({
 
     // Check if user already has an active session (prevent duplicate sessions)
     if (isActive && sessionId && !overrides) {
-      alert("You already have an active study session. Please end or pause it before starting a new one.");
+      alert(
+        "You already have an active study session. Please end or pause it before starting a new one.",
+      );
       return;
     }
 
@@ -887,9 +889,9 @@ export default function StudyTimer({
         // There's an active session in DB but not tracked locally
         const existingSession = existingSessions.documents[0];
         const confirmResume = window.confirm(
-          "You have an existing active session. Would you like to resume it instead of starting a new one?"
+          "You have an existing active session. Would you like to resume it instead of starting a new one?",
         );
-        
+
         if (confirmResume) {
           // Resume the existing session
           const startTime = new Date(existingSession.startTime).getTime();
@@ -915,7 +917,9 @@ export default function StudyTimer({
           intervalRef.current = setInterval(() => {
             if (startTimeRef.current) {
               const currentNow = Date.now();
-              setElapsed(Math.floor((currentNow - startTimeRef.current) / 1000));
+              setElapsed(
+                Math.floor((currentNow - startTimeRef.current) / 1000),
+              );
             }
           }, 1000);
           return;
@@ -925,7 +929,7 @@ export default function StudyTimer({
             DB_ID,
             COLLECTIONS.STUDY_SESSIONS,
             existingSession.$id,
-            { status: "completed", endTime: new Date().toISOString() }
+            { status: "completed", endTime: new Date().toISOString() },
           );
         }
       }
