@@ -14,6 +14,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { Analytics } from "@vercel/analytics/next";
 
 // Use 'optional' for critical fonts to prevent CLS
 const inter = Inter({ 
@@ -451,6 +452,7 @@ export default function RootLayout({
             </footer>
           </RealtimeProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
