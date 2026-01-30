@@ -104,7 +104,7 @@ export default function AppPage() {
 
   const handleDownloadClick = async () => {
     if (!appData) return;
-    
+
     try {
       // Increment downloads count in the database
       const newDownloads = (appData.downloads || 0) + 1;
@@ -112,9 +112,9 @@ export default function AppPage() {
         DB_ID,
         COLLECTIONS.APP_LINKS,
         appData.$id,
-        { downloads: newDownloads }
+        { downloads: newDownloads },
       );
-      
+
       // Update local state to reflect the change
       setAppData({ ...appData, downloads: newDownloads });
     } catch (error) {
