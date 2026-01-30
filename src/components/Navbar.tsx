@@ -309,9 +309,9 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden border-t border-white/5 bg-[#0a0a0a]"
+            className="lg:hidden border-t border-white/5 bg-[#0a0a0a] max-h-[calc(100vh-3.5rem)] overflow-y-auto"
           >
-            <div className="px-4 py-6 space-y-6">
+            <div className="px-4 py-6 space-y-6 pb-8">
               {/* Study Section */}
               <div className="space-y-2">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">

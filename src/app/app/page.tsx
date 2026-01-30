@@ -102,6 +102,26 @@ export default function AppPage() {
     return num.toString() + "+";
   };
 
+  const handleDownloadClick = async () => {
+    if (!appData) return;
+    
+    try {
+      // Increment downloads count in the database
+      const newDownloads = (appData.downloads || 0) + 1;
+      await databases.updateDocument(
+        DB_ID,
+        COLLECTIONS.APP_LINKS,
+        appData.$id,
+        { downloads: newDownloads }
+      );
+      
+      // Update local state to reflect the change
+      setAppData({ ...appData, downloads: newDownloads });
+    } catch (error) {
+      console.error("Failed to update download count:", error);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#050505]">
       {/* Hero Section */}
@@ -177,6 +197,7 @@ export default function AppPage() {
                     href={appData.downloadLink}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={handleDownloadClick}
                     className="group inline-flex items-center gap-4 px-6 py-3 bg-[#a4c639] hover:bg-[#8db02e] text-black font-medium rounded-xl transition-all duration-300 shadow-lg shadow-[#a4c639]/25 hover:shadow-[#a4c639]/40"
                   >
                     {/* APKPure Logo */}
@@ -383,6 +404,7 @@ export default function AppPage() {
                   href={appData.downloadLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleDownloadClick}
                   className="group inline-flex items-center gap-4 px-6 py-3 bg-[#a4c639] hover:bg-[#8db02e] text-black font-medium rounded-xl transition-all duration-300 shadow-lg shadow-[#a4c639]/25 hover:shadow-[#a4c639]/40"
                 >
                   {/* APKPure Logo */}
