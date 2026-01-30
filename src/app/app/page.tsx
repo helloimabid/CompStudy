@@ -76,7 +76,11 @@ export default function AppPage() {
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.APP_LINKS,
-        [Query.equal("platform", "Android"), Query.equal("isActive", true), Query.limit(1)]
+        [
+          Query.equal("platform", "Android"),
+          Query.equal("isActive", true),
+          Query.limit(1),
+        ],
       );
 
       if (response.documents.length > 0) {
@@ -135,8 +139,8 @@ export default function AppPage() {
               </h1>
 
               <p className="text-lg text-zinc-400 leading-relaxed mb-8 max-w-lg">
-                Take your study sessions anywhere with the CompStudy Android app.
-                All the features you love, optimized for mobile.
+                Take your study sessions anywhere with the CompStudy Android
+                app. All the features you love, optimized for mobile.
               </p>
 
               {/* Download Stats */}
@@ -147,7 +151,9 @@ export default function AppPage() {
                   </div>
                   <div>
                     <div className="text-2xl font-semibold text-white">
-                      {loading ? "..." : formatDownloads(appData?.downloads || 0)}
+                      {loading
+                        ? "..."
+                        : formatDownloads(appData?.downloads || 0)}
                     </div>
                     <div className="text-sm text-zinc-500">Downloads</div>
                   </div>
@@ -180,14 +186,24 @@ export default function AppPage() {
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect width="512" height="512" rx="100" fill="#a4c639"/>
-                      <path d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z" fill="#fff"/>
-                      <circle cx="256" cy="256" r="80" fill="#fff"/>
-                      <path d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50" stroke="#fff" strokeWidth="20" strokeLinecap="round"/>
+                      <rect width="512" height="512" rx="100" fill="#a4c639" />
+                      <path
+                        d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z"
+                        fill="#fff"
+                      />
+                      <circle cx="256" cy="256" r="80" fill="#fff" />
+                      <path
+                        d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50"
+                        stroke="#fff"
+                        strokeWidth="20"
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <div className="flex flex-col items-start">
                       <span className="text-xs opacity-80">Get it on</span>
-                      <span className="text-lg font-bold tracking-tight">APKPure</span>
+                      <span className="text-lg font-bold tracking-tight">
+                        APKPure
+                      </span>
                     </div>
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </a>
@@ -218,7 +234,11 @@ export default function AppPage() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{
+                duration: 0.8,
+                delay: 0.2,
+                ease: [0.25, 0.1, 0.25, 1],
+              }}
               className="relative flex justify-center lg:justify-end"
             >
               {/* Phone Frame */}
@@ -258,7 +278,9 @@ export default function AppPage() {
                           {/* Decorative Elements */}
                           <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30" />
-                            <div className="text-white/50 text-xs">CompStudy</div>
+                            <div className="text-white/50 text-xs">
+                              CompStudy
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -310,7 +332,8 @@ export default function AppPage() {
               </span>
             </h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              All the powerful features from the web, optimized for your mobile device.
+              All the powerful features from the web, optimized for your mobile
+              device.
             </p>
           </motion.div>
 
@@ -365,7 +388,8 @@ export default function AppPage() {
                 Ready to boost your productivity?
               </h2>
               <p className="text-zinc-400 text-lg mb-8 max-w-xl mx-auto">
-                Join thousands of students who are already studying smarter with CompStudy on Android.
+                Join thousands of students who are already studying smarter with
+                CompStudy on Android.
               </p>
 
               {appData && (
@@ -382,14 +406,24 @@ export default function AppPage() {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <rect width="512" height="512" rx="100" fill="#a4c639"/>
-                    <path d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z" fill="#fff"/>
-                    <circle cx="256" cy="256" r="80" fill="#fff"/>
-                    <path d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50" stroke="#fff" strokeWidth="20" strokeLinecap="round"/>
+                    <rect width="512" height="512" rx="100" fill="#a4c639" />
+                    <path
+                      d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z"
+                      fill="#fff"
+                    />
+                    <circle cx="256" cy="256" r="80" fill="#fff" />
+                    <path
+                      d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50"
+                      stroke="#fff"
+                      strokeWidth="20"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <div className="flex flex-col items-start">
                     <span className="text-xs opacity-80">Get it on</span>
-                    <span className="text-lg font-bold tracking-tight">APKPure</span>
+                    <span className="text-lg font-bold tracking-tight">
+                      APKPure
+                    </span>
                   </div>
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </a>
