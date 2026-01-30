@@ -278,15 +278,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               DB_ID,
               COLLECTIONS.VISITORS,
               existing.documents[0].$id,
-              {
-                userId: newUserId,
-              },
+              { userId: newUserId },
             );
-            console.log("Updated visitor userId to:", newUserId);
           }
         }
-      } catch (error) {
-        console.error("Failed to update visitor userId:", error);
+      } catch {
+        // Silently fail - visitor userId update is best effort
       }
     };
 
