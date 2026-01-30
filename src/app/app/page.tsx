@@ -180,25 +180,11 @@ export default function AppPage() {
                     className="group inline-flex items-center gap-4 px-6 py-3 bg-[#a4c639] hover:bg-[#8db02e] text-black font-medium rounded-xl transition-all duration-300 shadow-lg shadow-[#a4c639]/25 hover:shadow-[#a4c639]/40"
                   >
                     {/* APKPure Logo */}
-                    <svg
-                      viewBox="0 0 512 512"
-                      className="w-10 h-10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect width="512" height="512" rx="100" fill="#a4c639" />
-                      <path
-                        d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z"
-                        fill="#fff"
-                      />
-                      <circle cx="256" cy="256" r="80" fill="#fff" />
-                      <path
-                        d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50"
-                        stroke="#fff"
-                        strokeWidth="20"
-                        strokeLinecap="round"
-                      />
-                    </svg>
+                    <img
+                      src="/apkpure.png"
+                      alt="APKPure"
+                      className="w-10 h-10 rounded-lg"
+                    />
                     <div className="flex flex-col items-start">
                       <span className="text-xs opacity-80">Get it on</span>
                       <span className="text-lg font-bold tracking-tight">
@@ -400,25 +386,11 @@ export default function AppPage() {
                   className="group inline-flex items-center gap-4 px-6 py-3 bg-[#a4c639] hover:bg-[#8db02e] text-black font-medium rounded-xl transition-all duration-300 shadow-lg shadow-[#a4c639]/25 hover:shadow-[#a4c639]/40"
                 >
                   {/* APKPure Logo */}
-                  <svg
-                    viewBox="0 0 512 512"
-                    className="w-10 h-10"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="512" height="512" rx="100" fill="#a4c639" />
-                    <path
-                      d="M256 100c-86 0-156 70-156 156s70 156 156 156 156-70 156-156-70-156-156-156zm0 280c-68.5 0-124-55.5-124-124s55.5-124 124-124 124 55.5 124 124-55.5 124-124 124z"
-                      fill="#fff"
-                    />
-                    <circle cx="256" cy="256" r="80" fill="#fff" />
-                    <path
-                      d="M350 150l30-50M162 150l-30-50M350 362l30 50M162 362l-30 50"
-                      stroke="#fff"
-                      strokeWidth="20"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <img
+                    src="/apkpure.png"
+                    alt="APKPure"
+                    className="w-10 h-10 rounded-lg"
+                  />
                   <div className="flex flex-col items-start">
                     <span className="text-xs opacity-80">Get it on</span>
                     <span className="text-lg font-bold tracking-tight">

@@ -151,7 +151,7 @@ export default function Navbar() {
     { href: "/about", label: "About" },
     { href: "/blog", label: "Blog" },
     {
-      href: "https://apkpure.com/compstudy/com.compstudy.compstudy",
+      href: "/app",
       label: "📱 Download App",
     },
     { href: "/faq", label: "FAQ" },
