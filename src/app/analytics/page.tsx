@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { Clock, TrendingUp, Calendar, Target } from "lucide-react";
+import { getDayStart } from "@/lib/utils";
 
 const COLORS = [
   "#6366f1",
@@ -33,6 +34,30 @@ export default function AnalyticsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("week"); // week, month, all
+  const [dayResetHour, setDayResetHour] = useState(0);
+
+  // Fetch user's dayResetHour preference
+  useEffect(() => {
+    const fetchDayResetHour = async () => {
+      if (!user) return;
+      try {
+        const profiles = await databases.listDocuments(
+          DB_ID,
+          COLLECTIONS.PROFILES,
+          [Query.equal("userId", user.$id)]
+        );
+        if (profiles.documents.length > 0) {
+          const profile = profiles.documents[0];
+          if (profile.dayResetHour !== undefined) {
+            setDayResetHour(profile.dayResetHour);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching day reset hour:", error);
+      }
+    };
+    fetchDayResetHour();
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -81,10 +106,15 @@ export default function AnalyticsPage() {
     );
     const totalHours = (totalSeconds / 3600).toFixed(1);
 
-    // Sessions by Day
+    // Sessions by Day - adjusted for user's dayResetHour
+    // This groups sessions into "days" based on the user's preferred reset time
     const sessionsByDay = sessions.reduce((acc: any, session) => {
-      const date = new Date(session.startTime).toLocaleDateString();
-      acc[date] = (acc[date] || 0) + (session.duration || 0) / 3600;
+      const sessionDate = new Date(session.startTime);
+      // Get the "adjusted day start" for this session
+      const adjustedDayStart = getDayStart(dayResetHour, sessionDate);
+      // Use the adjusted day start as the key (formatted as date string)
+      const dateKey = adjustedDayStart.toLocaleDateString();
+      acc[dateKey] = (acc[dateKey] || 0) + (session.duration || 0) / 3600;
       return acc;
     }, {});
 

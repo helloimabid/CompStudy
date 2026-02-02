@@ -91,6 +91,8 @@ export default function StudyTimer({
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(
     null,
   );
+  const [dayResetHour, setDayResetHour] = useState(0); // 0 = midnight, 4 = 4 AM, etc.
+  const [profileId, setProfileId] = useState<string | null>(null); // Store profile document ID
 
   const router = useRouter();
 
@@ -829,9 +831,32 @@ export default function StudyTimer({
           rank: profile.rank || 0,
           totalHours: profile.totalHours || 0,
         });
+        setProfileId(profile.$id);
+        // Load dayResetHour from profile
+        if (profile.dayResetHour !== undefined) {
+          setDayResetHour(profile.dayResetHour);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch profile stats:", error);
+    }
+  };
+
+  // Handler to update dayResetHour in the database
+  const handleDayResetHourChange = async (hour: number) => {
+    setDayResetHour(hour);
+    
+    if (!user || !profileId) return;
+    
+    try {
+      await databases.updateDocument(
+        DB_ID,
+        COLLECTIONS.PROFILES,
+        profileId,
+        { dayResetHour: hour }
+      );
+    } catch (error) {
+      console.error("Failed to update day reset hour:", error);
     }
   };
 
@@ -2582,6 +2607,8 @@ export default function StudyTimer({
             setMode("timer");
             setTargetDuration(focus * 60);
           }}
+          dayResetHour={dayResetHour}
+          setDayResetHour={user ? handleDayResetHourChange : undefined}
         />
 
         <SessionDesigner

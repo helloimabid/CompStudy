@@ -11,6 +11,7 @@ import {
   Type,
   Repeat,
   Zap,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
@@ -52,6 +53,8 @@ interface TimerSettingsProps {
   targetDuration: number;
   setTargetDuration: (duration: number) => void;
   applyPreset: (focus: number) => void;
+  dayResetHour?: number;
+  setDayResetHour?: (hour: number) => void;
 }
 
 const THEMES: { id: ThemeColor; name: string; color: string }[] = [
@@ -98,6 +101,8 @@ export default function TimerSettings({
   targetDuration,
   setTargetDuration,
   applyPreset,
+  dayResetHour = 0,
+  setDayResetHour,
 }: TimerSettingsProps) {
   // Helper to parse duration into hours, minutes, seconds
   const hours = Math.floor(targetDuration / 3600);
@@ -336,6 +341,65 @@ export default function TimerSettings({
                     </div>
                   </div>
                 </section>
+
+                {/* Day Reset Time - For Night Owls */}
+                {setDayResetHour && (
+                  <section>
+                    <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Moon size={14} /> Day Reset Time
+                    </h3>
+                    <div className="p-4 rounded-xl border border-white/5 bg-zinc-900/30">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={clsx(
+                              "w-10 h-10 rounded-full flex items-center justify-center",
+                              dayResetHour !== 0
+                                ? "bg-violet-500/20 text-violet-400"
+                                : "bg-zinc-800 text-zinc-500"
+                            )}
+                          >
+                            <Moon size={20} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">
+                              Night Owl Mode
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              When does your study day reset?
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-zinc-400">Reset at:</span>
+                          <select
+                            value={dayResetHour}
+                            onChange={(e) => setDayResetHour(parseInt(e.target.value))}
+                            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500/50"
+                            title="Day reset time"
+                            aria-label="Day reset time"
+                          >
+                            <option value={0}>12:00 AM (Midnight)</option>
+                            <option value={1}>1:00 AM</option>
+                            <option value={2}>2:00 AM</option>
+                            <option value={3}>3:00 AM</option>
+                            <option value={4}>4:00 AM</option>
+                            <option value={5}>5:00 AM</option>
+                            <option value={6}>6:00 AM</option>
+                          </select>
+                        </div>
+                        <p className="text-xs text-zinc-500 leading-relaxed">
+                          {dayResetHour === 0 
+                            ? "Your study stats reset at midnight each day."
+                            : `Perfect for night owls! Your study stats will reset at ${dayResetHour}:00 AM. Study sessions before ${dayResetHour}:00 AM count towards the previous day.`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+                )}
 
                 {/* Custom Duration */}
                 <section>
