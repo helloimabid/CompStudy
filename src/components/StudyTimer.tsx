@@ -845,16 +845,13 @@ export default function StudyTimer({
   // Handler to update dayResetHour in the database
   const handleDayResetHourChange = async (hour: number) => {
     setDayResetHour(hour);
-    
+
     if (!user || !profileId) return;
-    
+
     try {
-      await databases.updateDocument(
-        DB_ID,
-        COLLECTIONS.PROFILES,
-        profileId,
-        { dayResetHour: hour }
-      );
+      await databases.updateDocument(DB_ID, COLLECTIONS.PROFILES, profileId, {
+        dayResetHour: hour,
+      });
     } catch (error) {
       console.error("Failed to update day reset hour:", error);
     }

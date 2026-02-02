@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
         const profiles = await databases.listDocuments(
           DB_ID,
           COLLECTIONS.PROFILES,
-          [Query.equal("userId", user.$id)]
+          [Query.equal("userId", user.$id)],
         );
         if (profiles.documents.length > 0) {
           const profile = profiles.documents[0];
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
       const response = await databases.listDocuments(
         DB_ID,
         COLLECTIONS.STUDY_SESSIONS,
-        queries
+        queries,
       );
       setSessions(response.documents);
     } catch (error) {
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
     // Total Study Time
     const totalSeconds = sessions.reduce(
       (acc, session) => acc + (session.duration || 0),
-      0
+      0,
     );
     const totalHours = (totalSeconds / 3600).toFixed(1);
 
@@ -213,8 +213,8 @@ export default function AnalyticsPage() {
                 {range === "week"
                   ? "7 Days"
                   : range === "month"
-                  ? "30 Days"
-                  : "All Time"}
+                    ? "30 Days"
+                    : "All Time"}
               </button>
             ))}
           </div>

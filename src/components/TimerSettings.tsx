@@ -164,13 +164,13 @@ export default function TimerSettings({
                           "flex items-center gap-3 p-3 rounded-xl border transition-all",
                           themeColor === theme.id
                             ? "bg-white/5 border-white/20 ring-1 ring-white/20"
-                            : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10"
+                            : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10",
                         )}
                       >
                         <div
                           className={clsx(
                             "w-4 h-4 rounded-full shadow-lg shadow-current",
-                            theme.color
+                            theme.color,
                           )}
                         ></div>
                         <span className="text-sm text-zinc-300">
@@ -195,7 +195,7 @@ export default function TimerSettings({
                           "flex-1 py-2 text-xs font-medium rounded-lg capitalize transition-all",
                           visualMode === m
                             ? "bg-white/10 text-white shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-300"
+                            : "text-zinc-500 hover:text-zinc-300",
                         )}
                       >
                         {m}
@@ -220,7 +220,7 @@ export default function TimerSettings({
                           "py-3 px-4 text-sm font-medium rounded-xl capitalize transition-all border",
                           timerStyle === style
                             ? "bg-white/10 text-white border-white/20"
-                            : "bg-zinc-900/30 text-zinc-500 border-white/5 hover:bg-zinc-900/50 hover:text-zinc-300"
+                            : "bg-zinc-900/30 text-zinc-500 border-white/5 hover:bg-zinc-900/50 hover:text-zinc-300",
                         )}
                       >
                         {style}
@@ -243,13 +243,13 @@ export default function TimerSettings({
                           "py-3 px-4 rounded-xl transition-all border flex flex-col items-center gap-1",
                           timerFont === font.id
                             ? "bg-white/10 text-white border-white/20"
-                            : "bg-zinc-900/30 text-zinc-500 border-white/5 hover:bg-zinc-900/50 hover:text-zinc-300"
+                            : "bg-zinc-900/30 text-zinc-500 border-white/5 hover:bg-zinc-900/50 hover:text-zinc-300",
                         )}
                       >
                         <span
                           className={clsx(
                             "text-lg tabular-nums",
-                            font.className
+                            font.className,
                           )}
                         >
                           12:34
@@ -273,7 +273,7 @@ export default function TimerSettings({
                             "w-10 h-10 rounded-full flex items-center justify-center",
                             autoStartBreak
                               ? "bg-green-500/20 text-green-400"
-                              : "bg-zinc-800 text-zinc-500"
+                              : "bg-zinc-800 text-zinc-500",
                           )}
                         >
                           <Repeat size={20} />
@@ -291,13 +291,13 @@ export default function TimerSettings({
                         onClick={() => setAutoStartBreak(!autoStartBreak)}
                         className={clsx(
                           "w-12 h-6 rounded-full transition-colors relative",
-                          autoStartBreak ? "bg-green-600" : "bg-zinc-700"
+                          autoStartBreak ? "bg-green-600" : "bg-zinc-700",
                         )}
                       >
                         <div
                           className={clsx(
                             "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
-                            autoStartBreak ? "left-7" : "left-1"
+                            autoStartBreak ? "left-7" : "left-1",
                           )}
                         ></div>
                       </button>
@@ -310,7 +310,7 @@ export default function TimerSettings({
                             "w-10 h-10 rounded-full flex items-center justify-center",
                             autoStartFocus
                               ? "bg-indigo-500/20 text-indigo-400"
-                              : "bg-zinc-800 text-zinc-500"
+                              : "bg-zinc-800 text-zinc-500",
                           )}
                         >
                           <Repeat size={20} />
@@ -328,13 +328,13 @@ export default function TimerSettings({
                         onClick={() => setAutoStartFocus(!autoStartFocus)}
                         className={clsx(
                           "w-12 h-6 rounded-full transition-colors relative",
-                          autoStartFocus ? "bg-indigo-600" : "bg-zinc-700"
+                          autoStartFocus ? "bg-indigo-600" : "bg-zinc-700",
                         )}
                       >
                         <div
                           className={clsx(
                             "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
-                            autoStartFocus ? "left-7" : "left-1"
+                            autoStartFocus ? "left-7" : "left-1",
                           )}
                         ></div>
                       </button>
@@ -356,7 +356,7 @@ export default function TimerSettings({
                               "w-10 h-10 rounded-full flex items-center justify-center",
                               dayResetHour !== 0
                                 ? "bg-violet-500/20 text-violet-400"
-                                : "bg-zinc-800 text-zinc-500"
+                                : "bg-zinc-800 text-zinc-500",
                             )}
                           >
                             <Moon size={20} />
@@ -373,10 +373,14 @@ export default function TimerSettings({
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-zinc-400">Reset at:</span>
+                          <span className="text-sm text-zinc-400">
+                            Reset at:
+                          </span>
                           <select
                             value={dayResetHour}
-                            onChange={(e) => setDayResetHour(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              setDayResetHour(parseInt(e.target.value))
+                            }
                             className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500/50"
                             title="Day reset time"
                             aria-label="Day reset time"
@@ -391,10 +395,9 @@ export default function TimerSettings({
                           </select>
                         </div>
                         <p className="text-xs text-zinc-500 leading-relaxed">
-                          {dayResetHour === 0 
+                          {dayResetHour === 0
                             ? "Your study stats reset at midnight each day."
-                            : `Perfect for night owls! Your study stats will reset at ${dayResetHour}:00 AM. Study sessions before ${dayResetHour}:00 AM count towards the previous day.`
-                          }
+                            : `Perfect for night owls! Your study stats will reset at ${dayResetHour}:00 AM. Study sessions before ${dayResetHour}:00 AM count towards the previous day.`}
                         </p>
                       </div>
                     </div>
@@ -429,7 +432,7 @@ export default function TimerSettings({
                               updateDuration(
                                 Math.max(0, parseInt(e.target.value) || 0),
                                 minutes,
-                                seconds
+                                seconds,
                               )
                             }
                             className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -441,7 +444,7 @@ export default function TimerSettings({
                               updateDuration(
                                 Math.max(0, hours - 1),
                                 minutes,
-                                seconds
+                                seconds,
                               )
                             }
                             className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
@@ -466,7 +469,7 @@ export default function TimerSettings({
                               updateDuration(
                                 hours,
                                 Math.min(59, minutes + 1),
-                                seconds
+                                seconds,
                               )
                             }
                             className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
@@ -481,9 +484,9 @@ export default function TimerSettings({
                                 hours,
                                 Math.max(
                                   0,
-                                  Math.min(59, parseInt(e.target.value) || 0)
+                                  Math.min(59, parseInt(e.target.value) || 0),
                                 ),
-                                seconds
+                                seconds,
                               )
                             }
                             className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -495,7 +498,7 @@ export default function TimerSettings({
                               updateDuration(
                                 hours,
                                 Math.max(0, minutes - 1),
-                                seconds
+                                seconds,
                               )
                             }
                             className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
@@ -520,7 +523,7 @@ export default function TimerSettings({
                               updateDuration(
                                 hours,
                                 minutes,
-                                Math.min(59, seconds + 1)
+                                Math.min(59, seconds + 1),
                               )
                             }
                             className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
@@ -536,8 +539,8 @@ export default function TimerSettings({
                                 minutes,
                                 Math.max(
                                   0,
-                                  Math.min(59, parseInt(e.target.value) || 0)
-                                )
+                                  Math.min(59, parseInt(e.target.value) || 0),
+                                ),
                               )
                             }
                             className="w-12 h-12 bg-zinc-800 border border-zinc-700 rounded-lg text-center text-xl font-bold text-white focus:outline-none focus:border-indigo-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -549,7 +552,7 @@ export default function TimerSettings({
                               updateDuration(
                                 hours,
                                 minutes,
-                                Math.max(0, seconds - 1)
+                                Math.max(0, seconds - 1),
                               )
                             }
                             className="w-12 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-lg font-bold"
@@ -610,7 +613,7 @@ export default function TimerSettings({
                           "w-10 h-10 rounded-full flex items-center justify-center",
                           soundEnabled
                             ? "bg-indigo-500/20 text-indigo-400"
-                            : "bg-zinc-800 text-zinc-500"
+                            : "bg-zinc-800 text-zinc-500",
                         )}
                       >
                         {soundEnabled ? (
@@ -632,13 +635,13 @@ export default function TimerSettings({
                       onClick={() => setSoundEnabled(!soundEnabled)}
                       className={clsx(
                         "w-12 h-6 rounded-full transition-colors relative",
-                        soundEnabled ? "bg-indigo-600" : "bg-zinc-700"
+                        soundEnabled ? "bg-indigo-600" : "bg-zinc-700",
                       )}
                     >
                       <div
                         className={clsx(
                           "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
-                          soundEnabled ? "left-7" : "left-1"
+                          soundEnabled ? "left-7" : "left-1",
                         )}
                       ></div>
                     </button>
