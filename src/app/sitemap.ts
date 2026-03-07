@@ -35,13 +35,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/live`,
       lastModified: new Date(),
       changeFrequency: 'always',
-      priority: 0.85,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/leaderboards`,
       lastModified: new Date(),
       changeFrequency: 'hourly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/curriculum`,
@@ -56,6 +56,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/spaced-repetition`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/analytics`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -65,7 +71,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/create-room`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.7,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/app`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.75,
     },
     // Content Pages
     {
@@ -104,18 +116,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    // Timer & Productivity Tool Pages (SEO Keywords)
+    // Timer & Productivity Tool Pages (SEO Keywords - High Volume)
     {
       url: `${baseUrl}/pomodoro-timer`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.85,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/pomodoro-timer-online`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.85,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/aesthetic-pomodoro-timer`,
@@ -127,49 +139,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/pomodoro`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/pomofocus`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/timer`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/25-minute-timer`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/study-timer`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/stopwatch`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.75,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/stop-watch`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.75,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/online-stopwatch`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.75,
+      priority: 0.8,
     },
     // Auth & Legal Pages
     {

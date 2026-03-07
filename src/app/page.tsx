@@ -91,9 +91,9 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-zinc-400 max-w-xl mx-auto mb-8 md:mb-10 leading-relaxed font-light px-4">
-            Turn isolation into motivation. Join real-time study rooms, climb
-            the global leaderboards, and visualize your progress against
-            thousands of peers instantly.
+            Turn isolation into motivation. Join free online study rooms, climb
+            the global leaderboards, and track your study hours against
+            thousands of students worldwide.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -523,89 +523,107 @@ export default function Home() {
       </div>
 
       {/* SEO Content Section - Hidden but crawlable */}
-      <section className="sr-only" aria-hidden="true">
+      <section className="sr-only">
         <div className="max-w-7xl mx-auto px-6">
           <article className="max-w-4xl mx-auto space-y-8 text-zinc-400 text-sm leading-relaxed">
             <div>
               <h2 className="text-2xl font-bold text-white mb-4">
-                The Best Free Online Study Timer for Students
+                Free Online Study Room & Pomodoro Timer for Students
               </h2>
               <p>
                 CompStudy is the ultimate{" "}
-                <strong>free online study timer</strong> designed for students,
-                professionals, and anyone looking to improve their focus and
-                productivity. Our <strong>Pomodoro timer</strong> helps you
-                break down study sessions into manageable intervals with
+                <strong>free online study room</strong> and{" "}
+                <strong>study app</strong> designed for students,
+                professionals, and anyone looking to improve their{" "}
+                <strong>study focus</strong> and productivity. Our{" "}
+                <strong>Pomodoro timer</strong> helps you break down{" "}
+                <strong>study sessions</strong> into manageable intervals with
                 automatic break reminders, ensuring you maintain peak
-                concentration throughout your work.
+                concentration throughout your <strong>study time</strong>.
               </p>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold text-white mb-3">
-                Why Choose Our Study Timer?
+                Why Choose Our Study App?
               </h3>
               <p>
                 Unlike traditional timers, CompStudy combines the proven{" "}
-                <strong>Pomodoro technique</strong> with modern productivity
-                features. Track your <strong>study hours</strong>, set specific
-                goals for each session, and monitor your progress with detailed
-                analytics. Whether you're preparing for exams, working on
-                assignments, or building consistent study habits, our timer
-                adapts to your needs.
+                <strong>Pomodoro technique for studying</strong> with modern{" "}
+                <strong>online learning</strong> features. Track your{" "}
+                <strong>study hours</strong>, manage your{" "}
+                <strong>study schedule</strong>, and monitor your progress with
+                detailed analytics. Whether you're doing{" "}
+                <strong>exam preparation</strong>, working on assignments, or
+                building consistent <strong>study habits</strong>, our{" "}
+                <strong>study application</strong> adapts to your needs.
+                CompStudy is <strong>students free</strong> — no signup, no
+                payment required.
               </p>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold text-white mb-3">
-                Live Study Rooms & Community
+                Live Study Rooms — Study Together Online
               </h3>
               <p>
-                Study doesn't have to be lonely. Join{" "}
-                <strong>live study rooms</strong> where thousands of students
-                study together in real-time. See what others are working on,
-                stay motivated by the community, and compete on global
-                leaderboards. Our <strong>virtual study rooms</strong> create
-                accountability and make studying more engaging.
+                Overcome <strong>learning alone</strong> with our{" "}
+                <strong>virtual study room</strong> feature. Join{" "}
+                <strong>live study rooms</strong> where students worldwide{" "}
+                <strong>study together</strong> in real-time. See{" "}
+                <strong>students live</strong> sessions, stay motivated by the{" "}
+                <strong>study community</strong>, and compete on{" "}
+                <strong>global rank</strong> leaderboards. Create your own{" "}
+                <strong>online study room</strong> or join existing rooms for
+                any subject — physics, MCAT prep, or general{" "}
+                <strong>online study</strong>.
               </p>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold text-white mb-3">
-                Key Features
+                Key Features of the Best Free Study App
               </h3>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
-                  <strong>Pomodoro Timer:</strong> Customizable work and break
-                  intervals
+                  <strong>Pomodoro Timer:</strong> Customizable{" "}
+                  <strong>pomodoro technique for studying</strong> with work and
+                  break intervals
                 </li>
                 <li>
-                  <strong>Goal Tracking:</strong> Set and complete specific
-                  objectives each session
+                  <strong>Study Rooms:</strong> Free{" "}
+                  <strong>online study rooms</strong> for group and solo study
                 </li>
                 <li>
-                  <strong>Study Analytics:</strong> Track total hours, streaks,
-                  and productivity trends
+                  <strong>Study Tracker:</strong> Track{" "}
+                  <strong>study time</strong>, hours, streaks, and
+                  productivity trends
                 </li>
                 <li>
-                  <strong>Live Sessions:</strong> See real-time study sessions
-                  from students worldwide
+                  <strong>Live Sessions:</strong> See real-time{" "}
+                  <strong>study streaming</strong> from{" "}
+                  <strong>students online</strong> worldwide
                 </li>
                 <li>
-                  <strong>Leaderboards:</strong> Compete with peers and stay
-                  motivated
+                  <strong>Leaderboards:</strong> Compete with peers on{" "}
+                  <strong>global rank</strong> standings
                 </li>
                 <li>
-                  <strong>Break Reminders:</strong> Automatic alerts to prevent
-                  burnout
+                  <strong>Study Schedule:</strong> Plan and organize your{" "}
+                  <strong>study schedule</strong> effectively
                 </li>
                 <li>
-                  <strong>Session History:</strong> Review all past study
-                  sessions and progress
+                  <strong>Exam Preparation:</strong> Tools designed for{" "}
+                  <strong>exam preparation</strong> and{" "}
+                  <strong>online learning</strong>
                 </li>
                 <li>
-                  <strong>Multiple Timer Modes:</strong> Strict mode for
-                  distraction-free studying
+                  <strong>Study Analytics:</strong> Deep{" "}
+                  <strong>study focus</strong> insights and progress tracking
+                </li>
+                <li>
+                  <strong>Free Study Tools:</strong> All{" "}
+                  <strong>online study tools</strong> available at no cost
                 </li>
               </ul>
             </div>
@@ -615,42 +633,51 @@ export default function Home() {
                 Perfect for Every Study Need
               </h3>
               <p>
-                Whether you need a <strong>homework timer</strong>,{" "}
-                <strong>exam preparation tracker</strong>, or{" "}
-                <strong>deep work session manager</strong>, CompStudy provides
-                the tools you need. Students use our timer for:
+                Whether you need a <strong>free study app</strong> for{" "}
+                <strong>exam preparation</strong>, a{" "}
+                <strong>study tracker</strong> for daily goals, or{" "}
+                <strong>free online study tools</strong> for deep work sessions,
+                CompStudy provides everything. Students use our{" "}
+                <strong>study application</strong> for:
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
-                <li>College exam preparation and finals week</li>
-                <li>High school homework and assignments</li>
-                <li>Professional certification studying</li>
-                <li>Language learning and practice</li>
+                <li>College <strong>exam preparation</strong> and finals week</li>
+                <li>High school homework and <strong>online learning</strong></li>
+                <li>Professional <strong>online certification</strong> studying</li>
+                <li><strong>Physics study</strong> and science courses</li>
                 <li>Research and thesis writing</li>
-                <li>Online course completion</li>
+                <li><strong>Free online</strong> course completion</li>
+                <li><strong>Study schedule</strong> management and time tracking</li>
+                <li>Building better <strong>study habits</strong> with the Pomodoro technique</li>
               </ul>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold text-white mb-3">
-                Boost Your Productivity Today
+                Start Your Free Online Study Session Today
               </h3>
               <p>
                 Start using the most comprehensive{" "}
-                <strong>study timer app</strong> available online. Join over
-                10,000 students who have improved their focus, built consistent
-                study habits, and achieved their academic goals with CompStudy.
-                It's completely free, works on any device, and requires no
-                download or installation.
+                <strong>study app</strong> available online. Join students
+                worldwide who have improved their <strong>study focus</strong>,
+                built consistent <strong>study habits</strong>, and achieved
+                their academic goals with CompStudy. It's completely{" "}
+                <strong>free online</strong>, works on any device, and requires
+                no download or installation. The{" "}
+                <strong>best free study app</strong> for{" "}
+                <strong>students free</strong> of charge.
               </p>
             </div>
 
             <div className="pt-4">
               <p className="text-xs text-zinc-600">
-                <strong>Related searches:</strong> study timer online, pomodoro
-                timer free, focus timer, study timer with music, concentration
-                timer, online study room, study tracker app, productivity timer,
-                homework timer, exam timer, study session timer, study planner
-                online, focus app for students, time management for students
+                <strong>Related searches:</strong> study room, online study,
+                study app, free online, study timer, study focus, study together,
+                online learning, exam preparation, study habits, study schedule,
+                pomodoro technique for studying, study sessions, study tracker,
+                free study app, virtual study room, online study room, study
+                streaming, students free, study time, learning alone, study
+                community, students online, best free study app, study hours
               </p>
             </div>
           </article>

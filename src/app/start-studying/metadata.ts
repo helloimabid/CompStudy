@@ -1,19 +1,25 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Start Studying - Create or Join Study Room | Study Timer",
+  title: "Start Studying Online - Free Study Room & Pomodoro Timer",
   description:
-    "Start a new study session with customizable Pomodoro timer. Create private or public study rooms, set goals, track breaks, and focus better.",
+    "Start a free online study session with customizable Pomodoro timer. Create or join study rooms, study together with students, track study time, and focus better.",
   keywords: [
     "start study session",
     "create study room",
-    "join study group",
+    "join study room",
+    "study together online",
+    "free online study",
+    "online study room",
     "pomodoro session",
-    "begin studying online"
+    "study sessions",
+    "begin studying online",
+    "study focus",
+    "study app",
   ],
   openGraph: {
-    title: "Start Your Study Session - CompStudy Timer",
-    description: "Begin your focused study session with Pomodoro technique and goal tracking.",
+    title: "Start Your Free Online Study Session - CompStudy",
+    description: "Begin your focused study session with Pomodoro technique, study rooms, and goal tracking. Free for all students.",
   },
   alternates: {
     canonical: "https://compstudy.tech/start-studying",

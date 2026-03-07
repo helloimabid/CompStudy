@@ -17,23 +17,28 @@ import {
 
 // Metadata - always canonical to /blog regardless of query params
 export const metadata: Metadata = {
-  title: "Study Tips & Productivity Blog | CompStudy",
+  title: "Study Tips, Online Learning & Productivity Blog | CompStudy",
   description:
-    "Discover proven study techniques, productivity tips, and academic success strategies. Learn about the Pomodoro technique, focus methods, time management, and more on the CompStudy blog.",
+    "Discover proven study techniques, exam preparation tips, and online learning strategies. Learn about the Pomodoro technique for studying, study habits, time management, study schedule planning, and more.",
   keywords: [
     "study tips",
     "productivity blog",
-    "pomodoro technique",
+    "pomodoro technique for studying",
     "study strategies",
-    "academic success",
-    "focus tips",
-    "time management",
+    "online learning",
+    "exam preparation",
+    "study habits",
+    "time management study",
     "student productivity",
+    "study schedule",
+    "study focus",
+    "study sessions",
+    "free online learning",
   ],
   openGraph: {
-    title: "Study Tips & Productivity Blog | CompStudy",
+    title: "Study Tips & Online Learning Blog | CompStudy",
     description:
-      "Discover proven study techniques, productivity tips, and academic success strategies.",
+      "Discover proven study techniques, exam preparation tips, and online learning strategies for students.",
     type: "website",
   },
   alternates: {

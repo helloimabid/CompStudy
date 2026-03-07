@@ -1,7 +1,28 @@
-"use client";
-
 import { Metadata } from "next";
-import StudyTimer from "@/components/StudyTimer";
+import OnlineStopwatchClient from "./Client";
+
+export const metadata: Metadata = {
+  title: "Online Stopwatch - Free Study & Time Tracker",
+  description: "Clean and simple free online stopwatch for students. Track study time, study sessions, and study hours. No signup required. Best free online study tool.",
+  keywords: [
+    "online stopwatch",
+    "free online stopwatch",
+    "study time tracker",
+    "free online",
+    "study time",
+    "study hours",
+    "free study tools",
+    "students free",
+    "online study tools",
+  ],
+  openGraph: {
+    title: "Free Online Stopwatch - Study Time Tracker",
+    description: "Clean and simple online stopwatch for tracking study sessions. Free with no signup.",
+  },
+  alternates: {
+    canonical: "https://compstudy.tech/online-stopwatch",
+  },
+};
 
 export default function OnlineStopwatchPage() {
   return (
@@ -9,14 +30,15 @@ export default function OnlineStopwatchPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Online Stopwatch - Free Web-Based Timer
+            Online Stopwatch — Free Study & Time Tracker
           </h1>
           <p className="text-zinc-400">
-            Full-featured online stopwatch that works in your browser. No
-            installation needed. Time anything, anywhere.
+            Full-featured free online stopwatch for students. Track study time
+            and study sessions with no installation needed. The best free
+            online study tool.
           </p>
         </div>
-        <StudyTimer />
+        <OnlineStopwatchClient />
       </div>
     </div>
   );

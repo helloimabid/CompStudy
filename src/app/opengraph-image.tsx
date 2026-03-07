@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "CompStudy - Free Online Study Timer & Pomodoro Focus App";
+export const alt = "CompStudy - Free Online Study Room & Pomodoro Timer | Study Together";
 export const size = {
   width: 1200,
   height: 630,
@@ -74,7 +74,7 @@ export default async function Image() {
             maxWidth: "900px",
           }}
         >
-          Study alone, compete together.
+          Free Online Study Room & Pomodoro Timer
         </div>
 
         {/* Subtitle */}
@@ -87,7 +87,7 @@ export default async function Image() {
             marginBottom: "48px",
           }}
         >
-          Free Pomodoro Timer • Live Study Rooms • Track Your Progress
+          Study Together Online • Live Study Rooms • Exam Preparation
         </div>
 
         {/* Features (instead of fake stats) */}
@@ -116,7 +116,7 @@ export default async function Image() {
               ⏱️
             </div>
             <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
-              Pomodoro Timer
+              Pomodoro Study Timer
             </div>
           </div>
           <div
@@ -137,7 +137,7 @@ export default async function Image() {
               👥
             </div>
             <div style={{ fontSize: "18px", color: "#e4e4e7" }}>
-              Live Rooms
+              Live Study Rooms
             </div>
           </div>
           <div
@@ -193,7 +193,7 @@ export default async function Image() {
             color: "#71717a",
           }}
         >
-          • Start studying now
+          compstudy.tech • Free Study App for Online Learning
         </div>
       </div>
     ),

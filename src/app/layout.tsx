@@ -58,42 +58,71 @@ const electrolize = Electrolize({
 export const metadata: Metadata = {
   metadataBase: new URL("https://compstudy.tech"),
   title: {
-    default: "CompStudy - Free Online Study Timer & Pomodoro Focus App",
+    default: "CompStudy - Free Online Study Room & Pomodoro Timer | Study Together",
     template: "%s | CompStudy",
   },
   description:
-    "Free online Pomodoro study timer with live study rooms, leaderboards, and focus tracking. Study together, compete with friends, stay motivated. No signup required.",
+    "Free online study room with Pomodoro timer, live study sessions, and global leaderboards. Study together with students worldwide, track study hours, manage study schedule, and stay focused. No signup required.",
   keywords: [
-    // Primary keywords
+    // Highest volume keywords (from keyword research)
+    "online learning",
+    "study room",
+    "room for study",
+    "study for work",
+    "free online",
+    "exam preparation",
+    "students free",
+    "online study",
+    "study app",
+    "study application",
+    "study streaming",
+    "study schedule",
+    "study habits",
+    "pomodoro technique for studying",
+    "study time",
+    "study focus",
+    "study sessions",
+    "study together",
+    "free study app",
+
+    // Primary tool keywords
     "study timer",
     "free study timer",
     "pomodoro timer",
     "online study timer",
     "study timer online",
+    "focus timer",
+    "study tracker",
 
-    // Long-tail keywords (from your Ahrefs research)
-    "study timer aesthetic",
-    "pomodoro study timer",
-    "aesthetic study timer",
-    "2 hour study timer",
-    "study timer with breaks",
-    "25 minute study timer",
-
-    // Feature-specific
+    // Feature-specific keywords
     "online study room",
-    "study with friends online",
+    "virtual study room",
     "live study room",
     "study together online",
     "study leaderboard",
-    "competitive studying",
+    "free online study",
+    "students study app",
+    "free study tools",
+    "online study tools",
 
-    // Intent-based
-    "focus timer",
+    // Long-tail keywords
+    "study timer aesthetic",
+    "pomodoro study timer",
+    "aesthetic study timer",
+    "study timer with breaks",
+    "25 minute study timer",
+    "learning alone",
+    "study community",
+    "study live",
+    "students online",
+    "app to help you study",
+    "best free study app",
+    "study hours",
     "concentration timer",
     "productivity timer",
     "deep work timer",
-    "study motivation app",
-    "time management app",
+    "time management study",
+    "global rank",
   ],
   authors: [{ name: "CompStudy Team" }],
   creator: "CompStudy",
@@ -130,9 +159,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://compstudy.tech",
-    title: "CompStudy - Free Study Timer with Live Rooms & Leaderboards",
+    title: "CompStudy - Free Online Study Room & Pomodoro Timer for Students",
     description:
-      "Join students worldwide using our free Pomodoro study timer. Live study rooms, competitive leaderboards, and focus tracking. No signup needed to start!",
+      "Join students worldwide in free online study rooms. Pomodoro timer, live study sessions, competitive leaderboards, and study tracking. Start studying now, no signup needed!",
     siteName: "CompStudy",
     images: [
       {
@@ -145,9 +174,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CompStudy - Free Study Timer & Pomodoro App",
+    title: "CompStudy - Free Online Study App & Pomodoro Timer",
     description:
-      "Track study time, join live rooms, compete on leaderboards. Free Pomodoro timer for students. Start now, no signup required!",
+      "Track study time, join live study rooms, compete on global leaderboards. Free Pomodoro timer and study app for students. Start now, no signup required!",
     images: ["/opengraph-image"],
     creator: "@compstudy", // Change this when you create the Twitter account
   },
@@ -207,7 +236,7 @@ export default function RootLayout({
               alternateName: "CompStudy Study Timer",
               url: "https://compstudy.tech",
               description:
-                "Free online study timer with Pomodoro technique, live study rooms, and productivity tracking",
+                "Free online study room and Pomodoro timer for students. Online learning platform with live study sessions, exam preparation tools, and study tracking",
               // Removed potentialAction - only add if you have actual search functionality
             }),
           }}
@@ -230,7 +259,7 @@ export default function RootLayout({
                 priceCurrency: "USD",
               },
               description:
-                "Free study timer with Pomodoro technique, live study rooms, goal tracking, and productivity analytics for students",
+                "Free study app with Pomodoro technique, online study rooms, study schedule management, exam preparation, and study analytics for students worldwide",
               featureList: [
                 "Pomodoro Timer",
                 "Customizable Study Sessions",
@@ -240,6 +269,10 @@ export default function RootLayout({
                 "Study Streak Counter",
                 "Break Reminders",
                 "Session History",
+                "Study Schedule Management",
+                "Exam Preparation Tools",
+                "Spaced Repetition",
+                "Study Together Online",
                 "No Registration Required",
               ],
               screenshot: "https://compstudy.tech/opengraph-image",

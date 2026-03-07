@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'CompStudy - Study Timer & Focus App',
+    name: 'CompStudy - Free Online Study Room & Pomodoro Timer',
     short_name: 'CompStudy',
-    description: 'Free online study timer with Pomodoro technique, live study rooms, and productivity tracking',
+    description: 'Free online study room with Pomodoro timer, live study sessions, and global leaderboards. Study together with students worldwide.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0a0a0a',

@@ -1,20 +1,29 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Live Study Sessions - See Students Studying in Real-Time",
+  title: "Live Study Sessions - Students Studying Online in Real-Time",
   description:
-    "Watch live study sessions from students worldwide. See what others are studying right now, join study rooms, and get motivated by the community studying together.",
+    "Watch live study sessions from students worldwide. Join free online study rooms, study together in real-time, and get motivated by the global study community. See students live studying now.",
   keywords: [
     "live study sessions",
     "study with me live",
     "online study rooms",
     "virtual study group",
     "real-time study tracker",
-    "study together online"
+    "study together online",
+    "students live",
+    "study streaming",
+    "live study room",
+    "study live",
+    "live students studying",
+    "students online",
+    "study together live",
+    "online live study room",
+    "study community",
   ],
   openGraph: {
-    title: "Live Study Sessions - Join Students Studying Now",
-    description: "See what thousands of students are studying right now. Join live study rooms and study together.",
+    title: "Live Study Sessions - Join Students Studying Online Now",
+    description: "See what thousands of students are studying right now. Join free online study rooms and study together live.",
   },
   alternates: {
     canonical: "https://compstudy.tech/live",

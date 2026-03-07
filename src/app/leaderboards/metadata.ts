@@ -1,20 +1,26 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Study Leaderboards - Top Students Rankings Worldwide",
+  title: "Study Leaderboards - Global Student Rankings & Study Hours",
   description:
-    "Global study leaderboards showing top students by study hours, streaks, and XP. Compete with students worldwide, climb rankings, and stay motivated.",
+    "Global study leaderboards showing top students by study hours, streaks, and XP. Compete with students worldwide, climb global rank, and stay motivated. Free online study competition.",
   keywords: [
     "study leaderboard",
     "student rankings",
     "top students",
     "study competition",
     "study hours ranking",
-    "productivity leaderboard"
+    "global rank",
+    "students worldwide",
+    "study hours",
+    "students online",
+    "global study",
+    "study tracker",
+    "students study",
   ],
   openGraph: {
-    title: "Study Leaderboards - Compete with Top Students",
-    description: "See global rankings of top students by study hours and streaks. Join the competition!",
+    title: "Study Leaderboards - Global Student Rankings",
+    description: "See global rankings of top students by study hours and streaks. Compete with students worldwide!",
   },
   alternates: {
     canonical: "https://compstudy.tech/leaderboards",

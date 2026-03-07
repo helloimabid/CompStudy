@@ -1,3 +1,4 @@
+export { metadata } from "./metadata";
 import { Zap, Globe, BarChart2, Shield, ArrowRight } from "lucide-react";
 import Link from "next/link";
 

@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Study Dashboard - Track Your Focus Time & Productivity",
+  title: "Study Dashboard - Track Study Hours, Streaks & Focus Time",
   description:
-    "View your study statistics, track daily streaks, monitor total study hours, and see recent study sessions. Personal study analytics dashboard.",
+    "Personal study dashboard to view your study statistics, track daily streaks, monitor total study hours, and manage study sessions. Free study tracker and analytics.",
   openGraph: {
-    title: "Study Dashboard - CompStudy",
-    description: "Track your study progress, view statistics, and manage your study sessions.",
+    title: "Study Dashboard - Track Your Study Progress",
+    description: "Track your study hours, view study statistics, and manage your study sessions.",
   },
   alternates: {
     canonical: "https://compstudy.tech/dashboard",
