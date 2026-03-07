@@ -387,14 +387,14 @@ export default function AboutClient() {
                         feature.color === "indigo"
                           ? "text-indigo-400"
                           : feature.color === "emerald"
-                          ? "text-emerald-400"
-                          : feature.color === "amber"
-                          ? "text-amber-400"
-                          : feature.color === "purple"
-                          ? "text-purple-400"
-                          : feature.color === "orange"
-                          ? "text-orange-400"
-                          : "text-sky-400"
+                            ? "text-emerald-400"
+                            : feature.color === "amber"
+                              ? "text-amber-400"
+                              : feature.color === "purple"
+                                ? "text-purple-400"
+                                : feature.color === "orange"
+                                  ? "text-orange-400"
+                                  : "text-sky-400"
                       }`}
                     />
                     <span className="text-sm text-zinc-300">
