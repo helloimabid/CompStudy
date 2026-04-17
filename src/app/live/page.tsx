@@ -263,10 +263,30 @@ export default function LiveSessionsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const getDuration = (startTime: string) => {
-    const start = new Date(startTime).getTime();
-    const diff = Math.floor((currentTime - start) / 1000); // seconds
-    return diff;
+  const getElapsedSeconds = (
+    session: StudySession,
+    nowMs: number = currentTime,
+  ) => {
+    const startMs = new Date(session.startTime).getTime();
+    const lastUpdateMs = session.lastUpdateTime
+      ? new Date(session.lastUpdateTime).getTime()
+      : startMs;
+
+    const baseElapsed =
+      typeof session.elapsedTime === "number"
+        ? session.elapsedTime
+        : Math.max(Math.floor((lastUpdateMs - startMs) / 1000), 0);
+
+    if (session.status !== "active") return baseElapsed;
+
+    const liveGapMs = nowMs - lastUpdateMs;
+    const maxLiveGapMs = 90 * 1000;
+
+    if (liveGapMs >= 0 && liveGapMs <= maxLiveGapMs) {
+      return baseElapsed + Math.floor(liveGapMs / 1000);
+    }
+
+    return baseElapsed;
   };
 
   const formatDuration = (seconds: number) => {
@@ -301,7 +321,7 @@ export default function LiveSessionsPage() {
 
   const getProgress = (session: StudySession) => {
     if (!session.duration || session.duration === 0) return null;
-    const elapsed = getDuration(session.startTime);
+    const elapsed = getElapsedSeconds(session);
     return Math.min((elapsed / session.duration) * 100, 100);
   };
 
@@ -353,10 +373,8 @@ export default function LiveSessionsPage() {
             <span className="text-zinc-400">
               <span className="text-white font-medium">
                 {Math.round(
-                  sessions.reduce(
-                    (acc, s) => acc + getDuration(s.startTime),
-                    0,
-                  ) / 60,
+                  sessions.reduce((acc, s) => acc + getElapsedSeconds(s), 0) /
+                    60,
                 )}
               </span>{" "}
               total min
@@ -416,7 +434,7 @@ export default function LiveSessionsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {sessions.map((session, idx) => {
-                  const elapsed = getDuration(session.startTime);
+                  const elapsed = getElapsedSeconds(session);
                   const progress = getProgress(session);
                   const goals = parseGoals(session.goal);
                   const completedGoals = goals.filter(
@@ -836,9 +854,24 @@ function SessionDetailView({
   currentTime: number;
   profilePictures: Record<string, Profile>;
 }) {
-  const elapsed = Math.floor(
-    (currentTime - new Date(session.startTime).getTime()) / 1000,
-  );
+  const elapsed = (() => {
+    const startMs = new Date(session.startTime).getTime();
+    const lastUpdateMs = session.lastUpdateTime
+      ? new Date(session.lastUpdateTime).getTime()
+      : startMs;
+    const baseElapsed =
+      typeof session.elapsedTime === "number"
+        ? session.elapsedTime
+        : Math.max(Math.floor((lastUpdateMs - startMs) / 1000), 0);
+    const liveGapMs = currentTime - lastUpdateMs;
+    const maxLiveGapMs = 90 * 1000;
+
+    if (session.status !== "active") return baseElapsed;
+    if (liveGapMs >= 0 && liveGapMs <= maxLiveGapMs) {
+      return baseElapsed + Math.floor(liveGapMs / 1000);
+    }
+    return baseElapsed;
+  })();
   const progress =
     session.duration && session.duration > 0
       ? Math.min((elapsed / session.duration) * 100, 100)

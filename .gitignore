@@ -48,3 +48,4 @@ worker/
 email-templates/
 
 .gitignore
+agents.md
