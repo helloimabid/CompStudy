@@ -367,6 +367,7 @@ export default function RootLayout({
 
             {children}
             <PushNotificationManager />
+            <Analytics />
 
             {/* Footer */}
             <footer className="py-24 text-center bg-black relative border-t border-white/5">
